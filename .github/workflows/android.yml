@@ -1,0 +1,54 @@
+name: Build RoadGuard GH Android app
+
+# Runs when you press "Run workflow" on GitHub, or when files change.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install packages
+        run: npm ci
+
+      - name: Create the Android project
+        run: |
+          npx cap add android
+          node scripts/patch-android.js
+          npx capacitor-assets generate --android --iconBackgroundColor '#050D22' --splashBackgroundColor '#050D22'
+          npx cap sync android
+
+      - name: Add the signing key
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/roadguard.jks
+
+      - name: Build the app
+        working-directory: android
+        env:
+          RG_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+          cp app/build/outputs/apk/release/app-release.apk ../RoadGuardGH.apk
+
+      - name: Save the app file
+        uses: actions/upload-artifact@v4
+        with:
+          name: RoadGuardGH-android-app
+          path: RoadGuardGH.apk
