@@ -72,3 +72,13 @@ jobs:
           git init -q -b apk && git config user.name "github-actions" && git config user.email "github-actions@users.noreply.github.com"
           git add RoadGuardGH.apk && git commit -qm "RoadGuard GH app, build ${{ github.run_number }}"
           git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" apk
+
+      - name: Publish a downloadable release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V=$(node -p "require('./package.json').version")
+          gh release create "v$V-build${{ github.run_number }}" RoadGuardGH.apk \
+            --repo "${{ github.repository }}" --title "RoadGuard GH $V (build ${{ github.run_number }})" \
+            --notes "Android app for RoadGuard GH. Download RoadGuardGH.apk below, open it on your Android phone and tap Install." --latest
+
