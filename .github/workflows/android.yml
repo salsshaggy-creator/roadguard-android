@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Get the code
         uses: actions/checkout@v5
@@ -63,3 +65,10 @@ jobs:
         with:
           name: RoadGuardGH-android-app
           path: RoadGuardGH.apk
+
+      - name: Publish the app file to the "apk" branch
+        run: |
+          mkdir -p /tmp/out && cp RoadGuardGH.apk /tmp/out/ && cd /tmp/out
+          git init -q -b apk && git config user.name "github-actions" && git config user.email "github-actions@users.noreply.github.com"
+          git add RoadGuardGH.apk && git commit -qm "RoadGuard GH app, build ${{ github.run_number }}"
+          git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" apk
