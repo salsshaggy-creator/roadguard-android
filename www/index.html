@@ -343,9 +343,13 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
       <div class="mini num"><span><b id="sDist">0.0</b>km</span><span><b id="sMax">0</b>max km/h</span><span><b id="sFlags">0</b>flags</span></div>
     </div>
 
-    <a class="card noprint" id="apkCard" href="/RoadGuardGH.apk" download style="display:none;text-decoration:none;color:inherit;align-items:center;gap:14px;border-color:rgba(46,224,122,.55)">
+    <a class="card noprint" id="apkCard" href="https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk" download="RoadGuardGH.apk" type="application/vnd.android.package-archive" style="display:none;text-decoration:none;color:inherit;align-items:center;gap:14px;border-color:rgba(46,224,122,.55)">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="#3DDC84" style="flex:none"><path d="M17.6 9.48l1.84-3.18a.38.38 0 0 0-.66-.38l-1.86 3.22A11.4 11.4 0 0 0 12 8.2a11.4 11.4 0 0 0-4.92.94L5.22 5.92a.38.38 0 0 0-.66.38L6.4 9.48A10.8 10.8 0 0 0 1 18h22a10.8 10.8 0 0 0-5.4-8.52ZM7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Zm10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Z"/></svg>
-      <div style="flex:1"><b style="font-family:var(--cond);font-size:19px">Get the free Android app</b><div class="note" style="margin:2px 0 0">Keeps recording with the screen off. Tap to download, then open the file and allow the install.</div></div><span style="font-size:22px">⬇</span></a>
+      <div style="flex:1"><b style="font-family:var(--cond);font-size:19px">Get the free Android app</b><div class="note" style="margin:2px 0 0">Keeps recording with the screen off. Tap to download (14 MB), then tap <b>Open</b> → <b>Install</b>.<br><b>Stuck on “Downloading”?</b> Open <b>roadguard-gh.web.app</b> in the <b>Chrome</b> app itself (not from WhatsApp or a QR scanner) and tap here again.</div></div><span style="font-size:22px">⬇</span></a>
+    <div class="card noprint" id="apkDesk" style="display:none;align-items:center;gap:16px;border-color:rgba(46,224,122,.55)">
+      <img alt="QR code for the RoadGuard Android app" width="120" height="120" style="border-radius:10px;background:#fff;padding:6px;flex:none" src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=0&data=https%3A%2F%2Froadguard-gh.web.app%2F%3Fandroid%3D1">
+      <div><b style="font-family:var(--cond);font-size:20px">Get the free Android app</b>
+        <div class="note" style="margin:4px 0 0">On your Android phone, open the <b>Chrome</b> app and go to <b>roadguard-gh.web.app</b>, then tap <b>Get the free Android app</b>.<br>Scanning this code also works, but if the download freezes, use Chrome instead.</div></div></div>
     <div class="ctl noprint" id="ctlIdle"><button class="btn btn-go" id="btnStart">▶ START JOURNEY</button></div>
     <div class="ctl noprint" id="ctlRec" style="display:none"><button class="btn btn-stop" id="btnStop">■ END JOURNEY</button></div>
     <div class="vehpick noprint" id="vehPick" style="display:none"><label for="selVeh">Driving:</label><select id="selVeh"></select></div>
@@ -421,7 +425,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 0.8. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 in built-up areas; 90 on open roads; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 0.8.2. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 in built-up areas; 90 on open roads; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -601,7 +605,12 @@ function nearestRoad(p,hdg){let best=null,bs=Infinity;const seen=new Set();
     if(score<bs){bs=score;best=w}}
   return best}
 function nearAmenity(p,m){for(const t of tilesNear(p))for(const a of t.amen)if(hav(p,{lat:a[0],lon:a[1]})<=m)return true;return false}
-function builtUp(p){const t=tiles.get(tkey(p.lat,p.lon));return t&&t.ways?t.buildings>=BUILT_UP_MIN:false}
+// built-up test looks at the tile you're in AND its neighbours, so crossing a map-tile edge in traffic can't flip it.
+// returns null (unknown) while the map data is still loading, instead of guessing 'not built-up'.
+function builtUp(p){const a=Math.floor(p.lat/TILE),o=Math.floor(p.lon/TILE),c=tiles.get(a+':'+o);
+  if(!c||!c.ways) return null; if(c.buildings>=BUILT_UP_MIN) return true;
+  let near=0; for(const da of [-1,0,1])for(const dn of [-1,0,1]){if(!da&&!dn)continue;const t=tiles.get((a+da)+':'+(o+dn));if(t&&t.ways&&t.buildings>=BUILT_UP_MIN)near++}
+  return near>=2||(near>=1&&c.buildings>=BUILT_UP_MIN/3)}
 function nearestPlace(p){let best=null,bd=2500;for(const t of tilesNear(p))for(const pl of t.places){const d=hav(p,pl);if(d<bd){bd=d;best=pl.n}}return best}
 function parseMax(v){ if(!v) return null; const m=String(v).match(/(\d+)\s*(mph)?/i); if(!m) return null; return m[2]?Math.round(+m[1]*1.609):+m[1]; }
 function limitFor(p,w){
@@ -610,21 +619,35 @@ function limitFor(p,w){
   if(posted) return {lim:posted,src:'Posted limit (map data)'};
   if(/^motorway/.test(hw)) return {lim:100,src:'Motorway (general limit)'};
   if(!/^(motorway|trunk)/.test(hw)&&nearAmenity(p,60)) return {lim:30,src:'School/market/hospital area (estimated)'};
-  if(builtUp(p)) return {lim:50,src:'Built-up area (estimated)'};
+  const bu=builtUp(p); if(bu==null) return {lim:null,src:'Loading map data…'};
+  if(bu) return {lim:50,src:'Built-up area (estimated)'};
   return {lim:90,src:'Outside built-up area (estimated)'};
 }
-const MS={cur:null,cand:null,n:0};
+const MS={cur:null,cand:null,n:0,dist:0,last:null,nullDist:0};
+// A new limit only takes over after you've driven a real distance on it, not after a couple of seconds:
+//  - lower posted limit: 60 m · lower estimated limit: 150 m · any higher limit: 300 m
+// Sitting in traffic covers almost no distance, so the limit can't jump around while you crawl.
+function needDist(cur,res){ const lower=res.lim<cur.lim, posted=/^Posted/.test(res.src||'');
+  return lower?(posted?60:150):300 }
 function matchAt(p,hdg){
   const w=nearestRoad(p,hdg), L=limitFor(p,w), place=nearestPlace(p), rn=w?(w.t.name||w.t.ref||null):null;
   const res={lim:L.lim,src:L.src,place,road:rn?(place&&!rn.includes(place)?`${rn}, ${place}`:rn):(place?`near ${place}`:null)};
-  // a new limit must hold for 2 readings in a row, so junctions and side roads don't make it flicker
-  if(!MS.cur||MS.cur.lim===res.lim||MS.cur.lim==null){MS.cur=res;MS.cand=null;MS.n=0;return res}
-  if(MS.cand&&MS.cand.lim===res.lim)MS.n++;else{MS.cand=res;MS.n=1}
-  if(MS.n>=2){MS.cur=res;MS.cand=null;MS.n=0;return res}
+  const step=MS.last&&p.lat!=null?Math.min(hav(MS.last,p),100):0; if(p.lat!=null) MS.last={lat:p.lat,lon:p.lon};
+  if(!MS.cur||MS.cur.lim==null){ if(res.lim!=null||!MS.cur){MS.cur=res;MS.cand=null;MS.n=0;MS.dist=0} return MS.cur.lim==null?res:MS.cur }
+  if(res.lim===MS.cur.lim){MS.cur=res;MS.cand=null;MS.n=0;MS.dist=0;MS.nullDist=0;return res}
+  if(res.lim==null){ MS.nullDist+=step; // map gap or still loading: keep the last limit for up to 400 m
+    if(MS.nullDist>400){MS.cur=res;MS.cand=null;MS.n=0;MS.dist=0;return res}
+    return {...MS.cur,road:res.road||MS.cur.road,place} }
+  MS.nullDist=0;
+  if(MS.cand&&MS.cand.lim===res.lim){MS.n++;MS.dist+=step;MS.cand=res}else{MS.cand=res;MS.n=1;MS.dist=0}
+  if(MS.n>=3&&MS.dist>=needDist(MS.cur,res)){MS.cur=res;MS.cand=null;MS.n=0;MS.dist=0;return res}
   return {...MS.cur,road:res.road,place};
 }
 function aheadLimit(p,hdg){ if(hdg==null||p.spd==null||p.spd<15) return null;
-  const q=dest(p,hdg,Math.max(120,p.spd/3.6*10)); if(!tileReady(q)) return null; return limitFor(q,nearestRoad(q,hdg)).lim; }
+  const q=dest(p,hdg,Math.max(120,p.spd/3.6*10)); if(!tileReady(q)) return null; const v=limitFor(q,nearestRoad(q,hdg)).lim;
+  // only announce a change ahead once it has looked the same for 3 readings in a row
+  if(v===AH.v)AH.n++;else{AH.v=v;AH.n=1} return AH.n>=3?v:null; }
+const AH={v:null,n:0};
 
 /* ===================== voice guidance ===================== */
 const V={lim:null,place:null,placeAt:0,st:'grey',overAt:0,amberAt:0,aheadAt:0,aheadLim:null};
@@ -751,7 +774,7 @@ function renderLive(p){
 }
 function setRecordingUI(on){ $('ctlIdle').style.display=on?'none':'flex'; $('ctlRec').style.display=on?'flex':'none'; $('btnDemo').disabled=on; $('btnDemo2').disabled=on; }
 function resetLive(){ live={dist:0,max:0}; prevHash='GENESIS'; hashQ=Promise.resolve(); lastBearing=null;
-  Object.assign(MS,{cur:null,cand:null,n:0}); Object.assign(V,{lim:null,place:null,placeAt:0,st:'grey',overAt:0,amberAt:0,aheadAt:0,aheadLim:null}); }
+  Object.assign(MS,{cur:null,cand:null,n:0,dist:0,last:null,nullDist:0}); Object.assign(V,{lim:null,place:null,placeAt:0,st:'grey',overAt:0,amberAt:0,aheadAt:0,aheadLim:null}); }
 
 function tagVehicle(j){ const sel=$('selVeh'); if(!B||!signedIn()||$('vehPick').style.display==='none'||!sel.value) return;
   const u=B.user(); j.vid=sel.value; j.reg=sel.selectedOptions[0].dataset.reg; j.driverUid=u.uid; j.driverName=u.name; j.uploaded=false; }
@@ -1612,6 +1635,7 @@ $('btnClear').onclick=async()=>{ if(J){alert('End the current journey first.');r
   alert('All journeys deleted.'); };
 buildTicks(); resetDash();
 if(IS_ANDROID_WEB) $('apkCard').style.display='flex';
+if(!NATIVE&&!IS_ANDROID_WEB&&!/iPhone|iPad|iPod/i.test(navigator.userAgent)&&matchMedia('(min-width:900px)').matches) $('apkDesk').style.display='flex';
 if(NATIVE){ $('bannerTxt').innerHTML='<b>Android app.</b> RoadGuard keeps recording with the screen off. A notification shows while it records. For best results, set RoadGuard\'s battery use to <b>Unrestricted</b> in your phone settings. <a href="#" id="battLink" style="color:var(--gold2)">Open settings</a>';
   $('battLink').onclick=e=>{e.preventDefault();NP.BG.openSettings()}; }
 try{ if(localStorage.getItem('rg_banner')==='0') $('banner').style.display='none' }catch(e){}
