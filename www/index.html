@@ -456,7 +456,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 0.8.8. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 0.8.9. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1168,7 +1168,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 0.8.8" : "RoadGuard GH web 0.8.8", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 0.8.9" : "RoadGuard GH web 0.8.9", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -2739,7 +2739,7 @@ async function renderFleet() {
 }
 function authMsg(x, create) {
   const c = x && x.code || "", m = x && x.message || "";
-  if (/invalid-credential|wrong-password|user-not-found|invalid-login|Wrong email or password/i.test(c + m)) return "Wrong email or password.\n\nIf you created your account with Google, tap “Continue with Google” instead. There is no password for Google accounts.";
+  if (/invalid-credential|wrong-password|user-not-found|invalid-login|Wrong email or password/i.test(c + m)) return NATIVE ? "Wrong email or password.\n\nIf you made your account with Google on the website, it has no password yet. Tap “Forgot password?” below: we’ll email you a link to set one. Then sign in here with that password. It’s the same account, with the same trial and vehicles." : "Wrong email or password.\n\nIf you created your account with Google, tap “Continue with Google” instead. There is no password for Google accounts.";
   if (/email-already-in-use|already exists/i.test(c + m)) return "This email already has an account. Tap “Sign in”, or “Continue with Google” if you signed up with Google.";
   if (/invalid-email/i.test(c)) return "That email address doesn't look right. Please check it.";
   if (/weak-password/i.test(c)) return "Choose a password with at least 6 characters.";
