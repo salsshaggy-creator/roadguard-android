@@ -451,7 +451,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 0.8.5. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 in built-up areas; 90 on open roads; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 0.8.6. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 in built-up areas; 90 on open roads; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -575,11 +575,11 @@ function db() {
   });
   return dbp;
 }
-async function saveJ(j2) {
+async function saveJ(j) {
   const d = await db();
   return new Promise((res, rej) => {
     const tx = d.transaction("journeys", "readwrite");
-    tx.objectStore("journeys").put(j2);
+    tx.objectStore("journeys").put(j);
     tx.oncomplete = res;
     tx.onerror = () => rej(tx.error);
   });
@@ -645,9 +645,9 @@ function detectGaps(P, bg) {
 function inGap(gaps, T) {
   return gaps.find((g) => T > g.from && T < g.to) || null;
 }
-function summarize(j2) {
+function summarize(j) {
   var _a, _b;
-  const p = j2.points;
+  const p = j.points;
   let dist = 0, max = 0, movT = 0, movD = 0, known = 0, green = 0, good = 0;
   for (let i = 0; i < p.length; i++) {
     const a = p[i];
@@ -679,7 +679,7 @@ function summarize(j2) {
     events: ev,
     compliance: known ? green / known * 100 : null,
     quality: p.length ? good / p.length * 100 : 0,
-    dur: (j2.endedAt || ((_b = (_a = p.at(-1)) == null ? void 0 : _a.t) != null ? _b : j2.startedAt)) - j2.startedAt
+    dur: (j.endedAt || ((_b = (_a = p.at(-1)) == null ? void 0 : _a.t) != null ? _b : j.startedAt)) - j.startedAt
   };
 }
 const MIRRORS = ["https://overpass-api.de/api/interpreter", "https://overpass.private.coffee/api/interpreter", "https://maps.mail.ru/osm/tools/overpass/api/interpreter"];
@@ -1103,7 +1103,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 0.8.5" : "RoadGuard GH web 0.8.5", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 0.8.6" : "RoadGuard GH web 0.8.6", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -1272,15 +1272,15 @@ function resetLive() {
   Object.assign(MS, { cur: null, cand: null, n: 0, dist: 0, last: null, nullDist: 0 });
   Object.assign(V, { lim: null, place: null, placeAt: 0, st: "grey", overAt: 0, amberAt: 0, aheadAt: 0, aheadLim: null });
 }
-function tagVehicle(j2) {
+function tagVehicle(j) {
   const sel = $("selVeh");
   if (!B || !signedIn() || $("vehPick").style.display === "none" || !sel.value) return;
   const u = B.user();
-  j2.vid = sel.value;
-  j2.reg = sel.selectedOptions[0].dataset.reg;
-  j2.driverUid = u.uid;
-  j2.driverName = u.name;
-  j2.uploaded = false;
+  j.vid = sel.value;
+  j.reg = sel.selectedOptions[0].dataset.reg;
+  j.driverUid = u.uid;
+  j.driverName = u.name;
+  j.uploaded = false;
 }
 async function startJourneyNative() {
   try {
@@ -1381,21 +1381,21 @@ async function stopJourney(discardIfEmpty) {
   setRecordingUI(false);
   if (!J) return;
   await hashQ;
-  const j2 = J;
+  const j = J;
   J = null;
   resetDash();
-  if (!j2.points.length) {
+  if (!j.points.length) {
     if (discardIfEmpty) return;
     alert("No GPS readings were captured, so nothing was saved.");
     return;
   }
-  j2.endedAt = j2.points.at(-1).t;
-  j2.finalHash = prevHash;
-  await saveJ(j2);
-  if (j2.vid) {
-    uploadPending().then((n) => toast(n ? `Trip shared with the owner of ${j2.reg}` : `Trip saved. It will upload to the owner when you're online.`));
+  j.endedAt = j.points.at(-1).t;
+  j.finalHash = prevHash;
+  await saveJ(j);
+  if (j.vid) {
+    uploadPending().then((n) => toast(n ? `Trip shared with the owner of ${j.reg}` : `Trip saved. It will upload to the owner when you're online.`));
   }
-  openReport(j2.id);
+  openReport(j.id);
 }
 function buildSim() {
   const legs = [
@@ -1470,10 +1470,10 @@ function runSim() {
   }, 60);
 }
 let leafletMap = null;
-async function verifyChain(j2) {
+async function verifyChain(j) {
   let h = "GENESIS", bad = 0, firstBad = null;
-  for (let i = 0; i < j2.points.length; i++) {
-    const p = j2.points[i];
+  for (let i = 0; i < j.points.length; i++) {
+    const p = j.points[i];
     const x = await sha256(h + "|" + canon(p));
     if (x !== p.h) {
       bad++;
@@ -1481,21 +1481,21 @@ async function verifyChain(j2) {
     }
     h = p.h || x;
   }
-  return { ok: bad === 0 && h === j2.finalHash, bad, firstBad, n: j2.points.length };
+  return { ok: bad === 0 && h === j.finalHash, bad, firstBad, n: j.points.length };
 }
 async function openReport(id) {
-  const j2 = typeof id === "object" ? id : await getJ(id);
-  if (!j2) return;
+  const j = typeof id === "object" ? id : await getJ(id);
+  if (!j) return;
   show("report");
-  const S = summarize(j2), P = j2.points;
+  const S = summarize(j), P = j.points;
   const from = P[0], to = P.at(-1);
   $("report").innerHTML = `
   <div class="card">
-    <div class="muted small">JOURNEY REPORT ${j2.simulated ? '<span class="sim">SIMULATED</span>' : ""}</div>
-    <p class="note" style="margin:8px 0 0">Speeds in this report are <b>true GPS speeds</b>, the speed a camera measures.${j2.cal && j2.cal > 1.001 ? ` Your car's speedometer reads about ${Math.round((j2.cal - 1) * 100)}% higher (it showed about ${Math.round(50 * j2.cal)} when you were really doing 50).` : ""}</p>
-    ${j2.reg ? `<div style="display:flex;align-items:center;gap:10px;margin:10px 0 4px"><span class="plate">${esc(j2.reg)}</span><span>Driver: <b>${esc(j2.driverName || "")}</b></span></div>` : ""}
-    <h2 style="margin:6px 0 2px">${fmtD(j2.startedAt)}</h2>
-    <div class="muted">${fmtT(j2.startedAt)} – ${fmtT(j2.endedAt)} · ${esc(from.road || "Start")} → ${esc(to.road || "End")}</div>
+    <div class="muted small">JOURNEY REPORT ${j.simulated ? '<span class="sim">SIMULATED</span>' : ""}</div>
+    <p class="note" style="margin:8px 0 0">Speeds in this report are <b>true GPS speeds</b>, the speed a camera measures.${j.cal && j.cal > 1.001 ? ` Your car's speedometer reads about ${Math.round((j.cal - 1) * 100)}% higher (it showed about ${Math.round(50 * j.cal)} when you were really doing 50).` : ""}</p>
+    ${j.reg ? `<div style="display:flex;align-items:center;gap:10px;margin:10px 0 4px"><span class="plate">${esc(j.reg)}</span><span>Driver: <b>${esc(j.driverName || "")}</b></span></div>` : ""}
+    <h2 style="margin:6px 0 2px">${fmtD(j.startedAt)}</h2>
+    <div class="muted">${fmtT(j.startedAt)} – ${fmtT(j.endedAt)} · ${esc(from.road || "Start")} → ${esc(to.road || "End")}</div>
   </div>
   <div class="kpis" style="margin-bottom:14px">
     <div class="kpi"><b class="num">${(S.dist / 1e3).toFixed(1)}</b><span>km travelled</span></div>
@@ -1512,29 +1512,29 @@ async function openReport(id) {
   <div class="card"><h3>Overspeed events</h3>${S.events.length ? `<div style="overflow-x:auto"><table class="num"><tr><th>Time</th><th>Where</th><th>Limit</th><th>Max</th><th>For</th><th>GPS</th></tr>
     ${S.events.map((e) => `<tr><td>${fmtT(e.start)}</td><td>${esc(e.road || e.lat.toFixed(5) + ", " + e.lon.toFixed(5))}</td><td>${e.lim}</td><td class="red">${Math.round(e.max)}</td><td>${Math.round((e.end - e.start) / 1e3)}s</td><td>±${Math.round(e.avgAcc)}m</td></tr>`).join("")}</table></div>
     <p class="note">An event is recorded only when the speed stayed above the limit for at least ${MIN_EVENT_MS / 1e3} seconds with GPS accuracy of ±${ACC_OK} m or better. Limits marked “estimated” may differ from posted signs.</p>` : `<p class="ok-t" style="margin:0">✓ No sustained overspeeding recorded on this journey.</p>`}</div>
-  ${(j2.limitReports || []).length ? `<div class="card"><h3>Signs reported by the driver</h3><table class="num"><tr><th>Time</th><th>Where</th><th>App limit</th><th>Sign said</th></tr>${j2.limitReports.map((r) => {
+  ${(j.limitReports || []).length ? `<div class="card"><h3>Signs reported by the driver</h3><table class="num"><tr><th>Time</th><th>Where</th><th>App limit</th><th>Sign said</th></tr>${j.limitReports.map((r) => {
     var _a;
     return `<tr><td>${fmtT(r.t)}</td><td>${esc(r.road || r.lat + ", " + r.lon)}</td><td>${(_a = r.appLimit) != null ? _a : "–"}</td><td>${r.signLimit}</td></tr>`;
   }).join("")}</table><p class="note">These reports don't change the recorded limits above. They are used to correct the map.</p></div>` : ""}
   ${(() => {
-    const G = detectGaps(P, j2.bg);
+    const G = detectGaps(P, j.bg);
     if (!G.length) return "";
     const tot = G.reduce((a, g) => a + g.to - g.from, 0);
     return `<div class="card"><h3>Recording gaps</h3><p class="note" style="margin-top:0">RoadGuard wasn't recording during these times, so this report says nothing about your speed then. Total: ${fmtDur(tot)}.</p>
     <table class="num"><tr><th>From</th><th>To</th><th>Length</th><th>Why</th></tr>${G.map((g) => `<tr><td>${fmtT(g.from)}</td><td>${fmtT(g.to)}</td><td>${fmtDur(g.to - g.from)}</td><td class="small">${g.why}</td></tr>`).join("")}</table>
     ${NATIVE ? "" : '<p class="note">To avoid gaps, keep RoadGuard open on screen while driving' + (IS_ANDROID_WEB ? ", or install the Android app, which records with the screen off." : ".") + "</p>"}</div>`;
   })()}
-  ${j2.mockDetected ? `<div class="card" style="border-color:rgba(239,68,68,.6)"><h3 class="bad-t">⚠️ Fake-location app detected</h3><p class="note" style="margin:0">Some readings in this journey came from software that fakes GPS positions, not from the phone's GPS. Those readings are set aside, and this record should not be relied on.</p></div>` : ""}
+  ${j.mockDetected ? `<div class="card" style="border-color:rgba(239,68,68,.6)"><h3 class="bad-t">⚠️ Fake-location app detected</h3><p class="note" style="margin:0">Some readings in this journey came from software that fakes GPS positions, not from the phone's GPS. Those readings are set aside, and this record should not be relied on.</p></div>` : ""}
   <div class="card"><h3>Record integrity</h3><div class="integrity" id="integ"><div class="ic">⏳</div><div>Checking ${P.length} records…</div></div></div>
   <div class="card"><h3>Device &amp; data quality</h3>
-    <p class="note" style="margin:0">${P.length} GPS readings · ${S.quality.toFixed(0)}% within ±${ACC_OK} m accuracy · ${P.filter((p) => p.sus).length} readings set aside as implausible (kept in the raw data)<br>Recorded by: ${esc(j2.app)}<br>Device: ${esc(j2.device)}<br>Journey ID: ${j2.id}</p></div>
+    <p class="note" style="margin:0">${P.length} GPS readings · ${S.quality.toFixed(0)}% within ±${ACC_OK} m accuracy · ${P.filter((p) => p.sus).length} readings set aside as implausible (kept in the raw data)<br>Recorded by: ${esc(j.app)}<br>Device: ${esc(j.device)}<br>Journey ID: ${j.id}</p></div>
   <div class="row noprint"><button class="btn btn-ghost" id="xCsv">Download CSV</button><button class="btn btn-ghost" id="xJson">Evidence file (JSON)</button></div>
   <div class="row noprint" style="margin-top:10px"><button class="btn btn-go" id="xPdf">Save as PDF / Print</button></div>
   <p class="note" style="margin-top:14px">This report is an independent record made with a phone's GPS. It is not a calibrated speed-measurement instrument and does not by itself prove or disprove a traffic offence. It can support a contest by showing your recorded speed, time and position.</p>`;
   drawMap(P);
-  drawChart(P, S.events);
-  $("xCsv").onclick = () => download(`roadguard_${j2.id}.csv`, toCSV(j2), "text/csv");
-  $("xJson").onclick = () => download(`roadguard_${j2.id}.json`, JSON.stringify({ format: "roadguard-evidence-v1", hashAlgorithm: 'SHA-256 chain: h[i]=sha256(h[i-1]+"|"+canon(point)), h[-1]="GENESIS"', journey: j2, summary: { ...S } }, null, 1), "application/json");
+  drawChart(P, S.events, j.cal);
+  $("xCsv").onclick = () => download(`roadguard_${j.id}.csv`, toCSV(j), "text/csv");
+  $("xJson").onclick = () => download(`roadguard_${j.id}.json`, JSON.stringify({ format: "roadguard-evidence-v1", hashAlgorithm: 'SHA-256 chain: h[i]=sha256(h[i-1]+"|"+canon(point)), h[-1]="GENESIS"', journey: j, summary: { ...S } }, null, 1), "application/json");
   $("xPdf").onclick = () => {
     if (!NATIVE) return window.print();
     const c = $("report").cloneNode(true);
@@ -1549,11 +1549,11 @@ async function openReport(id) {
     const mp = c.querySelector("#map");
     if (mp) mp.outerHTML = '<p class="note">Open the journey in RoadGuard to see the map.</p>';
     c.querySelectorAll(".noprint").forEach((n) => n.remove());
-    download(`roadguard_report_${j2.id}.html`, '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RoadGuard GH journey report</title><style>' + document.querySelector("style").textContent + '</style></head><body style="padding:16px">' + c.innerHTML + '<p class="note">Open this file in Chrome and use Share → Print → Save as PDF to make a PDF.</p></body></html>', "text/html");
+    download(`roadguard_report_${j.id}.html`, '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RoadGuard GH journey report</title><style>' + document.querySelector("style").textContent + '</style></head><body style="padding:16px">' + c.innerHTML + '<p class="note">Open this file in Chrome and use Share → Print → Save as PDF to make a PDF.</p></body></html>', "text/html");
   };
   if (NATIVE) $("xPdf").textContent = "SHARE REPORT (OPEN IN CHROME TO MAKE A PDF)";
-  const v = await verifyChain(j2);
-  $("integ").innerHTML = v.ok ? `<div class="ic">🔒</div><div><b class="ok-t">Verified: all ${v.n} records unchanged since recording.</b><div class="note">Each reading is chained to the one before it with a SHA-256 fingerprint. Changing any reading breaks the chain.<br>Final fingerprint: <span class="num">${j2.finalHash.slice(0, 16)}…</span></div></div>` : `<div class="ic">⚠️</div><div><b class="bad-t">Integrity check failed</b><div class="note">${v.bad} record(s) don't match their fingerprint (first at reading ${v.firstBad + 1}). This data may have been modified.</div></div>`;
+  const v = await verifyChain(j);
+  $("integ").innerHTML = v.ok ? `<div class="ic">🔒</div><div><b class="ok-t">Verified: all ${v.n} records unchanged since recording.</b><div class="note">Each reading is chained to the one before it with a SHA-256 fingerprint. Changing any reading breaks the chain.<br>Final fingerprint: <span class="num">${j.finalHash.slice(0, 16)}…</span></div></div>` : `<div class="ic">⚠️</div><div><b class="bad-t">Integrity check failed</b><div class="note">${v.bad} record(s) don't match their fingerprint (first at reading ${v.firstBad + 1}). This data may have been modified.</div></div>`;
 }
 function segRuns(P) {
   const runs = [];
@@ -1620,7 +1620,7 @@ function drawMap(P) {
   x.font = "11px system-ui";
   x.fillText("Map tiles unavailable offline – route outline only", 10, 14);
 }
-function drawChart(P, events) {
+function drawChart(P, events, cal) {
   const c = $("chart"), dpr = devicePixelRatio || 1, W = c.clientWidth, H = c.clientHeight;
   c.width = W * dpr;
   c.height = H * dpr;
@@ -1685,15 +1685,15 @@ function drawChart(P, events) {
     const r = c.getBoundingClientRect(), cx = (ev.touches ? ev.touches[0].clientX : ev.clientX) - r.left, t = t0 + (cx - L2) / (W - L2 - R) * (t1 - t0);
     let best = P[0];
     for (const p of P) if (Math.abs(p.t - t) < Math.abs(best.t - t)) best = p;
-    tip.innerHTML = `<b>${fmtT(best.t)}</b> · ${best.spd == null ? "–" : Math.round(best.spd)} km/h${best.spd != null && j.cal && j.cal > 1.001 ? " (car dial ≈ " + Math.round(best.spd * j.cal) + ")" : ""} · limit ${(_a = best.lim) != null ? _a : "unknown"} · ±${Math.round(best.acc)} m · ${esc(best.road || "")}${best.sus ? " · <i>set aside (implausible)</i>" : ""}`;
+    tip.innerHTML = `<b>${fmtT(best.t)}</b> · ${best.spd == null ? "–" : Math.round(best.spd)} km/h${best.spd != null && cal && cal > 1.001 ? " (car dial ≈ " + Math.round(best.spd * cal) + ")" : ""} · limit ${(_a = best.lim) != null ? _a : "unknown"} · ±${Math.round(best.acc)} m · ${esc(best.road || "")}${best.sus ? " · <i>set aside (implausible)</i>" : ""}`;
   };
   c.onpointermove = pick2;
   c.onpointerdown = pick2;
   c.ontouchmove = pick2;
 }
-function toCSV(j2) {
+function toCSV(j) {
   const rows = [["time_iso", "lat", "lon", "gps_accuracy_m", "speed_kmh", "speed_source", "heading", "speed_limit_kmh", "limit_source", "road", "status", "set_aside", "sha256"]];
-  j2.points.forEach((p) => {
+  j.points.forEach((p) => {
     var _a, _b, _c, _d;
     return rows.push([new Date(p.t).toISOString(), p.lat, p.lon, p.acc, (_a = p.spd) != null ? _a : "", p.spdSrc, (_b = p.hdg) != null ? _b : "", (_c = p.lim) != null ? _c : "", p.limSrc, (_d = p.road) != null ? _d : "", statusOf(p), p.sus ? 1 : 0, p.h]);
   });
@@ -1720,15 +1720,15 @@ function download(name, data, type) {
   }, 500);
 }
 async function renderJourneys() {
-  const js = (await allJ()).filter((j2) => j2.points && j2.points.length);
+  const js = (await allJ()).filter((j) => j.points && j.points.length);
   let dist = 0, ev = 0;
-  const rows = js.map((j2) => {
-    const S = summarize(j2);
+  const rows = js.map((j) => {
+    const S = summarize(j);
     dist += S.dist;
     ev += S.events.length;
-    return `<div class="jrow" data-id="${j2.id}"><div class="meta"><b>${fmtD(j2.startedAt)} ${j2.simulated ? '<span class="sim">DEMO</span>' : ""} ${j2.reg ? `<span class="badge ${j2.uploaded ? "b-ok" : "b-bad"}" style="font-size:10.5px">${esc(j2.reg)} · ${j2.uploaded ? "shared" : "waiting to upload"}</span>` : ""}</b>
-      <span class="muted small num">${fmtT(j2.startedAt).slice(0, 5)}–${fmtT(j2.endedAt || j2.points.at(-1).t).slice(0, 5)} · ${(S.dist / 1e3).toFixed(1)} km · max ${Math.round(S.max)} km/h</span><br>
-      <span class="muted small">${esc(j2.points[0].road || "")}${j2.points.at(-1).road && j2.points.at(-1).road !== j2.points[0].road ? " → " + esc(j2.points.at(-1).road) : ""}</span></div>
+    return `<div class="jrow" data-id="${j.id}"><div class="meta"><b>${fmtD(j.startedAt)} ${j.simulated ? '<span class="sim">DEMO</span>' : ""} ${j.reg ? `<span class="badge ${j.uploaded ? "b-ok" : "b-bad"}" style="font-size:10.5px">${esc(j.reg)} · ${j.uploaded ? "shared" : "waiting to upload"}</span>` : ""}</b>
+      <span class="muted small num">${fmtT(j.startedAt).slice(0, 5)}–${fmtT(j.endedAt || j.points.at(-1).t).slice(0, 5)} · ${(S.dist / 1e3).toFixed(1)} km · max ${Math.round(S.max)} km/h</span><br>
+      <span class="muted small">${esc(j.points[0].road || "")}${j.points.at(-1).road && j.points.at(-1).road !== j.points[0].road ? " → " + esc(j.points.at(-1).road) : ""}</span></div>
       <span class="badge ${S.events.length ? "b-bad" : "b-ok"}">${S.events.length ? S.events.length + " flagged" : "No flags"}</span></div>`;
   });
   $("jSummary").innerHTML = `<div class="kpi"><b class="num">${js.length}</b><span>journeys</span></div><div class="kpi"><b class="num">${(dist / 1e3).toFixed(0)}</b><span>km recorded</span></div><div class="kpi"><b class="num">${ev}</b><span>overspeed events</span></div>`;
@@ -1922,14 +1922,14 @@ function locWords(s) {
   return new Set(String(s || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").split(" ").filter((w) => w.length > 2 && !["road", "street", "the", "near", "and", "highway", "motorway", "junction"].includes(w)));
 }
 async function compareTicket(F, list) {
-  const js = (list || await allJ()).filter((j3) => j3.points.length && j3.points[0].t - 6e4 <= F.time && (j3.endedAt || j3.points.at(-1).t) + 6e4 >= F.time);
+  const js = (list || await allJ()).filter((j2) => j2.points.length && j2.points[0].t - 6e4 <= F.time && (j2.endedAt || j2.points.at(-1).t) + 6e4 >= F.time);
   if (!js.length) return { found: false };
-  const j2 = js[0], W = j2.points.filter((p) => Math.abs(p.t - F.time) <= 1e4 && !p.sus);
-  let near = j2.points[0];
-  for (const p of j2.points) if (Math.abs(p.t - F.time) < Math.abs(near.t - F.time)) near = p;
+  const j = js[0], W = j.points.filter((p) => Math.abs(p.t - F.time) <= 1e4 && !p.sus);
+  let near = j.points[0];
+  for (const p of j.points) if (Math.abs(p.t - F.time) < Math.abs(near.t - F.time)) near = p;
   const sp = W.filter((p) => p.spd != null).map((p) => p.spd);
-  const r = { found: true, j: j2, near, lo: sp.length ? Math.min(...sp) : null, hi: sp.length ? Math.max(...sp) : null, gap: Math.abs(near.t - F.time) / 1e3 };
-  r.pause = inGap(detectGaps(j2.points, j2.bg), F.time);
+  const r = { found: true, j, near, lo: sp.length ? Math.min(...sp) : null, hi: sp.length ? Math.max(...sp) : null, gap: Math.abs(near.t - F.time) / 1e3 };
+  r.pause = inGap(detectGaps(j.points, j.bg), F.time);
   const a = locWords(F.loc), b = locWords(W.map((p) => p.road).concat(near.road).join(" "));
   r.locMatch = a.size && b.size ? [...a].some((w) => b.has(w)) : null;
   if (r.pause) {
@@ -1979,9 +1979,9 @@ async function checkTicket() {
     renderTickets();
     return;
   }
-  const { j: j2, near, lo, hi, gap } = r;
+  const { j, near, lo, hi, gap } = r;
   let verdict = "", cls = "st-grey";
-  const who = j2.driverName && j2.cloud ? `${j2.driverName}'s phone` : "Your phone";
+  const who = j.driverName && j.cloud ? `${j.driverName}'s phone` : "Your phone";
   if (r.kind === "lower") {
     verdict = `${who} recorded at most ${Math.round(hi)} km/h within 10 seconds of the alleged time: ${Math.round(F.speed - hi)} km/h below the alleged ${F.speed} km/h. This is a discrepancy worth raising when you contest.`;
     cls = "st-green";
@@ -1996,12 +1996,12 @@ async function checkTicket() {
     cls = "st-red";
   }
   const locLine = r.locMatch === false ? `<tr><td class="muted">Location check</td><td class="bad-t">The notice says “${esc(F.loc)}”, but your phone was on ${esc(near.road || "an unnamed road")}. Check this carefully.</td></tr>` : r.locMatch ? `<tr><td class="muted">Location check</td><td class="ok-t">Matches your route</td></tr>` : "";
-  out.innerHTML = `<div class="card"><h3>Comparison ${j2.simulated ? '<span class="sim">DEMO DATA</span>' : ""}</h3>
+  out.innerHTML = `<div class="card"><h3>Comparison ${j.simulated ? '<span class="sim">DEMO DATA</span>' : ""}</h3>
    <div class="cmp num"><div class="box"><span class="muted small">Alleged speed</span><b>${(_a = F.speed) != null ? _a : "–"}</b><span class="muted small">km/h${F.limit ? " in a " + F.limit + " zone" : ""}</span></div>
-   <div class="box"><span class="muted small">${j2.cloud && j2.driverName ? esc(j2.driverName.split(" ")[0]) + "'s recorded speed" : "Your recorded speed"}</span><b>${r.kind === "paused" || near.spd == null ? "–" : Math.round(near.spd)}</b><span class="muted small">${r.kind === "paused" ? "not recording then" : "km/h at " + fmtT(near.t)}</span></div></div>
+   <div class="box"><span class="muted small">${j.cloud && j.driverName ? esc(j.driverName.split(" ")[0]) + "'s recorded speed" : "Your recorded speed"}</span><b>${r.kind === "paused" || near.spd == null ? "–" : Math.round(near.spd)}</b><span class="muted small">${r.kind === "paused" ? "not recording then" : "km/h at " + fmtT(near.t)}</span></div></div>
    ${verdict ? `<div class="status ${cls}" style="font-weight:600">${verdict}</div>` : ""}
    <table class="num" style="margin-top:12px">
-    ${j2.cloud ? `<tr><td class="muted">Driving at that time</td><td><b>${esc(j2.driverName)}</b> <span class="plate" style="font-size:13px;padding:1px 6px">${esc(j2.reg)}</span></td></tr>` : ""}
+    ${j.cloud ? `<tr><td class="muted">Driving at that time</td><td><b>${esc(j.driverName)}</b> <span class="plate" style="font-size:13px;padding:1px 6px">${esc(j.reg)}</span></td></tr>` : ""}
     <tr><td class="muted">Alleged time</td><td>${fmtD(F.time)}, ${fmtT(F.time)}</td></tr>
     <tr><td class="muted">Closest reading</td><td>${fmtT(near.t)} (${gap.toFixed(0)} s apart)</td></tr>
     <tr><td class="muted">Speed range ±10 s</td><td>${lo == null ? "no reliable readings" : Math.round(lo) + " – " + Math.round(hi) + " km/h"}</td></tr>
@@ -2012,7 +2012,7 @@ async function checkTicket() {
    </table>
    <p class="note">A difference doesn't prove either reading wrong. Review the police photo or video on ghana.gov.gh using your ticket number.</p>
    <div class="row noprint"><button class="btn btn-ghost" id="tOpen" style="font-size:16px">Journey report</button>${r.kind === "lower" || r.locMatch === false && r.kind !== "paused" ? '<button class="btn btn-go" id="tContest" style="font-size:16px">PREPARE MY CONTEST</button>' : ""}</div></div>`;
-  $("tOpen").onclick = () => openReport(j2.id);
+  $("tOpen").onclick = () => openReport(j.id);
   if ($("tContest")) $("tContest").onclick = () => buildLetter(F, r);
   renderTickets();
 }
@@ -2023,7 +2023,7 @@ function buildLetter(F, r) {
     name = localStorage.getItem("rg_name") || "";
   } catch (e) {
   }
-  const { near, lo, hi, gap, j: j2 } = r;
+  const { near, lo, hi, gap, j } = r;
   const L2 = `To: Motor Traffic and Transport Department (MTTD), Ghana Police Service
 Subject: Contest of Electronic Notice of Violation${F.ticket ? " – Ticket No. " + F.ticket : ""}
 
@@ -2040,7 +2040,7 @@ I understand that a phone's GPS is not a calibrated enforcement device. However,
 
 Attached:
 1. RoadGuard GH journey report (PDF)
-2. RoadGuard GH evidence file (JSON) – Journey ID ${j2.id}
+2. RoadGuard GH evidence file (JSON) – Journey ID ${j.id}
 3. Journey data (CSV)
 
 Name: ${name || "____________________"}
@@ -2061,10 +2061,10 @@ Date: ${fmtD(Date.now())}`;
       $("lCopy").textContent = "Copied ✓";
     }
   };
-  $("lTxt").onclick = () => download(`contest_${F.ticket || j2.id}.txt`, $("letterTxt").value, "text/plain");
-  $("lJson").onclick = () => download(`roadguard_${j2.id}.json`, JSON.stringify({ format: "roadguard-evidence-v1", hashAlgorithm: 'SHA-256 chain: h[i]=sha256(h[i-1]+"|"+canon(point)), h[-1]="GENESIS"', ticket: F, journey: j2, summary: summarize(j2) }, null, 1), "application/json");
-  $("lCsv").onclick = () => download(`roadguard_${j2.id}.csv`, toCSV(j2), "text/csv");
-  $("lPdf").onclick = () => openReport(j2.id);
+  $("lTxt").onclick = () => download(`contest_${F.ticket || j.id}.txt`, $("letterTxt").value, "text/plain");
+  $("lJson").onclick = () => download(`roadguard_${j.id}.json`, JSON.stringify({ format: "roadguard-evidence-v1", hashAlgorithm: 'SHA-256 chain: h[i]=sha256(h[i-1]+"|"+canon(point)), h[-1]="GENESIS"', ticket: F, journey: j, summary: summarize(j) }, null, 1), "application/json");
+  $("lCsv").onclick = () => download(`roadguard_${j.id}.csv`, toCSV(j), "text/csv");
+  $("lPdf").onclick = () => openReport(j.id);
   setTimeout(() => $("tLetter").scrollIntoView({ behavior: "smooth", block: "start" }), 50);
 }
 async function tStore(mode) {
@@ -2145,26 +2145,26 @@ function loadScript(src) {
   });
 }
 const within = (ms, pr, fallback) => Promise.race([pr, new Promise((r) => setTimeout(() => r(fallback), ms))]);
-const tripSummary = (j2) => {
-  const S = summarize(j2);
+const tripSummary = (j) => {
+  const S = summarize(j);
   return {
-    startedAt: j2.startedAt,
-    endedAt: j2.endedAt,
+    startedAt: j.startedAt,
+    endedAt: j.endedAt,
     dist: Math.round(S.dist),
     max: Math.round(S.max * 10) / 10,
     avg: Math.round(S.avg * 10) / 10,
     compliance: S.compliance == null ? null : Math.round(S.compliance),
     eventCount: S.events.length,
     events: S.events.slice(0, 50).map((e) => ({ start: e.start, end: e.end, max: Math.round(e.max), lim: e.lim, lat: e.lat, lon: e.lon, road: e.road || null })),
-    nPoints: j2.points.length,
-    bg: j2.bg || [],
-    mockDetected: !!j2.mockDetected,
-    finalHash: j2.finalHash,
-    app: j2.app,
-    device: j2.device,
-    localId: j2.id,
-    simulated: !!j2.simulated,
-    limitReports: j2.limitReports || []
+    nPoints: j.points.length,
+    bg: j.bg || [],
+    mockDetected: !!j.mockDetected,
+    finalHash: j.finalHash,
+    app: j.app,
+    device: j.device,
+    localId: j.id,
+    simulated: !!j.simulated,
+    limitReports: j.limitReports || []
   };
 };
 const FBK = {
@@ -2319,11 +2319,11 @@ const FBK = {
   async removeMember(vid, uid) {
     await this.db.collection("vehicles").doc(vid).collection("members").doc(uid).delete();
   },
-  async uploadTrip(j2) {
-    const tid = j2.id + "_" + this.u.uid, tref = this.db.collection("vehicles").doc(j2.vid).collection("trips").doc(tid);
-    const n = Math.ceil(j2.points.length / CHUNK);
-    await tref.set({ ...tripSummary(j2), vid: j2.vid, reg: j2.reg, driverUid: this.u.uid, driverName: this.u.name, nChunks: n, uploadedAt: Date.now() });
-    for (let i = 0; i < n; i++) await tref.collection("chunks").doc(String(i).padStart(4, "0")).set({ i, p: JSON.stringify(j2.points.slice(i * CHUNK, (i + 1) * CHUNK)) });
+  async uploadTrip(j) {
+    const tid = j.id + "_" + this.u.uid, tref = this.db.collection("vehicles").doc(j.vid).collection("trips").doc(tid);
+    const n = Math.ceil(j.points.length / CHUNK);
+    await tref.set({ ...tripSummary(j), vid: j.vid, reg: j.reg, driverUid: this.u.uid, driverName: this.u.name, nChunks: n, uploadedAt: Date.now() });
+    for (let i = 0; i < n; i++) await tref.collection("chunks").doc(String(i).padStart(4, "0")).set({ i, p: JSON.stringify(j.points.slice(i * CHUNK, (i + 1) * CHUNK)) });
   },
   async trips(vid, limit = 50) {
     const q = await this.db.collection("vehicles").doc(vid).collection("trips").orderBy("startedAt", "desc").limit(limit).get();
@@ -2493,12 +2493,12 @@ const MOCK = {
   _canDrive(d, vid) {
     return d.vehicles[vid] && (d.vehicles[vid].ownerUid === this.u.uid || d.members[vid + "/" + this.u.uid]);
   },
-  async uploadTrip(j2) {
+  async uploadTrip(j) {
     const d = this._d();
-    if (!this._canDrive(d, j2.vid)) throw new Error("Not allowed to drive this vehicle");
-    const tid = j2.id + "_" + this.u.uid;
-    d.trips[tid] = { id: tid, ...tripSummary(j2), vid: j2.vid, reg: j2.reg, driverUid: this.u.uid, driverName: this.u.name, uploadedAt: Date.now() };
-    d.chunks[tid] = JSON.stringify(j2.points);
+    if (!this._canDrive(d, j.vid)) throw new Error("Not allowed to drive this vehicle");
+    const tid = j.id + "_" + this.u.uid;
+    d.trips[tid] = { id: tid, ...tripSummary(j), vid: j.vid, reg: j.reg, driverUid: this.u.uid, driverName: this.u.name, uploadedAt: Date.now() };
+    d.chunks[tid] = JSON.stringify(j.points);
     this._s(d);
   },
   _own(d, vid) {
@@ -2770,8 +2770,8 @@ async function renderVehicleTrips(el, vid) {
   el.querySelectorAll(".jrow").forEach((r) => r.onclick = async () => {
     r.style.opacity = 0.5;
     try {
-      const j2 = await B.loadTrip(vid, r.dataset.tid);
-      openReport(j2);
+      const j = await B.loadTrip(vid, r.dataset.tid);
+      openReport(j);
     } catch (e) {
       alert(e.message);
     }
@@ -2806,12 +2806,12 @@ async function refreshVehPicker() {
 async function uploadPending() {
   if (!B || !signedIn()) return 0;
   let n = 0;
-  for (const j2 of await allJ()) {
-    if (j2.vid && !j2.uploaded && j2.endedAt && j2.driverUid === B.user().uid) {
+  for (const j of await allJ()) {
+    if (j.vid && !j.uploaded && j.endedAt && j.driverUid === B.user().uid) {
       try {
-        await B.uploadTrip(j2);
-        j2.uploaded = true;
-        await saveJ(j2);
+        await B.uploadTrip(j);
+        j.uploaded = true;
+        await saveJ(j);
         n++;
       } catch (e) {
         console.warn("upload", e);
@@ -2939,7 +2939,7 @@ async function renderAccount() {
   }
   const st = planStatus(PROFILE);
   const [mine, joined, pays] = await Promise.all([B.myVehicles().catch(() => []), B.driverVehicles().catch(() => []), B.myPayments().catch(() => [])]);
-  const nJ = (await allJ()).filter((j2) => j2.points && j2.points.length).length, pend = pays.filter((p) => p.status === "pending");
+  const nJ = (await allJ()).filter((j) => j.points && j.points.length).length, pend = pays.filter((p) => p.status === "pending");
   const planLine = {
     active: `Active until <b>${fmtD(st.until)}</b> (${st.days} days left).`,
     trial: `Your free trial ends on <b>${fmtD(st.until)}</b>. Everything is unlocked until then.`,
@@ -3317,11 +3317,11 @@ window.addEventListener("beforeunload", (e) => {
 });
 (async () => {
   try {
-    for (const j2 of await allJ()) if (!j2.endedAt && j2.points.length) {
-      j2.endedAt = j2.points.at(-1).t;
-      j2.recovered = true;
-      j2.finalHash = j2.points.at(-1).h || null;
-      await saveJ(j2);
+    for (const j of await allJ()) if (!j.endedAt && j.points.length) {
+      j.endedAt = j.points.at(-1).t;
+      j.recovered = true;
+      j.finalHash = j.points.at(-1).h || null;
+      await saveJ(j);
     }
   } catch (e) {
   }
