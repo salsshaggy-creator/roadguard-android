@@ -441,6 +441,11 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
         <div class="note" id="calNote" style="margin-top:6px"></div></div>
       <div class="set"><div class="t"><b>Alert beeps</b><span>A short beep with each warning, even if the voice can't play</span></div><button class="tog on" id="togBeep" aria-label="Alert beeps"></button></div>
       <div class="set"><div class="t"><b>Test the voice</b><span>Hear what the alerts sound like</span></div><button class="btn btn-ghost" style="width:auto;padding:10px 16px;font-size:16px" id="btnTestVoice">Play</button></div>
+      <div class="set"><div class="t"><b>Voice</b><span>Pick the clearest one, then tap Play to hear it</span></div>
+        <select id="voiceSel" style="max-width:52%;padding:10px;border-radius:10px;background:#0B1A3D;color:#fff;border:1px solid rgba(255,255,255,.25);font-size:15px"><option value="">Best available</option></select></div>
+      <div class="set"><div class="t"><b>Speaking speed</b><span>Slower is easier to hear over the engine</span></div>
+        <select id="rateSel" style="padding:10px;border-radius:10px;background:#0B1A3D;color:#fff;border:1px solid rgba(255,255,255,.25);font-size:15px">
+          <option value="0.85">Slow</option><option value="0.95">Normal</option><option value="1.05">Quick</option></select></div>
       <div class="note" id="voiceHelp" style="display:none"></div>
       <div class="set"><div class="t"><b>Early warning</b><span>Turn yellow when this close to the limit</span></div>
         <select id="selMargin"><option value="3">3 km/h</option><option value="5">5 km/h</option><option value="10">10 km/h</option></select></div>
@@ -451,7 +456,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 0.8.7. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 0.8.8. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -994,15 +999,67 @@ function beep(n = 1, freq = 880) {
   } catch (e) {
   }
 }
-let VOICE = null;
+let VOICE = null, NVOICES = [], NVOICE = null;
+const LS = (k, d) => {
+  try {
+    const v = localStorage.getItem(k);
+    return v == null ? d : v;
+  } catch (e) {
+    return d;
+  }
+};
+let VRATE = +LS("rg_vrate", "0.95");
+const REGION = { GB: "British", US: "American", AU: "Australian", IN: "Indian", NG: "Nigerian", GH: "Ghanaian", ZA: "South African", IE: "Irish", CA: "Canadian", KE: "Kenyan", NZ: "New Zealand" };
+function voiceLabel(v, i, all) {
+  const rg = ((v.lang || "").split(/[-_]/)[1] || "").toUpperCase(), nm = v.name || v.voiceURI || "";
+  if (/^[a-z]{2}-[a-z]{2}-x-/i.test(nm)) {
+    const same = all.filter((x) => (x.lang || "") === (v.lang || "") && /-x-/.test(x.name || ""));
+    const n = same.indexOf(v) + 1, net = /network/i.test(nm);
+    return `${REGION[rg] || rg || "English"} voice ${n}${net ? " (online, richer)" : " (offline)"}`;
+  }
+  return nm.replace(/^Google\s*/, "").replace(/Microsoft\s*/, "") + (REGION[rg] ? ` · ${REGION[rg]}` : "");
+}
+const vScore = (v) => {
+  const nm = (v.name || "") + " " + (v.voiceURI || ""), l = v.lang || "";
+  let s = 0;
+  if (/en[-_]GB/i.test(l)) s += 30;
+  else if (/en[-_](GH|NG)/i.test(l)) s += 28;
+  else if (/en[-_](US|AU|IE|ZA)/i.test(l)) s += 20;
+  else if (/^en/i.test(l)) s += 10;
+  else return -1;
+  if (/natural|neural|premium|enhanced|wavenet/i.test(nm)) s += 8;
+  if (/google/i.test(nm)) s += 4;
+  if (/local/i.test(nm) || v.localService) s += 2;
+  return s;
+};
+function englishVoices(list) {
+  return list.filter((v) => vScore(v) >= 0).sort((a, b) => vScore(b) - vScore(a));
+}
 function pickVoice() {
   try {
-    const vs = speechSynthesis.getVoices();
-    VOICE = vs.find((v) => /en[-_]GB/i.test(v.lang)) || vs.find((v) => /en[-_](GH|NG|ZA|IE|AU)/i.test(v.lang)) || vs.find((v) => /^en/i.test(v.lang)) || null;
+    const all = englishVoices(speechSynthesis.getVoices()), want = LS("rg_voice", "");
+    VOICE = want && all.find((v) => (v.voiceURI || v.name) === want) || all[0] || null;
+    fillVoiceSel(all, (v) => v.voiceURI || v.name);
   } catch (e) {
   }
 }
-if ("speechSynthesis" in window) {
+async function loadNativeVoices() {
+  try {
+    const r = await NP.TTS.getSupportedVoices();
+    NVOICES = r && r.voices || [];
+    const all = englishVoices(NVOICES), want = LS("rg_voice", "");
+    NVOICE = want && all.find((v) => (v.voiceURI || v.name) === want) || all.find((v) => /en[-_]GB/i.test(v.lang || "") && !/network/i.test(v.name || "")) || all[0] || null;
+    fillVoiceSel(all, (v) => v.voiceURI || v.name);
+  } catch (e) {
+  }
+}
+function fillVoiceSel(all, key) {
+  const sel = document.getElementById("voiceSel");
+  if (!sel) return;
+  const want = LS("rg_voice", "");
+  sel.innerHTML = '<option value="">Best available</option>' + all.slice(0, 40).map((v, i) => `<option value="${esc(key(v))}"${key(v) === want ? " selected" : ""}>${esc(voiceLabel(v, i, all))}</option>`).join("");
+}
+if (!NATIVE && "speechSynthesis" in window) {
   pickVoice();
   try {
     speechSynthesis.onvoiceschanged = pickVoice;
@@ -1015,8 +1072,15 @@ function say(text, urgent) {
     (async () => {
       try {
         if (urgent) await NP.TTS.stop();
-        await NP.TTS.speak({ text, lang: "en-GB", rate: 1, category: "playback" });
+        const o = { text, lang: NVOICE && NVOICE.lang || "en-GB", rate: VRATE, pitch: 1, volume: 1, category: "playback" };
+        const ix = NVOICE ? NVOICES.indexOf(NVOICE) : -1;
+        if (ix >= 0) o.voice = ix;
+        await NP.TTS.speak(o);
       } catch (e) {
+        try {
+          await NP.TTS.speak({ text, lang: "en-GB", rate: VRATE, category: "playback" });
+        } catch (_) {
+        }
       }
     })();
     return;
@@ -1030,7 +1094,7 @@ function say(text, urgent) {
         u.voice = VOICE;
         u.lang = VOICE.lang;
       } else u.lang = "en-GB";
-      u.rate = 1;
+      u.rate = VRATE;
       u.volume = 1;
       speechSynthesis.speak(u);
     } catch (e) {
@@ -1104,7 +1168,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 0.8.7" : "RoadGuard GH web 0.8.7", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 0.8.8" : "RoadGuard GH web 0.8.8", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -3125,6 +3189,32 @@ $("togBeep").onclick = () => {
     localStorage.setItem("rg_beep", beepOn ? "1" : "0");
   } catch (e) {
   }
+};
+if (NATIVE && NP) loadNativeVoices();
+$("rateSel").value = String(VRATE);
+if (!$("rateSel").value) {
+  $("rateSel").value = "0.95";
+  VRATE = 0.95;
+}
+$("rateSel").onchange = (e) => {
+  VRATE = +e.target.value;
+  try {
+    localStorage.setItem("rg_vrate", e.target.value);
+  } catch (_) {
+  }
+  $("btnTestVoice").click();
+};
+$("voiceSel").onchange = (e) => {
+  const v = e.target.value;
+  try {
+    localStorage.setItem("rg_voice", v);
+  } catch (_) {
+  }
+  if (NATIVE) {
+    const all = englishVoices(NVOICES);
+    NVOICE = v && all.find((x) => (x.voiceURI || x.name) === v) || all[0] || null;
+  } else pickVoice();
+  $("btnTestVoice").click();
 };
 $("btnTestVoice").onclick = () => {
   unlockAudio();
