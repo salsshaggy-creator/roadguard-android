@@ -1,0 +1,46 @@
+11-05 09:23:31.925 I/ActivityTaskManager(  481): START u0 {flg=0x10000000 cmp=gh.roadguard.app/.MainActivity} from uid 2000
+11-05 09:23:31.929 D/CarrierSvcBindHelper(  987): onPackageModified: gh.roadguard.app
+11-05 09:23:31.930 D/ImsResolver(  987): maybeAddedImsService, packageName: gh.roadguard.app
+11-05 09:23:31.961 I/ActivityManager(  481): Start proc 5928:gh.roadguard.app/u0a174 for next-top-activity {gh.roadguard.app/gh.roadguard.app.MainActivity}
+11-05 09:23:31.979 I/h.roadguard.app( 5928): Using CollectorTypeCC GC.
+11-05 09:23:31.980 W/h.roadguard.app( 5928): Unexpected CPU variant for x86: x86_64.
+11-05 09:23:31.980 W/h.roadguard.app( 5928): Known variants: atom, sandybridge, silvermont, kabylake, default
+11-05 09:23:31.990 I/ProximityAuth( 5679): [RecentAppsMediator] Package added: (user=UserHandle{0}) gh.roadguard.app
+11-05 09:23:32.027 D/CoreBackPreview(  481): Window{9108044 u0 Splash Screen gh.roadguard.app}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@9b75cb0, mPriority=0}
+11-05 09:23:32.058 D/nativeloader( 5928): Configuring classloader-namespace for other apk /data/app/~~sUtlyXWpo480XVtFJnJ1GA==/gh.roadguard.app-LZMUVf5wJqrnch8nyw4LXA==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~sUtlyXWpo480XVtFJnJ1GA==/gh.roadguard.app-LZMUVf5wJqrnch8nyw4LXA==/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/gh.roadguard.app
+11-05 09:23:32.064 V/GraphicsEnvironment( 5928): ANGLE Developer option for 'gh.roadguard.app' set to: 'default'
+11-05 09:23:32.065 V/GraphicsEnvironment( 5928): ANGLE GameManagerService for gh.roadguard.app: false
+11-05 09:23:32.103 I/AiAiEcho( 1576): EchoSearch: AppFetcherImpl is initialized with [19] apps [time=129, reason=gh.roadguard.app is added]
+11-05 09:23:32.175 I/WebViewFactory( 5928): Loading com.google.android.webview version 109.0.5414.123 (code 541412337)
+11-05 09:23:32.178 W/h.roadguard.app( 5928): Entry not found
+11-05 09:23:32.179 D/nativeloader( 5928): Configuring classloader-namespace for other apk /data/app/~~b16pDE7lt7zclHIjWnpFDA==/com.google.android.trichromelibrary_541412337-c8Y2dQOnp-MtOiSpa_zH0w==/TrichromeLibrary.apk. target_sdk_version=33, uses_libraries=ALL, library_path=/data/app/~~4jT_8goZBkW1tg_jAKLf5w==/com.google.android.webview-0TTL4Fivh2jV59yDUjYZgA==/lib/x86_64:/data/app/~~4jT_8goZBkW1tg_jAKLf5w==/com.google.android.webview-0TTL4Fivh2jV59yDUjYZgA==/WebViewGoogle.apk!/lib/x86_64:/data/app/~~b16pDE7lt7zclHIjWnpFDA==/com.google.android.trichromelibrary_541412337-c8Y2dQOnp-MtOiSpa_zH0w==/TrichromeLibrary.apk!/lib/x86_64, permitted_path=/data:/mnt/expand
+11-05 09:23:32.179 D/nativeloader( 5928): Configuring classloader-namespace for other apk /data/app/~~4jT_8goZBkW1tg_jAKLf5w==/com.google.android.webview-0TTL4Fivh2jV59yDUjYZgA==/WebViewGoogle.apk. target_sdk_version=33, uses_libraries=, library_path=/data/app/~~4jT_8goZBkW1tg_jAKLf5w==/com.google.android.webview-0TTL4Fivh2jV59yDUjYZgA==/lib/x86_64:/data/app/~~4jT_8goZBkW1tg_jAKLf5w==/com.google.android.webview-0TTL4Fivh2jV59yDUjYZgA==/WebViewGoogle.apk!/lib/x86_64:/data/app/~~b16pDE7lt7zclHIjWnpFDA==/com.google.android.trichromelibrary_541412337-c8Y2dQOnp-MtOiSpa_zH0w==/TrichromeLibrary.apk!/lib/x86_64, permitted_path=/data:/mnt/expand
+11-05 09:23:32.215 I/cr_VariationsUtils( 5928): Failed reading seed file "/data/user/0/gh.roadguard.app/app_webview/variations_seed_new"
+11-05 09:23:32.215 I/cr_VariationsUtils( 5928): Failed reading seed file "/data/user/0/gh.roadguard.app/app_webview/variations_seed"
+11-05 09:23:32.257 I/ActivityManager(  481): Start proc 5992:com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0/u0ai9000 for  {gh.roadguard.app/org.chromium.content.app.SandboxedProcessService0:0}
+11-05 09:23:32.285 W/chromium( 5928): [WARNING:dns_config_service_android.cc(115)] Failed to read DnsConfig.
+11-05 09:23:32.355 E/chromium( 5928): [ERROR:simple_version_upgrade.cc(152)] Failed to write a new fake index.
+11-05 09:23:32.380 E/chromium( 5928): [ERROR:simple_file_enumerator.cc(21)] opendir /data/user/0/gh.roadguard.app/cache/WebView/Default/HTTP Cache/Code Cache/js: No such file or directory (2)
+11-05 09:23:32.380 E/chromium( 5928): [ERROR:simple_index_file.cc(614)] Could not reconstruct index from disk
+11-05 09:23:32.389 I/cr_WebViewApkApp( 5992): Launched version=109.0.5414.123 minSdkVersion=29 isBundle=false processName=com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0
+11-05 09:23:32.442 D/Capacitor( 5928): Starting BridgeActivity
+11-05 09:23:32.478 I/ActivityManager(  481): Start proc 6034:com.google.android.webview:webview_apk/u0a124 for service {com.google.android.webview/org.chromium.android_webview.nonembedded.AwComponentUpdateService}
+11-05 09:23:32.479 I/iew:webview_apk( 6034): Using CollectorTypeCC GC.
+11-05 09:23:32.480 W/iew:webview_apk( 6034): Unexpected CPU variant for x86: x86_64.
+11-05 09:23:32.480 W/iew:webview_apk( 6034): Known variants: atom, sandybridge, silvermont, kabylake, default
+11-05 09:23:32.551 D/CoreBackPreview(  481): Window{8522542 u0 gh.roadguard.app/gh.roadguard.app.MainActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@daef789, mPriority=0}
+11-05 09:23:32.630 W/iew:webview_apk( 6034): Entry not found
+11-05 09:23:32.630 D/nativeloader( 6034): Configuring classloader-namespace for other apk /data/app/~~b16pDE7lt7zclHIjWnpFDA==/com.google.android.trichromelibrary_541412337-c8Y2dQOnp-MtOiSpa_zH0w==/TrichromeLibrary.apk. target_sdk_version=33, uses_libraries=ALL, library_path=/data/app/~~4jT_8goZBkW1tg_jAKLf5w==/com.google.android.webview-0TTL4Fivh2jV59yDUjYZgA==/lib/x86_64:/data/app/~~4jT_8goZBkW1tg_jAKLf5w==/com.google.android.webview-0TTL4Fivh2jV59yDUjYZgA==/WebViewGoogle.apk!/lib/x86_64:/data/app/~~b16pDE7lt7zclHIjWnpFDA==/com.google.android.trichromelibrary_541412337-c8Y2dQOnp-MtOiSpa_zH0w==/TrichromeLibrary.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/com.google.android.webview
+11-05 09:23:32.632 D/nativeloader( 6034): Configuring classloader-namespace for other apk /data/app/~~4jT_8goZBkW1tg_jAKLf5w==/com.google.android.webview-0TTL4Fivh2jV59yDUjYZgA==/WebViewGoogle.apk. target_sdk_version=33, uses_libraries=, library_path=/data/app/~~4jT_8goZBkW1tg_jAKLf5w==/com.google.android.webview-0TTL4Fivh2jV59yDUjYZgA==/lib/x86_64:/data/app/~~4jT_8goZBkW1tg_jAKLf5w==/com.google.android.webview-0TTL4Fivh2jV59yDUjYZgA==/WebViewGoogle.apk!/lib/x86_64:/data/app/~~b16pDE7lt7zclHIjWnpFDA==/com.google.android.trichromelibrary_541412337-c8Y2dQOnp-MtOiSpa_zH0w==/TrichromeLibrary.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/com.google.android.webview
+11-05 09:23:32.653 V/GraphicsEnvironment( 6034): ANGLE Developer option for 'com.google.android.webview' set to: 'default'
+11-05 09:23:32.653 V/GraphicsEnvironment( 6034): ANGLE GameManagerService for com.google.android.webview: false
+11-05 09:23:32.672 I/cr_WebViewApkApp( 6034): Launched version=109.0.5414.123 minSdkVersion=29 isBundle=false processName=com.google.android.webview:webview_apk
+11-05 09:23:32.902 I/BlockstoreStorage( 5819): Clearing Blockstore Data for package gh.roadguard.app [CONTEXT service_id=258 ]
+11-05 09:23:32.986 I/ActivityTaskManager(  481): Displayed gh.roadguard.app/.MainActivity: +1s61ms
+11-05 09:23:33.008 D/CoreBackPreview(  481): Window{9108044 u0 Splash Screen gh.roadguard.app EXITING}: Setting back callback null
+11-05 09:23:33.009 W/InputManager-JNI(  481): Input channel object '9108044 Splash Screen gh.roadguard.app (client)' was disposed without first being removed with the input manager!
+11-05 09:23:33.028 I/GoogleInputMethodService( 1487): GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x12000000 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=gh.roadguard.app fieldId=2131230921 fieldName=null extras=null}, false)
+11-05 09:23:33.122 W/cr_AWNetworkFetcherTask( 6034): 	at org.chromium.android_webview.nonembedded.NetworkFetcherTask.download(chromium-TrichromeWebViewGoogle6432.apk-stable-541412337:48)
+11-05 09:23:33.243 W/cr_AWNetworkFetcherTask( 6034): 	at org.chromium.android_webview.nonembedded.NetworkFetcherTask.download(chromium-TrichromeWebViewGoogle6432.apk-stable-541412337:48)
+11-05 09:23:33.331 W/cr_AWNetworkFetcherTask( 6034): 	at org.chromium.android_webview.nonembedded.NetworkFetcherTask.download(chromium-TrichromeWebViewGoogle6432.apk-stable-541412337:48)
+11-05 09:23:33.331 W/cr_AWNetworkFetcherTask( 6034): 	at org.chromium.android_webview.nonembedded.NetworkFetcherTask.download(chromium-TrichromeWebViewGoogle6432.apk-stable-541412337:48)
