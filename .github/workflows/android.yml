@@ -83,5 +83,6 @@ jobs:
           V=$(node -p "require('./package.json').version")
           gh release create "v$V-build${{ github.run_number }}" RoadGuardGH.apk \
             --repo "${{ github.repository }}" --title "RoadGuard GH $V (build ${{ github.run_number }})" \
-            --notes "Android app for RoadGuard GH. Download RoadGuardGH.apk below, open it on your Android phone and tap Install." --latest
+            --notes "Android app for RoadGuard GH. Download RoadGuardGH.apk below, open it on your Android phone and tap Install." --latest \
+            || gh release edit "v$V-build${{ github.run_number }}" --repo "${{ github.repository }}" --draft=false --latest
 
