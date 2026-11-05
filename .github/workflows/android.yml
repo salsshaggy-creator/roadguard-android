@@ -30,6 +30,9 @@ jobs:
       - name: Install packages
         run: npm ci
 
+      - name: Add Capacitor runtime to the web files
+        run: cp node_modules/@capacitor/core/dist/capacitor.js www/capacitor.js && grep -q 'src="capacitor.js"' www/index.html
+
       - name: Create the Android project
         run: |
           npx cap add android
