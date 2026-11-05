@@ -71,9 +71,11 @@ jobs:
 
       - name: Publish the app file to the "apk" branch
         run: |
-          mkdir -p /tmp/out && cp RoadGuardGH.apk /tmp/out/ && cd /tmp/out
+          mkdir -p /tmp/out && cp RoadGuardGH.apk /tmp/out/
+          node -e "const p=require('./package.json');require('fs').writeFileSync('/tmp/out/version.json',JSON.stringify({version:p.version,build:${{ github.run_number }},date:new Date().toISOString()}))"
+          cd /tmp/out
           git init -q -b apk && git config user.name "github-actions" && git config user.email "github-actions@users.noreply.github.com"
-          git add RoadGuardGH.apk && git commit -qm "RoadGuard GH app, build ${{ github.run_number }}"
+          git add RoadGuardGH.apk version.json && git commit -qm "RoadGuard GH app, build ${{ github.run_number }}"
           git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" apk
 
       - name: Publish a downloadable release

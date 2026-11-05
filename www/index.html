@@ -477,9 +477,13 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
       <details class="faq"><summary>I made my account with Google. How do I sign in on the app?</summary><p>On the sign-in screen, enter your email and tap <b>Forgot password?</b>. Set a password from the email you receive, then sign in with it. It's the same account.</p></details>
       <details class="faq"><summary>The voice is hard to hear. What can I do?</summary><p>In <b>Settings</b>, try another <b>Voice</b> and set <b>Speaking speed</b> to Slow. Turn up the phone's media volume, or connect to the car by Bluetooth. Updating <b>Speech Services by Google</b> in the Play Store adds clearer voices.</p></details>
     </div>
+    <div class="card" id="updCard" style="display:none">
+      <div class="set"><div class="t"><b>App version <span id="appVer"></span></b><span id="updState">Checks for a newer version each time the app opens</span></div>
+        <button class="btn btn-ghost" style="width:auto;padding:10px 16px;font-size:16px" id="btnUpd">Check now</button></div>
+    </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 0.9.0. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 0.9.1. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1191,7 +1195,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 0.9.0" : "RoadGuard GH web 0.9.0", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 0.9.1" : "RoadGuard GH web 0.9.1", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -3440,6 +3444,70 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
+const APP_VER = "0.9.1";
+const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
+const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
+const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
+const isNewer = (a, b) => {
+  const x = verNum(a), y = verNum(b);
+  for (let i = 0; i < 3; i++) {
+    if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0);
+  }
+  return false;
+};
+function openUpdate() {
+  try {
+    window.open(UPD_APK, "_system");
+  } catch (e) {
+    location.href = UPD_APK;
+  }
+}
+function showUpdBar(v) {
+  if (document.getElementById("updBar")) return;
+  const b = document.createElement("div");
+  b.id = "updBar";
+  b.setAttribute("style", "position:fixed;left:10px;right:10px;bottom:96px;z-index:9000;background:linear-gradient(135deg,#F5B800,#FFD54A);color:#0B1A3D;border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.45);font-size:15px");
+  b.innerHTML = '<div style="flex:1"><b style="font-size:16px">Update available</b><br>RoadGuard ' + esc(v) + ' is ready.</div><button id="updGo" style="background:#0B1A3D;color:#fff;border:0;border-radius:12px;padding:11px 14px;font-weight:700;font-size:15px">Update now</button><button id="updX" aria-label="Later" style="background:none;border:0;color:#0B1A3D;font-size:22px;padding:4px 6px">✕</button>';
+  document.body.appendChild(b);
+  b.querySelector("#updGo").onclick = () => {
+    openUpdate();
+    toast("Downloading… when it finishes, tap Open, then Update.");
+  };
+  b.querySelector("#updX").onclick = () => {
+    b.remove();
+    try {
+      localStorage.setItem("rg_upd_snooze", v + "|" + Date.now());
+    } catch (_) {
+    }
+  };
+}
+async function checkUpdate(manual) {
+  const st = $("updState");
+  if (manual && st) st.textContent = "Checking…";
+  try {
+    const r = await within(1e4, fetch(UPD_JSON + "?t=" + Date.now(), { cache: "no-store" }));
+    if (!r || !r.ok) throw new Error("offline");
+    const j = await r.json();
+    if (isNewer(j.version, APP_VER)) {
+      if (st) st.innerHTML = '<b style="color:#F5B800">Version ' + esc(j.version) + " is available</b>";
+      $("btnUpd").textContent = "Update now";
+      $("btnUpd").onclick = openUpdate;
+      const sn = LS("rg_upd_snooze", ""), [sv, sat] = sn.split("|");
+      if (manual || sv !== j.version || Date.now() - (+sat || 0) > 864e5) showUpdBar(j.version);
+    } else if (st) st.textContent = manual ? "You have the latest version." : "Checks for a newer version each time the app opens";
+  } catch (e) {
+    if (manual && st) st.textContent = "Could not check. Are you online?";
+  }
+}
+if (NATIVE) {
+  $("updCard").style.display = "";
+  $("appVer").textContent = APP_VER;
+  $("btnUpd").onclick = () => checkUpdate(true);
+  setTimeout(() => checkUpdate(false), 4e3);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && !(typeof J !== "undefined" && J)) checkUpdate(false);
+  });
+}
 </script>
 </body>
 </html>
