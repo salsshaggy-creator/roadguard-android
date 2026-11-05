@@ -30,6 +30,16 @@ jobs:
       - name: Install packages
         run: npm ci
 
+      # Google sign-in inside the app turns on by itself once firebase/google-services.json is in the repo
+      - name: Add Google sign-in (only when google-services.json is present)
+        run: |
+          if [ -f firebase/google-services.json ]; then
+            npm i --no-save @capacitor-firebase/authentication@8.6.0 firebase@12
+            echo "GOOGLE_SIGNIN=1" >> $GITHUB_ENV
+          else
+            echo "No firebase/google-services.json yet: building without in-app Google sign-in."
+          fi
+
       - name: Add Capacitor runtime to the web files
         run: cp node_modules/@capacitor/core/dist/capacitor.js www/capacitor.js && grep -q 'src="capacitor.js"' www/index.html
 
@@ -37,6 +47,11 @@ jobs:
         run: |
           npx cap add android
           node scripts/patch-android.js
+          if [ "$GOOGLE_SIGNIN" = "1" ]; then
+            cp firebase/google-services.json android/app/google-services.json
+            grep -q rgcfaIncludeGoogle android/variables.gradle || sed -i 's/^ext {/ext {\n    rgcfaIncludeGoogle = true/' android/variables.gradle
+            grep -n rgcfaIncludeGoogle android/variables.gradle
+          fi
           npx capacitor-assets generate --android --iconBackgroundColor '#050D22' --splashBackgroundColor '#050D22'
           npx cap sync android
 

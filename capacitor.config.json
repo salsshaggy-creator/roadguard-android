@@ -2,6 +2,19 @@
   "appId": "gh.roadguard.app",
   "appName": "RoadGuard GH",
   "webDir": "www",
-  "server": { "androidScheme": "https" },
-  "android": { "useLegacyBridge": true, "backgroundColor": "#050D22" }
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "useLegacyBridge": true,
+    "backgroundColor": "#050D22"
+  },
+  "plugins": {
+    "FirebaseAuthentication": {
+      "skipNativeAuth": true,
+      "providers": [
+        "google.com"
+      ]
+    }
+  }
 }

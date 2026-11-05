@@ -487,7 +487,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 0.9.4. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 0.9.5. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -549,6 +549,7 @@ const capPlugin = (n) => {
   if (C.Plugins && C.Plugins[n]) return C.Plugins[n];
   throw new Error("Capacitor plugin " + n + " is not available");
 };
+const NATIVE_GOOGLE = !!(NATIVE && window.Capacitor && Capacitor.isPluginAvailable && Capacitor.isPluginAvailable("FirebaseAuthentication"));
 let NP = null;
 if (NATIVE) {
   try {
@@ -1141,7 +1142,9 @@ function say(text, urgent) {
 }
 const CLIPTXT = { "limit_here": "The speed limit here is", "limit_now": "The speed limit is now", "limit_is": "The speed limit is", "kmh": "kilometres per hour.", "slow_down": "Please slow down.", "reached": "You've reached", "drops_to": "Speed limit drops to", "ahead_slow": "ahead. Please slow down.", "slow_zone": "Slow down.", "zone_ahead": "kilometre zone ahead.", "over_slow_to": "You are over the speed limit. Slow down to", "you_doing": "You are doing", "slow_please": "Slow down please. You are doing", "in_a": "in a", "zone": "zone.", "careful_cross": "Be careful, you're about to cross the speed limit of", "careful_close": "Careful. You are close to the", "limit_word": "limit.", "ease_off": "Please ease off. The limit is", "back_within": "Thank you. You're back within the limit.", "on": "RoadGuard is on. Drive safely.", "demo": "Demo drive starting.", "test": "Speed limit fifty. You are doing fifty six. Please slow down." };
 const VCLIP = { on: LS("rg_voice", "rg") === "rg" };
-const partKey = (x) => typeof x === "number" ? x >= 1 && x <= 199 ? "n" + Math.round(x) : null : typeof x === "string" ? x : null;
+const PLACE_CLIPS = /* @__PURE__ */ new Set(["abehenease", "abekalapaz", "abelemkpe", "abirem", "ablajei", "ablefu", "ablekuma", "ablemkpe", "aboabo", "aboadze", "aboaso", "aboasonkwanta", "abochikrom", "abochiman", "aboesi", "abofu", "abokobi", "aboman", "abosseyokai", "abrepo", "abrepokese", "abuakwa", "abuawso", "abuohia", "abuontem", "aburankwanta", "aburaso", "aburi", "aburiamanfu", "abutare", "abutentia", "accra", "accranewtown", "achiaman", "achimota", "adabraka", "adaman", "adamrobe", "adankwame", "adawkro", "adeisena", "ademkrom", "adenkrebi", "adenta", "adentaeast", "adentan", "adiamtem", "adisadel", "adjeikojo", "adjenkotoku", "adjuah", "adoagyiri", "adoatoadomanu", "adomanu", "adubensobea", "adubensobesease", "adubensokese", "adubinsua", "adukwajo", "adum", "adumase", "aduwamasi", "adwajiri", "adwinhuhia", "adwuman", "adzenkotoku", "afiaman", "afianya", "afienya", "aflao", "afrancho", "afrentia", "afuaman", "agblesia", "agbogba", "agbon", "agogo", "agona", "agonaswedru", "agwasi", "agyaakobooho", "ahensan", "aheriso", "ahinbuboi", "ahinkofikrom", "ahinkro", "ahinsai", "ahodwo", "ahunju", "aidan", "aikaidoboro", "ajeiagbo", "ajimenti", "ajiringano", "aketebommo", "aketego", "akoanso", "akokoamon", "akokome", "akotochir", "akotuako", "akpoman", "akramaman", "akramang", "akromakrom", "akrubi", "akruma", "akuamu", "akubrefa", "akufo", "akufu", "akutuase", "akwaduo", "akwani", "akweku", "akwelenkwanta", "akwesitre", "akweteman", "akweteyman", "akweti", "akyeremade", "akyiato", "aladzo", "alajo", "alavanyo", "amakom", "amamole", "amasaman", "amedua", "amia", "amisakrom", "amissano", "ampabame", "ampabami", "ampetua", "ampeyoo", "amrahia", "anagyacamp", "ankwadoboro", "anoff", "anomangye", "anomanye", "anotema", "antimoa", "antoa", "anuaho", "anumle", "anwomaso", "anyakrom", "anyino", "apagya", "apeadu", "apeasika", "apenkwa", "apeosika", "aperade", "apere", "apimasi", "apirabo", "aplaku", "apolonia", "apomasi", "aponsakwakwanwoma", "apowa", "appremdu", "apra", "aprabon", "aprachiri", "apraprem", "apremdo", "aputuoja", "asabaham", "asabi", "asago", "asamang", "asante", "asechanu", "asennua", "ashaaladza", "ashaiman", "ashaladzabotchway", "ashaleybotwe", "ashiam", "ashongman", "ashonman", "ashwenanmo", "asioja", "asofaa", "asokoremampong", "asokorimampong", "asokrochona", "asoprochona", "asrimaso", "asuabua", "asumenya", "asylumdown", "atafua", "atamakrom", "atasomanso", "atebubu", "atimatim", "atobiase", "atrama", "atrankwa", "augustinesborg", "awchioma", "awoshie", "ayeduase", "ayido", "ayija", "ayimensa", "ayitekoto", "ayuom", "baatsona", "bakacheri", "bamparasi", "bansa", "bantama", "bantang", "batanbogun", "bawalishi", "bawku", "baworo", "beahun", "bebiri", "behinase", "bekwami", "benimasi", "benyakrom", "bimbilla", "bletum", "boadi", "bobomase", "bodomasi", "boedum", "bogwabo", "boi", "bokanchi", "boko", "bolgatanga", "bonsunkwanta", "borteyman", "bortianor", "bosore", "botamfa", "botokura", "botumagyabu", "brebia", "bremanasikuma", "brentin", "bribon", "brimbrimso", "brofoyedru", "bronikrom", "brukon", "buabai", "buabakrom", "buahwini", "bubiashie", "bukom", "bukor", "buokrom", "burmacamp", "busomabina", "capecoast", "chantan", "chinankama", "chirapatre", "chirasi", "chokome", "chorkor", "christiansborg", "christiansvillage", "christianvillage", "chuana", "chuim", "chumeduasi", "chwerebuana", "chwinto", "dabaa", "dabanpanin", "dakodwo", "daku", "dakuyau", "damba", "dambai", "damfa", "danchira", "dansoman", "darkuman", "dawhwenya", "deabenekrom", "dedeiman", "dedeman", "dedesua", "denkyemmoso", "dichemso", "dida", "djankrom", "doborogonno", "dome", "domfase", "donkokrom", "duase", "duasi", "duayeden", "dukukrom", "dumanafo", "dumpon", "dzamai", "dzorwulu", "ebom", "ebron", "echi", "echuma", "effia", "effiakuma", "ehwemase", "ejuratia", "ekuasi", "ekyem", "esaase", "esaso", "esen", "esikado", "esuochi", "ewurukwa", "faana", "fahiakochure", "fahiakotwire", "famaye", "fanchiniko", "fankyenebra", "fawoade", "fetegwa", "fetekakraba", "fijai", "fise", "fiyasi", "fomasua", "fotobi", "franwasi", "fungo", "galuluya", "gbawe", "gbegbe", "giffardcamp", "goaso", "gomoafetteh", "gonse", "grefi", "gwantenang", "gyamfiwono", "gyenyasi", "haatso", "hanya", "hawhoyeyaw", "hebron", "himang", "ho", "hobor", "hohoe", "honiachim", "hwediem", "hwendo", "hwiba", "inchaban", "jachi", "jachiepramso", "jachui", "janman", "jinyasi", "joma", "jomo", "jonkobri", "juabin", "kagabil", "kakumdo", "kakumdu", "kamuo", "kanchabo", "kaneshie", "kansauradu", "kantinkrom", "kanyasi", "kapro", "kasei", "keta", "kintampo", "koforidua", "kumasi", "lashibi", "madina", "mampong", "obuasi", "princestown", "saboba", "savelugu", "sekonditakoradi", "sunyani", "takwa", "tamale", "tarkwa", "techiman", "tema", "teshie", "wa", "winneba", "yendi"]);
+const placeSlug = (n) => String(n || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+const partKey = (x) => typeof x === "number" ? x >= 1 && x <= 199 ? "n" + Math.round(x) : null : typeof x === "string" ? x : x && x.tts && PLACE_CLIPS.has(placeSlug(x.tts)) ? "p_" + placeSlug(x.tts) : null;
 const partsToText = (parts) => parts.map((x) => typeof x === "number" ? String(x) : typeof x === "string" ? CLIPTXT[x] || "" : x && x.tts || "").join(" ").replace(/\s+([.,])/g, "$1").trim();
 let clipQ = [], clipBusy = false, clipAudio = null, clipGen = 0;
 function playClip(key) {
@@ -1315,7 +1318,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 0.9.4" : "RoadGuard GH web 0.9.4", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 0.9.5" : "RoadGuard GH web 0.9.5", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -2423,6 +2426,13 @@ const FBK = {
     this.cbs.push(f);
   },
   async signInGoogle() {
+    if (NATIVE_GOOGLE) {
+      const r = await capPlugin("FirebaseAuthentication").signInWithGoogle();
+      const tok = r && r.credential && r.credential.idToken;
+      if (!tok) throw new Error("Google sign-in did not finish. Please try again.");
+      await this.auth.signInWithCredential(firebase.auth.GoogleAuthProvider.credential(tok));
+      return;
+    }
     const p = new firebase.auth.GoogleAuthProvider();
     try {
       await this.auth.signInWithPopup(p);
@@ -2886,7 +2896,7 @@ async function renderFleet() {
 }
 function authMsg(x, create) {
   const c = x && x.code || "", m = x && x.message || "";
-  if (/invalid-credential|wrong-password|user-not-found|invalid-login|Wrong email or password/i.test(c + m)) return NATIVE ? "Wrong email or password.\n\nIf you made your account with Google on the website, it has no password yet. Tap “Forgot password?” below: we’ll email you a link to set one. Then sign in here with that password. It’s the same account, with the same trial and vehicles." : "Wrong email or password.\n\nIf you created your account with Google, tap “Continue with Google” instead. There is no password for Google accounts.";
+  if (/invalid-credential|wrong-password|user-not-found|invalid-login|Wrong email or password/i.test(c + m)) return NATIVE && !NATIVE_GOOGLE ? "Wrong email or password.\n\nIf you made your account with Google on the website, it has no password yet. Tap “Forgot password?” below: we’ll email you a link to set one. Then sign in here with that password. It’s the same account, with the same trial and vehicles." : "Wrong email or password.\n\nIf you created your account with Google, tap “Continue with Google” instead. There is no password for Google accounts.";
   if (/email-already-in-use|already exists/i.test(c + m)) return "This email already has an account. Tap “Sign in”, or “Continue with Google” if you signed up with Google.";
   if (/invalid-email/i.test(c)) return "That email address doesn't look right. Please check it.";
   if (/weak-password/i.test(c)) return "Choose a password with at least 6 characters.";
@@ -2899,7 +2909,7 @@ function renderSignIn(el, after) {
   const q = (id) => el.querySelector("#" + id);
   el.innerHTML = `<div class="card"><h3>${after ? "Sign in or create a free account" : "Sign in to use Fleet"}</h3>
     <p class="note" style="margin-top:0"><b>Owners:</b> add your vehicles, invite your drivers, and see every trip with who was driving and how fast.<br><b>Drivers:</b> join your owner's vehicle with a code and your trips in it are shared automatically.<br>Your own driving stays on your phone unless you choose to drive a shared vehicle.</p>
-    ${NATIVE ? `<p class="note" style="margin:0 0 6px">In the Android app, sign in with email. If you made your account with Google on the website, set a password there first, or use the website for Fleet.</p>` : `<button class="btn btn-ghost" id="sgG" style="background:#fff;color:#1f1f1f;border:0"><svg width="20" height="20" viewBox="0 0 48 48" style="vertical-align:-4px;margin-right:8px"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>Continue with Google</button>`}
+    ${NATIVE && !NATIVE_GOOGLE ? `<p class="note" style="margin:0 0 6px">In the Android app, sign in with email. If you made your account with Google on the website, set a password there first, or use the website for Fleet.</p>` : `<button class="btn btn-ghost" id="sgG" style="background:#fff;color:#1f1f1f;border:0"><svg width="20" height="20" viewBox="0 0 48 48" style="vertical-align:-4px;margin-right:8px"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>Continue with Google</button>`}
     <div class="muted small" style="text-align:center;margin:14px 0 4px">or use email</div>
     <input id="sgName" placeholder="Your full name (new accounts)" style="margin-bottom:8px">
     <input id="sgEmail" type="email" placeholder="Email" style="margin-bottom:8px" autocomplete="email">
@@ -3391,7 +3401,7 @@ $("btnAvatar").onclick = () => show("account");
 $("subBack").onclick = () => show("account");
 $("wGo").onclick = () => closeWelcome("drive");
 $("wSign").onclick = () => closeWelcome("account");
-if (NATIVE) $("wGoogle").style.display = "none";
+if (NATIVE && !NATIVE_GOOGLE) $("wGoogle").style.display = "none";
 $("wGoogle").onclick = async () => {
   try {
     await backend();
@@ -3566,7 +3576,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "0.9.4";
+const APP_VER = "0.9.5";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
