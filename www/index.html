@@ -470,7 +470,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
       <details class="faq"><summary>Does it use a lot of data or battery?</summary><p>Data is light: it downloads small map pieces for the roads you drive and saves them for 30 days. GPS does use battery, so on long trips keep the phone on a charger.</p></details>
       <details class="faq"><summary>I got a speeding SMS. What should I do?</summary><p>Open the <b>Ticket</b> tab and paste the SMS. RoadGuard checks it for signs of a scam (real notices come from <b>GPS-MTTD</b>, contain no links, and payment is only through <b>ghana.gov.gh</b> or <b>*222#</b>). It then compares the time and place with your journeys and can prepare a contest letter. You have 14 days to pay or contest.</p></details>
       <details class="faq"><summary>Is this proof the police must accept?</summary><p>No app can promise that. RoadGuard gives you a detailed record of your speed, time and place, with a check that shows whether it was changed afterwards. That record supports your side when you contest, but the decision rests with the authorities.</p></details>
-      <details class="faq"><summary>Who can see my journeys?</summary><p>Your journeys are stored on your phone only. If you join a vehicle in <b>Fleet</b>, the trips you drive in that vehicle are shared with its owner. Nothing else is uploaded.</p></details>
+      <details class="faq"><summary>Who can see my journeys?</summary><p>Your journeys are stored on your phone only. If you join a vehicle in <b>Fleet</b>, the trips you drive in that vehicle are shared with its owner. If you make an account, your name and email are stored so you can sign in. Read the full <a href="https://roadguard-gh.web.app/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</p></details>
       <details class="faq"><summary>How does Fleet work?</summary><p>An owner adds a vehicle and gets a join code. Each driver enters the code in <b>Fleet</b>. The owner then sees every trip in that vehicle, who was driving, and how fast.</p></details>
       <details class="faq"><summary>How much does it cost?</summary><p>Every new account gets a free 30-day trial of every feature. After that, plans start from GH₵20 a month, with cheaper 3-month, 6-month and yearly plans.</p></details>
       <details class="faq"><summary>How do I install or update the Android app?</summary><p>Open <b>roadguard-gh.web.app</b> in the <b>Chrome</b> app and tap <b>Get the free Android app</b>, then <b>Open → Install</b> (or <b>Update</b>). If the download stops at 100%, you probably opened the link from WhatsApp or a QR scanner, so open it in Chrome itself.</p></details>
@@ -482,8 +482,12 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
         <button class="btn btn-ghost" style="width:auto;padding:10px 16px;font-size:16px" id="btnUpd">Check now</button></div>
     </div>
     <div class="card">
+      <div class="set"><div class="t"><b>Privacy Policy</b><span>What RoadGuard collects and how it's used</span></div><a class="btn btn-ghost" style="width:auto;padding:10px 16px;font-size:16px;text-decoration:none" href="https://roadguard-gh.web.app/privacy.html" target="_blank" rel="noopener">Open</a></div>
+      <div class="set"><div class="t"><b>Terms of Use</b><span>The rules for using RoadGuard</span></div><a class="btn btn-ghost" style="width:auto;padding:10px 16px;font-size:16px;text-decoration:none" href="https://roadguard-gh.web.app/terms.html" target="_blank" rel="noopener">Open</a></div>
+    </div>
+    <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 0.9.3. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 0.9.4. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1311,7 +1315,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 0.9.3" : "RoadGuard GH web 0.9.3", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 0.9.4" : "RoadGuard GH web 0.9.4", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -2901,7 +2905,8 @@ function renderSignIn(el, after) {
     <input id="sgEmail" type="email" placeholder="Email" style="margin-bottom:8px" autocomplete="email">
     <input id="sgPw" type="password" placeholder="Password (at least 6 characters)" autocomplete="current-password">
     <div style="text-align:right;margin-top:8px"><a href="#" id="sgForgot" style="color:var(--gold2);font-size:13.5px">Forgot password?</a></div>
-    <div class="row" style="margin-top:10px"><button class="btn btn-ghost" id="sgIn" style="font-size:16px">Sign in</button><button class="btn btn-ghost" id="sgUp" style="font-size:16px">Create account</button></div></div>`;
+    <div class="row" style="margin-top:10px"><button class="btn btn-ghost" id="sgIn" style="font-size:16px">Sign in</button><button class="btn btn-ghost" id="sgUp" style="font-size:16px">Create account</button></div>
+    <p class="note" style="margin:12px 0 0;text-align:center">By creating an account you agree to the <a href="https://roadguard-gh.web.app/terms.html" target="_blank" rel="noopener">Terms of Use</a> and <a href="https://roadguard-gh.web.app/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</p></div>`;
   const done = () => {
     refreshVehPicker();
     updateAvatar();
@@ -3561,7 +3566,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "0.9.3";
+const APP_VER = "0.9.4";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
