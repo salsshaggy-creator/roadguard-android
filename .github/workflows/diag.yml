@@ -1,0 +1,31 @@
+name: Diagnose app on emulator
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      - name: Get latest APK
+        run: curl -sSL -o app.apk https://github.com/${{ github.repository }}/releases/latest/download/RoadGuardGH.apk && ls -l app.apk
+      - name: Run on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: bash scripts/diag.sh
+      - name: Publish results to diag branch
+        if: always()
+        run: |
+          mkdir -p /tmp/pub && cp -r diag/* /tmp/pub/ 2>/dev/null || true
+          cd /tmp/pub && git init -q && git checkout -q -b diag && git add -A
+          git -c user.name=ci -c user.email=ci@roadguard commit -qm "diag ${{ github.run_number }}"
+          git push -qf https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} diag
