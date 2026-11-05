@@ -286,6 +286,12 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
   .card,.kpi{border:1px solid #ccc;background:#fff;box-shadow:none;break-inside:avoid}
   .muted,.kpi span,th,.note{color:#555}
 }
+.faq{border-top:1px solid rgba(255,255,255,.12);padding:2px 0}.faq:first-of-type{border-top:0}
+.faq summary{cursor:pointer;list-style:none;padding:13px 30px 13px 0;font-weight:700;font-size:16px;position:relative}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:'+';position:absolute;right:4px;top:9px;font-size:22px;color:#F5B800}
+.faq[open] summary::after{content:'−'}
+.faq p{margin:0 0 14px;opacity:.85;line-height:1.5;font-size:15px}
 </style>
 </head>
 <body>
@@ -454,9 +460,26 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
       <div class="set"><div class="t"><b>Demo drive</b><span>Play a simulated Accra–Tema trip to see how it works</span></div><button class="btn btn-ghost" style="width:auto;padding:10px 16px;font-size:16px" id="btnDemo2">Run</button></div>
       <div class="set"><div class="t"><b>Delete all journeys</b><span>Removes every journey saved on this phone</span></div><button class="btn btn-ghost" style="width:auto;padding:10px 16px;font-size:16px;color:#FCA5A5" id="btnClear">Delete</button></div>
     </div>
+    <div class="card" id="faqCard">
+      <h3>Questions &amp; answers</h3>
+      <details class="faq"><summary>What does RoadGuard GH do?</summary><p>It records your real speed, the time, the place and the speed limit on every journey, warns you by voice before you go over the limit, and keeps a tamper-evident record you can use if you ever need to question a speeding notice.</p></details>
+      <details class="faq"><summary>Where does the speed limit come from?</summary><p>From your GPS position and OpenStreetMap, the free public map. If a road has a posted limit on the map, RoadGuard uses it. If not, it uses Ghana's general rules: 30 near schools, markets and hospitals, 50 on local and neighbourhood roads and on main roads in towns, 90 on main roads outside towns, and 100 on motorways. You can't type in your own limit, so the record stays trustworthy.</p></details>
+      <details class="faq"><summary>The limit on a sign is different from the app. Why?</summary><p>RoadGuard has no camera, so it can't read signs. Many Ghanaian roads aren't on the map with their limits yet, so on those roads the app uses the general rules above. When a sign's limit is added to OpenStreetMap, RoadGuard picks it up automatically within about 30 days.</p></details>
+      <details class="faq"><summary>Why is my car's speedometer a little higher than RoadGuard?</summary><p>Car speedometers are built to read slightly high, by law. GPS shows your true speed. Use <b>Settings → Match my car's speedometer</b> so the screen matches your dial. Your saved records always keep the true GPS speed.</p></details>
+      <details class="faq"><summary>Does it record with the screen off?</summary><p>In the Android app, yes: start a journey, then you can lock the phone. Allow <b>Location: all the time</b> and <b>Notifications</b> when asked. On the website, keep the screen on, because a web page can't record while the phone is locked.</p></details>
+      <details class="faq"><summary>Does it use a lot of data or battery?</summary><p>Data is light: it downloads small map pieces for the roads you drive and saves them for 30 days. GPS does use battery, so on long trips keep the phone on a charger.</p></details>
+      <details class="faq"><summary>I got a speeding SMS. What should I do?</summary><p>Open the <b>Ticket</b> tab and paste the SMS. RoadGuard checks it for signs of a scam (real notices come from <b>GPS-MTTD</b>, contain no links, and payment is only through <b>ghana.gov.gh</b> or <b>*222#</b>). It then compares the time and place with your journeys and can prepare a contest letter. You have 14 days to pay or contest.</p></details>
+      <details class="faq"><summary>Is this proof the police must accept?</summary><p>No app can promise that. RoadGuard gives you a detailed record of your speed, time and place, with a check that shows whether it was changed afterwards. That record supports your side when you contest, but the decision rests with the authorities.</p></details>
+      <details class="faq"><summary>Who can see my journeys?</summary><p>Your journeys are stored on your phone only. If you join a vehicle in <b>Fleet</b>, the trips you drive in that vehicle are shared with its owner. Nothing else is uploaded.</p></details>
+      <details class="faq"><summary>How does Fleet work?</summary><p>An owner adds a vehicle and gets a join code. Each driver enters the code in <b>Fleet</b>. The owner then sees every trip in that vehicle, who was driving, and how fast.</p></details>
+      <details class="faq"><summary>How much does it cost?</summary><p>Every new account gets a free 30-day trial of every feature. After that, plans start from GH₵20 a month, with cheaper 3-month, 6-month and yearly plans.</p></details>
+      <details class="faq"><summary>How do I install or update the Android app?</summary><p>Open <b>roadguard-gh.web.app</b> in the <b>Chrome</b> app and tap <b>Get the free Android app</b>, then <b>Open → Install</b> (or <b>Update</b>). If the download stops at 100%, you probably opened the link from WhatsApp or a QR scanner, so open it in Chrome itself.</p></details>
+      <details class="faq"><summary>I made my account with Google. How do I sign in on the app?</summary><p>On the sign-in screen, enter your email and tap <b>Forgot password?</b>. Set a password from the email you receive, then sign in with it. It's the same account.</p></details>
+      <details class="faq"><summary>The voice is hard to hear. What can I do?</summary><p>In <b>Settings</b>, try another <b>Voice</b> and set <b>Speaking speed</b> to Slow. Turn up the phone's media volume, or connect to the car by Bluetooth. Updating <b>Speech Services by Google</b> in the Play Store adds clearer voices.</p></details>
+    </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 0.8.9. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 0.9.0. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1168,7 +1191,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 0.8.9" : "RoadGuard GH web 0.8.9", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 0.9.0" : "RoadGuard GH web 0.9.0", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
