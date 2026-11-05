@@ -448,7 +448,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
       <div class="set"><div class="t"><b>Alert beeps</b><span>A short beep with each warning, even if the voice can't play</span></div><button class="tog on" id="togBeep" aria-label="Alert beeps"></button></div>
       <div class="set"><div class="t"><b>Test the voice</b><span>Hear what the alerts sound like</span></div><button class="btn btn-ghost" style="width:auto;padding:10px 16px;font-size:16px" id="btnTestVoice">Play</button></div>
       <div class="set"><div class="t"><b>Voice</b><span>Pick the clearest one, then tap Play to hear it</span></div>
-        <select id="voiceSel" style="max-width:52%;padding:10px;border-radius:10px;background:#0B1A3D;color:#fff;border:1px solid rgba(255,255,255,.25);font-size:15px"><option value="">Best available</option></select></div>
+        <select id="voiceSel" style="max-width:52%;padding:10px;border-radius:10px;background:#0B1A3D;color:#fff;border:1px solid rgba(255,255,255,.25);font-size:15px"><option value="rg">RoadGuard voice (recommended)</option><option value="">Phone voice: best available</option></select></div>
       <div class="set"><div class="t"><b>Speaking speed</b><span>Slower is easier to hear over the engine</span></div>
         <select id="rateSel" style="padding:10px;border-radius:10px;background:#0B1A3D;color:#fff;border:1px solid rgba(255,255,255,.25);font-size:15px">
           <option value="0.85">Slow</option><option value="0.95">Normal</option><option value="1.05">Quick</option></select></div>
@@ -483,7 +483,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 0.9.1. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 0.9.2. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1064,7 +1064,7 @@ function englishVoices(list) {
 }
 function pickVoice() {
   try {
-    const all = englishVoices(speechSynthesis.getVoices()), want = LS("rg_voice", "");
+    const all = englishVoices(speechSynthesis.getVoices()), want = LS("rg_voice", "rg");
     VOICE = want && all.find((v) => (v.voiceURI || v.name) === want) || all[0] || null;
     fillVoiceSel(all, (v) => v.voiceURI || v.name);
   } catch (e) {
@@ -1074,7 +1074,7 @@ async function loadNativeVoices() {
   try {
     const r = await NP.TTS.getSupportedVoices();
     NVOICES = r && r.voices || [];
-    const all = englishVoices(NVOICES), want = LS("rg_voice", "");
+    const all = englishVoices(NVOICES), want = LS("rg_voice", "rg");
     NVOICE = want && all.find((v) => (v.voiceURI || v.name) === want) || all.find((v) => /en[-_]GB/i.test(v.lang || "") && !/network/i.test(v.name || "")) || all[0] || null;
     fillVoiceSel(all, (v) => v.voiceURI || v.name);
   } catch (e) {
@@ -1083,8 +1083,8 @@ async function loadNativeVoices() {
 function fillVoiceSel(all, key) {
   const sel = document.getElementById("voiceSel");
   if (!sel) return;
-  const want = LS("rg_voice", "");
-  sel.innerHTML = '<option value="">Best available</option>' + all.slice(0, 40).map((v, i) => `<option value="${esc(key(v))}"${key(v) === want ? " selected" : ""}>${esc(voiceLabel(v, i, all))}</option>`).join("");
+  const want = LS("rg_voice", "rg");
+  sel.innerHTML = '<option value="rg"' + (want === "rg" ? " selected" : "") + '>RoadGuard voice (recommended)</option><option value=""' + (want === "" ? " selected" : "") + ">Phone voice: best available</option>" + all.slice(0, 40).map((v, i) => `<option value="${esc(key(v))}"${key(v) === want ? " selected" : ""}>${esc(voiceLabel(v, i, all))}</option>`).join("");
 }
 if (!NATIVE && "speechSynthesis" in window) {
   pickVoice();
@@ -1135,13 +1135,129 @@ function say(text, urgent) {
   } catch (e) {
   }
 }
+const CLIPTXT = { "limit_here": "The speed limit here is", "limit_now": "The speed limit is now", "limit_is": "The speed limit is", "kmh": "kilometres per hour.", "slow_down": "Please slow down.", "reached": "You've reached", "drops_to": "Speed limit drops to", "ahead_slow": "ahead. Please slow down.", "slow_zone": "Slow down.", "zone_ahead": "kilometre zone ahead.", "over_slow_to": "You are over the speed limit. Slow down to", "you_doing": "You are doing", "slow_please": "Slow down please. You are doing", "in_a": "in a", "zone": "zone.", "careful_cross": "Be careful, you're about to cross the speed limit of", "careful_close": "Careful. You are close to the", "limit_word": "limit.", "ease_off": "Please ease off. The limit is", "back_within": "Thank you. You're back within the limit.", "on": "RoadGuard is on. Drive safely.", "demo": "Demo drive starting.", "test": "Speed limit fifty. You are doing fifty six. Please slow down." };
+const VCLIP = { on: LS("rg_voice", "rg") === "rg" };
+const partKey = (x) => typeof x === "number" ? x >= 1 && x <= 199 ? "n" + Math.round(x) : null : typeof x === "string" ? x : null;
+const partsToText = (parts) => parts.map((x) => typeof x === "number" ? String(x) : typeof x === "string" ? CLIPTXT[x] || "" : x && x.tts || "").join(" ").replace(/\s+([.,])/g, "$1").trim();
+let clipQ = [], clipBusy = false, clipAudio = null, clipGen = 0;
+function playClip(key) {
+  return new Promise((res, rej) => {
+    const a = new Audio("voice/" + key + ".mp3");
+    clipAudio = a;
+    try {
+      a.playbackRate = Math.max(0.8, Math.min(1.25, VRATE / 0.95));
+    } catch (_) {
+    }
+    let started = false;
+    const t1 = setTimeout(() => {
+      if (!started) {
+        try {
+          a.pause();
+        } catch (_) {
+        }
+        rej(new Error("blocked"));
+      }
+    }, 1500);
+    a.onplaying = () => {
+      started = true;
+      setTimeout(() => {
+        try {
+          a.pause();
+        } catch (_) {
+        }
+        res();
+      }, Math.max(4e3, (a.duration || 3) * 1e3 / (a.playbackRate || 1) + 1500));
+    };
+    a.onended = () => {
+      clearTimeout(t1);
+      res();
+    };
+    a.onerror = () => {
+      clearTimeout(t1);
+      rej(new Error("missing " + key));
+    };
+    const pr = a.play();
+    if (pr && pr.catch) pr.catch((e) => {
+      clearTimeout(t1);
+      rej(e);
+    });
+  });
+}
+function ttsWait(text) {
+  return new Promise((res) => {
+    if (!text) return res();
+    if (NATIVE) {
+      const o = { text, lang: NVOICE && NVOICE.lang || "en-GB", rate: VRATE, category: "playback" };
+      const ix = NVOICE ? NVOICES.indexOf(NVOICE) : -1;
+      if (ix >= 0) o.voice = ix;
+      NP.TTS.speak(o).then(res, res);
+      setTimeout(res, 6e3);
+      return;
+    }
+    try {
+      const u = new SpeechSynthesisUtterance(text);
+      if (VOICE) {
+        u.voice = VOICE;
+        u.lang = VOICE.lang;
+      } else u.lang = "en-GB";
+      u.rate = VRATE;
+      u.onend = res;
+      u.onerror = res;
+      speechSynthesis.speak(u);
+      setTimeout(res, 6e3);
+    } catch (e) {
+      res();
+    }
+  });
+}
+async function runClips() {
+  if (clipBusy) return;
+  clipBusy = true;
+  while (clipQ.length) {
+    const { parts, gen } = clipQ.shift();
+    if (gen !== clipGen) continue;
+    for (let i = 0; i < parts.length; i++) {
+      if (gen !== clipGen) break;
+      const x = parts[i], k = partKey(x);
+      try {
+        if (k) await playClip(k);
+        else await ttsWait(x && x.tts ? x.tts : String(x));
+      } catch (e) {
+        say(partsToText(parts.slice(i)));
+        break;
+      }
+    }
+  }
+  clipBusy = false;
+}
+function sayParts(parts, urgent) {
+  if (!voiceOn) return;
+  parts = parts.filter((x) => x != null && x !== "");
+  if (!VCLIP.on) return say(partsToText(parts), urgent);
+  if (urgent) {
+    clipGen++;
+    clipQ = [];
+    try {
+      clipAudio && clipAudio.pause();
+    } catch (_) {
+    }
+    try {
+      if (NATIVE) NP.TTS.stop();
+      else speechSynthesis.cancel();
+    } catch (_) {
+    }
+    clipBusy = false;
+  }
+  clipQ.push({ parts, gen: clipGen });
+  runClips();
+}
 function voiceFor(p, place, ahead) {
   const st = liveStatus(p), t = p.t, spd = p.spd == null ? null : Math.round(dispSpd(p.spd));
   const placeNew = !!place && place !== V.place && t - V.placeAt > 6e4;
   if (p.lim != null && p.lim !== V.lim && !p.sus) {
     const over = spd != null && spd > p.lim;
     beep(1, 660);
-    say((placeNew ? `You've reached ${place}. ` : "") + (V.lim == null ? `The speed limit here is ${p.lim}.` : `The speed limit is now ${p.lim} kilometres per hour.`) + (over ? " Please slow down." : ""), over);
+    sayParts([...placeNew ? ["reached", { tts: place }] : [], ...V.lim == null ? ["limit_here", p.lim] : ["limit_now", p.lim, "kmh"], ...over ? ["slow_down"] : []], over);
     V.lim = p.lim;
     if (placeNew) {
       V.place = place;
@@ -1152,25 +1268,25 @@ function voiceFor(p, place, ahead) {
     return;
   }
   if (placeNew) {
-    say(`You've reached ${place}.` + (p.lim ? ` The speed limit is ${p.lim}.` : ""));
+    sayParts(["reached", { tts: place }, ...p.lim ? ["limit_is", p.lim] : []]);
     V.place = place;
     V.placeAt = t;
   }
   if (ahead != null && p.lim != null && ahead < p.lim && spd != null && spd > ahead + 3 && (ahead !== V.aheadLim || t - V.aheadAt > 45e3)) {
-    say(pick([`Speed limit drops to ${ahead} ahead. Please slow down.`, `Slow down. ${ahead} kilometre zone ahead.`]), true);
+    sayParts(pick([["drops_to", ahead, "ahead_slow"], ["slow_zone", ahead, "zone_ahead"]]), true);
     V.aheadLim = ahead;
     V.aheadAt = t;
   }
   if (st === "red" && (V.st !== "red" || t - V.overAt > 15e3)) {
     beep(2, 988);
-    say(pick([`Please slow down. The speed limit is ${p.lim}. You are doing ${spd}.`, `You are over the speed limit. Slow down to ${p.lim}.`, `Slow down please. You are doing ${spd} in a ${p.lim} zone.`]), true);
+    sayParts(pick([["slow_down", "limit_is", p.lim, "you_doing", spd], ["over_slow_to", p.lim], ["slow_please", spd, "in_a", p.lim, "zone"]]), true);
     V.overAt = t;
   } else if (st === "amber" && V.st === "green" && t - V.amberAt > 3e4) {
     beep(1, 740);
-    say(pick([`Be careful, you're about to cross the speed limit of ${p.lim}.`, `Careful. You are close to the ${p.lim} limit.`, `Please ease off. The limit is ${p.lim}.`]));
+    sayParts(pick([["careful_cross", p.lim], ["careful_close", p.lim, "limit_word"], ["ease_off", p.lim]]));
     V.amberAt = t;
   } else if (st === "green" && V.st === "red") {
-    say(`Thank you. You're back within the limit.`);
+    sayParts(["back_within"]);
   }
   if (st !== "grey") V.st = st;
 }
@@ -1195,7 +1311,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 0.9.1" : "RoadGuard GH web 0.9.1", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 0.9.2" : "RoadGuard GH web 0.9.2", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -1386,7 +1502,7 @@ async function startJourneyNative() {
   J.cal = CAL;
   tagVehicle(J);
   setRecordingUI(true);
-  say("RoadGuard is on. Drive safely.");
+  sayParts(["on"]);
   setPill("status", "grey", "Waiting for GPS");
   setPill("signPill", "grey", "Looking up");
   setGps(null, false);
@@ -1548,7 +1664,7 @@ function runSim() {
   J.limitReports = [];
   tagVehicle(J);
   setRecordingUI(true);
-  say("Demo drive starting.");
+  sayParts(["demo"]);
   const pts = buildSim(), t0 = Date.now() - pts.length * 1e3;
   J.startedAt = t0;
   let i = 0;
@@ -3184,7 +3300,7 @@ document.querySelectorAll("nav button").forEach((b) => b.onclick = () => show(b.
 $("btnBack").onclick = () => show("journeys");
 $("btnStart").onclick = () => {
   unlockAudio();
-  if (!NATIVE) say("RoadGuard is on. Drive safely.");
+  if (!NATIVE) sayParts(["on"]);
   startJourney();
 };
 $("btnDemo").addEventListener("click", unlockAudio, true);
@@ -3237,6 +3353,7 @@ $("voiceSel").onchange = (e) => {
     localStorage.setItem("rg_voice", v);
   } catch (_) {
   }
+  VCLIP.on = v === "rg";
   if (NATIVE) {
     const all = englishVoices(NVOICES);
     NVOICE = v && all.find((x) => (x.voiceURI || x.name) === v) || all[0] || null;
@@ -3249,7 +3366,7 @@ $("btnTestVoice").onclick = () => {
   setTimeout(() => {
     const w = voiceOn;
     voiceOn = true;
-    say("Speed limit fifty. You are doing fifty six. Please slow down.");
+    sayParts(["test"]);
     voiceOn = w;
   }, 650);
   if (!NATIVE) setTimeout(() => {
@@ -3444,7 +3561,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "0.9.1";
+const APP_VER = "0.9.2";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
