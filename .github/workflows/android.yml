@@ -34,7 +34,7 @@ jobs:
       - name: Add Google sign-in (only when google-services.json is present)
         run: |
           if [ -f firebase/google-services.json ]; then
-            npm i --no-save @capacitor-firebase/authentication@8.6.0 firebase@12
+            npm i @capacitor-firebase/authentication@8.6.0 firebase@12
             echo "GOOGLE_SIGNIN=1" >> $GITHUB_ENV
           else
             echo "No firebase/google-services.json yet: building without in-app Google sign-in."

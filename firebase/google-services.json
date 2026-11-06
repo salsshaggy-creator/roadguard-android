@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1000138253316",
+    "project_id": "roadguard-gh",
+    "storage_bucket": "roadguard-gh.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1000138253316:android:38bb3f32582669ee794151",
+        "android_client_info": {
+          "package_name": "gh.roadguard.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1000138253316-oe9io73vkopjqegj0b856ric38rb58p4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBqYKSDjwRVg8gMyVw0snato4gDev-CY4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1000138253316-oe9io73vkopjqegj0b856ric38rb58p4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
