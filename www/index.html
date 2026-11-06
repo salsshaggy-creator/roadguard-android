@@ -384,6 +384,21 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
         <div class="note" style="margin:4px 0 0">On your Android phone, open the <b>Chrome</b> app and go to <b>roadguard-gh.web.app</b>, then tap <b>Get the free Android app</b>.<br>Scanning this code also works, but if the download freezes, use Chrome instead.</div></div></div>
     <div class="ctl noprint" id="ctlIdle"><button class="btn btn-go" id="btnStart">▶ START JOURNEY</button></div>
     <div class="ctl noprint" id="ctlRec" style="display:none"><button class="btn btn-stop" id="btnStop">■ END JOURNEY</button></div>
+    <div id="shareSheet" class="noprint" style="display:none;position:fixed;inset:0;z-index:8000;background:rgba(2,6,20,.72);align-items:flex-end;justify-content:center">
+      <div class="card" style="width:100%;max-width:560px;margin:0;border-radius:22px 22px 0 0;max-height:92vh;overflow:auto">
+        <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">Share my trip live</h3><button class="btn btn-ghost" id="shClose" aria-label="Close" style="width:auto;padding:6px 12px;font-size:18px">✕</button></div>
+        <p class="note" style="margin:6px 0 12px">Family will see where you are, how fast you're going, each town you pass and when you arrive. All fields are optional.</p>
+        <label class="small muted" for="shType">I'm travelling in</label>
+        <select id="shType" style="width:100%;margin:6px 0 12px;padding:12px;border-radius:12px;background:#0B1A3D;color:#fff;border:1px solid rgba(255,255,255,.25);font-size:16px">
+          <option value="">Choose…</option><option>Trotro</option><option>Taxi</option><option>Bolt / Uber / Yango</option><option>Bus (STC, VIP or other)</option><option>Private car</option><option>School bus</option><option>Okada / motorbike</option><option>Other</option></select>
+        <label class="small muted" for="shPlate">Number plate</label>
+        <input id="shPlate" maxlength="16" placeholder="e.g. GR 1234-24" autocapitalize="characters" style="width:100%;margin:6px 0 12px;padding:12px;border-radius:12px;background:#0B1A3D;color:#fff;border:1px solid rgba(255,255,255,.25);font-size:16px;text-transform:uppercase">
+        <label class="small muted" for="shDest">Going to</label>
+        <input id="shDest" maxlength="80" placeholder="Type a town or place, e.g. Kaneshie" autocomplete="off" style="width:100%;margin:6px 0 4px;padding:12px;border-radius:12px;background:#0B1A3D;color:#fff;border:1px solid rgba(255,255,255,.25);font-size:16px">
+        <div id="shSug" style="margin:0 0 12px"></div>
+        <button class="btn btn-go" id="shGo" style="font-size:17px">Start sharing</button>
+      </div>
+    </div>
     <div class="ctl noprint" id="ctlShare" style="display:none;margin-top:10px;gap:10px"><button class="btn btn-ghost" id="btnShare" style="font-size:17px"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>Share my trip live</button><button class="btn btn-ghost" id="btnShareStop" style="display:none;font-size:15px;flex:0 0 auto;width:auto;padding:12px 16px">Stop sharing</button></div>
     <div class="vehpick noprint" id="vehPick" style="display:none"><label for="selVeh">Driving:</label><select id="selVeh"></select></div>
     <div class="ctl noprint" style="margin-top:10px"><button class="btn btn-ghost" id="btnDemo">Try a demo drive (simulated)</button></div>
@@ -504,7 +519,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.0.1. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.0.2. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1238,8 +1253,9 @@ async function runClips() {
   if (clipBusy) return;
   clipBusy = true;
   while (clipQ.length) {
-    const { parts, gen } = clipQ.shift();
+    const { parts, gen, at } = clipQ.shift();
     if (gen !== clipGen) continue;
+    if (at && Date.now() - at > 6e3) continue;
     for (let i = 0; i < parts.length; i++) {
       if (gen !== clipGen) break;
       const x = parts[i], k = partKey(x);
@@ -1257,6 +1273,7 @@ async function runClips() {
 function sayParts(parts, urgent) {
   if (!voiceOn) return;
   parts = parts.filter((x) => x != null && x !== "");
+  if (document.visibilityState === "hidden" && clipQ.length > 2) clipQ = clipQ.slice(-1);
   if (!VCLIP.on) return say(partsToText(parts), urgent);
   if (urgent) {
     clipGen++;
@@ -1272,7 +1289,7 @@ function sayParts(parts, urgent) {
     }
     clipBusy = false;
   }
-  clipQ.push({ parts, gen: clipGen });
+  clipQ.push({ parts, gen: clipGen, at: Date.now() });
   runClips();
 }
 function voiceFor(p, place, ahead) {
@@ -1335,7 +1352,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.0.1" : "RoadGuard GH web 1.0.1", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.0.2" : "RoadGuard GH web 1.0.2", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -1383,10 +1400,10 @@ function addPoint(raw) {
   if (prev && !p.sus && !prev.sus && p.acc <= ACC_OK && prev.acc <= ACC_OK) live.dist += hav(prev, p);
   if (!p.sus && p.spd != null && p.acc <= ACC_OK) live.max = Math.max(live.max, p.spd);
   renderLive(p);
-  liveTick(p);
+  liveTick(p, L2.place);
   if (pts.length % 15 === 0) hashQ.then(() => saveJ(J));
   const ahead = J.simulated ? (_a = raw.ahead) != null ? _a : null : aheadLimit(p, hdg);
-  voiceFor(p, L2.place, ahead);
+  if (J.simulated || Date.now() - p.t < 8e3) voiceFor(p, L2.place, ahead);
   $("aheadTxt").textContent = ahead != null && p.lim != null && ahead !== p.lim ? `Limit changes to ${ahead} ahead` : "";
 }
 const GMAX = 160, ARC = 565.49, CIRC = 753.98, ICON_OK = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><circle cx="12" cy="12" r="10"/><path d="m7.5 12.5 3 3 6-6.5"/></svg>', ICON_WARN = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17h.01"/></svg>';
@@ -3455,7 +3472,10 @@ App: ${APP_VER} · ${rec.device}`
   toast("Thank you! Your message has been sent.");
 }
 $("fbSend").onclick = sendFeedback;
-const LIVE = { id: null, trail: [], last: 0, max: 0, over: 0, started: 0 }, LIVE_EVERY = 1e4, LIVE_MS = 12 * 36e5;
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && clipQ.length > 1) clipQ = clipQ.slice(-1);
+});
+const LIVE = { id: null, trail: [], last: 0, max: 0, over: 0, started: 0, veh: null, plate: null, dest: null, towns: [], stopSince: null, arrivedAt: null, battery: null }, LIVE_EVERY = 1e4, LIVE_MS = 12 * 36e5;
 const liveUrl = (id) => SITE + "/live.html?t=" + id;
 function newLiveId() {
   const a = new Uint8Array(16);
@@ -3481,13 +3501,20 @@ function liveDoc(p) {
     acc: p ? p.acc || null : null,
     max: Math.round(LIVE.max),
     over: LIVE.over,
+    vehicle: LIVE.veh || null,
+    plate: LIVE.plate || null,
+    dest: LIVE.dest || null,
+    towns: LIVE.towns.slice(-80),
+    stopSince: LIVE.stopSince || null,
+    arrivedAt: LIVE.arrivedAt || null,
+    battery: LIVE.battery,
     trail: LIVE.trail.slice(-360).map((x) => ({ a: x[0], o: x[1], s: x[2], l: x[3] }))
   };
 }
 function updShareUI() {
   const on = !!LIVE.id, b = $("btnShare"), x = $("btnShareStop");
   if (!b) return;
-  b.innerHTML = on ? '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#22C55E;margin-right:8px;box-shadow:0 0 0 4px rgba(34,197,94,.25)"></span>Sharing live · send link again' : '<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>Share my trip live';
+  b.innerHTML = on ? '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#22C55E;margin-right:8px;box-shadow:0 0 0 4px rgba(34,197,94,.25)"></span>Sharing live · details or send again' : '<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>Share my trip live';
   x.style.display = on ? "" : "none";
 }
 async function shareText(text) {
@@ -3511,6 +3538,66 @@ async function shareText(text) {
 }
 function sendLiveLink() {
   shareText(`Follow my trip live on RoadGuard GH. You'll see where I am and how fast we're going: ${liveUrl(LIVE.id)}`);
+}
+let shDestPick = null, shTimer = null;
+function openShareSheet() {
+  if (!J) {
+    toast("Start a journey first, then share it.");
+    return;
+  }
+  $("shType").value = LIVE.veh || LS("rg_sh_type", "");
+  $("shPlate").value = LIVE.plate || "";
+  $("shDest").value = LIVE.dest ? LIVE.dest.name : "";
+  shDestPick = LIVE.dest || null;
+  $("shSug").innerHTML = "";
+  $("shGo").textContent = LIVE.id ? "Update and send the link again" : "Start sharing";
+  $("shareSheet").style.display = "flex";
+}
+function closeShareSheet() {
+  $("shareSheet").style.display = "none";
+}
+async function destSuggest() {
+  const q = $("shDest").value.trim();
+  shDestPick = null;
+  if (q.length < 3) {
+    $("shSug").innerHTML = "";
+    return;
+  }
+  try {
+    const r = await within(6e3, fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=gh&limit=5&accept-language=en&q=" + encodeURIComponent(q)));
+    const a = r && r.ok ? await r.json() : [];
+    $("shSug").innerHTML = a.map((x, i) => `<button type="button" class="btn btn-ghost shPick" data-i="${i}" style="display:block;width:100%;text-align:left;font-size:15px;padding:10px 12px;margin-top:6px">${esc(x.display_name.split(",").slice(0, 3).join(","))}</button>`).join("");
+    $("shSug").querySelectorAll(".shPick").forEach((b) => b.onclick = () => {
+      const x = a[+b.dataset.i];
+      const nm = x.display_name.split(",").slice(0, 2).join(",").trim();
+      shDestPick = { name: nm, lat: +(+x.lat).toFixed(5), lon: +(+x.lon).toFixed(5) };
+      $("shDest").value = nm;
+      $("shSug").innerHTML = "";
+    });
+  } catch (e) {
+  }
+}
+async function shareFromSheet() {
+  LIVE.veh = $("shType").value || null;
+  LIVE.plate = ($("shPlate").value || "").toUpperCase().trim().slice(0, 16) || null;
+  const dn = $("shDest").value.trim();
+  LIVE.dest = dn ? shDestPick && shDestPick.name === dn ? shDestPick : { name: dn.slice(0, 80) } : null;
+  LIVE.arrivedAt = null;
+  try {
+    localStorage.setItem("rg_sh_type", LIVE.veh || "");
+  } catch (e) {
+  }
+  closeShareSheet();
+  if (LIVE.id) {
+    try {
+      B.db.collection("live").doc(LIVE.id).set(liveDoc(J.points.at(-1)), { merge: true }).catch(() => {
+      });
+    } catch (e) {
+    }
+    sendLiveLink();
+    return;
+  }
+  startShare();
 }
 async function startShare() {
   if (!J) {
@@ -3541,6 +3628,9 @@ async function startShare() {
   LIVE.max = 0;
   LIVE.over = 0;
   LIVE.last = 0;
+  LIVE.towns = [];
+  LIVE.stopSince = null;
+  LIVE.arrivedAt = null;
   const p = J.points.at(-1);
   if (p) LIVE.trail.push([+p.lat.toFixed(5), +p.lon.toFixed(5), p.spd == null ? null : Math.round(p.spd), p.lim || null]);
   try {
@@ -3556,12 +3646,24 @@ async function startShare() {
   updShareUI();
   sendLiveLink();
 }
-function liveTick(p) {
+function liveTick(p, place) {
   if (!LIVE.id || !B || !B.db) return;
   if (p.spd != null && !p.sus && p.acc <= ACC_OK) LIVE.max = Math.max(LIVE.max, p.spd);
+  if (place && (!LIVE.towns.length || LIVE.towns.at(-1).n !== place)) LIVE.towns.push({ n: place, t: J.simulated ? Date.now() : p.t, a: +p.lat.toFixed(4), o: +p.lon.toFixed(4) });
+  if (p.spd != null && p.spd < 3) {
+    if (!LIVE.stopSince) LIVE.stopSince = J.simulated ? Date.now() : p.t;
+  } else if (p.spd != null && p.spd > 8) LIVE.stopSince = null;
+  if (LIVE.dest && LIVE.dest.lat != null && !LIVE.arrivedAt && hav(p, { lat: LIVE.dest.lat, lon: LIVE.dest.lon }) < 350) LIVE.arrivedAt = Date.now();
   const now = Date.now();
-  if (now - LIVE.last < LIVE_EVERY) return;
+  if (now - LIVE.last < (J.simulated ? 1500 : LIVE_EVERY)) return;
   LIVE.last = now;
+  try {
+    navigator.getBattery && navigator.getBattery().then((b) => {
+      LIVE.battery = Math.round(b.level * 100);
+    }).catch(() => {
+    });
+  } catch (e) {
+  }
   if (now > LIVE.started + LIVE_MS - 6e4) {
     stopShare(true);
     return;
@@ -3601,7 +3703,16 @@ async function cleanOldShares() {
   } catch (e) {
   }
 }
-$("btnShare").onclick = startShare;
+$("btnShare").onclick = openShareSheet;
+$("shClose").onclick = closeShareSheet;
+$("shGo").onclick = shareFromSheet;
+$("shareSheet").onclick = (e) => {
+  if (e.target.id === "shareSheet") closeShareSheet();
+};
+$("shDest").oninput = () => {
+  clearTimeout(shTimer);
+  shTimer = setTimeout(destSuggest, 700);
+};
 $("btnShareStop").onclick = () => {
   if (confirm('Stop sharing this trip? People with the link will see "Sharing stopped".')) stopShare(false);
 };
@@ -3891,7 +4002,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.0.1";
+const APP_VER = "1.0.2";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);

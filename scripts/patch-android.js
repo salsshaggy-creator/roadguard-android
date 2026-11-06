@@ -41,3 +41,41 @@ if (!m.includes('android.permission.WAKE_LOCK')) m = m.replace('<uses-permission
 fs.writeFileSync(manFile, m);
 
 console.log(`Android project patched: version ${pkg.version} (${versionCode})`);
+
+// 4. MainActivity: keep the web engine awake in the background, so voice alerts, live sharing and the
+//    demo keep running when the phone is locked or another app (music, WhatsApp) is in front.
+//    Android otherwise marks the page hidden and slows its JavaScript almost to a stop.
+const mainDir = path.join(root, 'app', 'src', 'main', 'java', 'gh', 'roadguard', 'app');
+fs.mkdirSync(mainDir, { recursive: true });
+fs.writeFileSync(path.join(mainDir, 'MainActivity.java'), `package gh.roadguard.app;
+
+import android.view.View;
+import android.webkit.WebView;
+import com.getcapacitor.BridgeActivity;
+
+public class MainActivity extends BridgeActivity {
+    private void stayAwake() {
+        try {
+            WebView w = getBridge() != null ? getBridge().getWebView() : null;
+            if (w != null) {
+                w.onResume();
+                w.resumeTimers();
+                w.dispatchWindowVisibilityChanged(View.VISIBLE);
+            }
+        } catch (Exception e) { /* never crash the app over this */ }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        stayAwake();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        stayAwake();
+    }
+}
+`);
+console.log('MainActivity: web engine stays awake in the background');
