@@ -307,7 +307,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
       <span id="gpsTxt" class="num">idle</span></div>
     <div class="vsep"></div>
     <svg class="flag" viewBox="0 0 30 30" aria-label="Ghana"><rect width="30" height="10" fill="#CE1126"/><rect y="10" width="30" height="10" fill="#FCD116"/><rect y="20" width="30" height="10" fill="#006B3F"/><path d="m15 11.2 1.1 3.1h3.3l-2.7 2 1 3.1-2.7-1.9-2.7 1.9 1-3.1-2.7-2h3.3z" fill="#000"/></svg>
-    <button class="avatar" id="btnAvatar" aria-label="Settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DCE6FA" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></button>
+    <span style="position:relative;display:inline-block;flex:none"><button class="avatar" id="btnAvatar" aria-label="Settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DCE6FA" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></button><span id="avBadge" aria-live="polite" style="display:none;position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#EF4444;color:#fff;font:800 12px/20px system-ui,sans-serif;text-align:center;border:2px solid #050D22;pointer-events:none"></span></span>
   </div>
 </header>
 
@@ -522,7 +522,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.0.3. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.0.4. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1355,7 +1355,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.0.3" : "RoadGuard GH web 1.0.3", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.0.4" : "RoadGuard GH web 1.0.4", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -3181,6 +3181,11 @@ function updateAvatar() {
   }
 }
 async function authChanged(u) {
+  try {
+    if (u && B && B.db) startWatchers(u);
+    else stopWatchers();
+  } catch (e) {
+  }
   if (u) setTimeout(cleanOldShares, 8e3);
   try {
     if (u && u.email && $("fbReply") && !$("fbReply").value) $("fbReply").value = u.email;
@@ -3373,6 +3378,10 @@ async function renderAdmin(box) {
   }).join("")}</table></div></details>
     <p class="note" style="margin:10px 0 0">Counts people who made an account. People using RoadGuard without an account aren't counted, because the app doesn't track anyone.</p></div>`;
   $("adRefresh").onclick = () => renderAdmin(box);
+  try {
+    if (!NATIVE && window.Notification && Notification.permission === "default") Notification.requestPermission();
+  } catch (e) {
+  }
   box.querySelectorAll(".adRead").forEach((b) => b.onclick = async () => {
     try {
       await B.markFeedbackRead(b.dataset.id);
@@ -3403,6 +3412,100 @@ $("btnAdmin") && ($("btnAdmin").onclick = () => {
     c && c.scrollIntoView({ behavior: "smooth" });
   }, 400);
 });
+if (NATIVE) setTimeout(lnSetup, 3e3);
+const NOTE = { admMsg: 0, admPay: 0, user: 0, unsubs: [], first: {} };
+function setBadge() {
+  const n = NOTE.admMsg + NOTE.admPay + NOTE.user, b = $("avBadge");
+  if (!b) return;
+  b.textContent = n > 9 ? "9+" : String(n);
+  b.style.display = n ? "block" : "none";
+  const al = $("adminLink");
+  if (al) {
+    const t = al.querySelector(".t b");
+    if (t) t.innerHTML = "Admin: users &amp; payments" + (NOTE.admMsg + NOTE.admPay ? ` <span style="background:#EF4444;color:#fff;border-radius:10px;padding:0 8px;font-size:13px">${NOTE.admMsg + NOTE.admPay} new</span>` : "");
+  }
+}
+function stopWatchers() {
+  NOTE.unsubs.forEach((f) => {
+    try {
+      f();
+    } catch (e) {
+    }
+  });
+  NOTE.unsubs = [];
+  NOTE.admMsg = NOTE.admPay = NOTE.user = 0;
+  NOTE.first = {};
+  setBadge();
+}
+function alertUser(title, body) {
+  toast(title + (body ? ": " + body : ""));
+  notifyLocal(title, body);
+}
+function startWatchers(u) {
+  stopWatchers();
+  if (!u || !B || !B.db) return;
+  const db2 = B.db;
+  if (u.email === ADMIN_EMAIL) {
+    NOTE.unsubs.push(db2.collection("feedback").where("status", "==", "new").onSnapshot((q) => {
+      NOTE.admMsg = q.size;
+      setBadge();
+      if (NOTE.first.msg) q.docChanges().forEach((c) => {
+        if (c.type === "added") {
+          const m = c.doc.data();
+          alertUser("New message: " + (m.type || ""), (m.message || "").slice(0, 90));
+        }
+      });
+      NOTE.first.msg = true;
+    }, () => {
+    }));
+    NOTE.unsubs.push(db2.collection("payments").where("status", "==", "pending").onSnapshot((q) => {
+      NOTE.admPay = q.size;
+      setBadge();
+      if (NOTE.first.pay) q.docChanges().forEach((c) => {
+        if (c.type === "added") {
+          const p = c.doc.data();
+          alertUser("New payment to confirm", `GH₵${p.amount} from ${p.name || p.email || "a user"}`);
+        }
+      });
+      NOTE.first.pay = true;
+    }, () => {
+    }));
+  }
+  NOTE.unsubs.push(db2.collection("payments").where("uid", "==", u.uid).onSnapshot((q) => {
+    if (NOTE.first.mine) q.docChanges().forEach((c) => {
+      if (c.type === "modified") {
+        const p = c.doc.data();
+        if (p.status === "approved") {
+          NOTE.user++;
+          setBadge();
+          alertUser("Payment confirmed", "Your RoadGuard plan is now active. Thank you!");
+        } else if (p.status === "rejected") {
+          NOTE.user++;
+          setBadge();
+          alertUser("Payment not found", "We couldn’t match your mobile money payment. Open Account for details.");
+        }
+      }
+    });
+    NOTE.first.mine = true;
+  }, () => {
+  }));
+  NOTE.unsubs.push(db2.collection("users").doc(u.uid).onSnapshot((d) => {
+    const x = d.data();
+    if (!x) return;
+    const st = planStatus(x);
+    const key = "rg_trial_note_" + (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+    if (st.status === "trial" && st.days <= 3 && !LS(key, "")) {
+      try {
+        localStorage.setItem(key, "1");
+      } catch (e) {
+      }
+      NOTE.user++;
+      setBadge();
+      alertUser("Your free trial ends in " + st.days + " day" + (st.days === 1 ? "" : "s"), "Open Account to choose a plan.");
+    }
+  }, () => {
+  }));
+}
 const WEB3FORMS_KEY = "";
 function devLabel() {
   return NATIVE ? "Android app" : /iPhone|iPad/.test(navigator.userAgent) ? "iPhone (web)" : /Android/.test(navigator.userAgent) ? "Android (web)" : "Computer (web)";
@@ -3745,9 +3848,30 @@ document.body.appendChild($("shareSheet"));
 $("rgSheet").onclick = (e) => {
   if (e.target.id === "rgSheet") closeSheet();
 };
-function notifyLocal(title, body) {
+let lnReady = null;
+function lnSetup() {
+  if (lnReady) return lnReady;
+  lnReady = (async () => {
+    try {
+      if (!(NATIVE && NP && NP.LN)) return;
+      const p = await NP.LN.checkPermissions().catch(() => ({ display: "granted" }));
+      if (p.display !== "granted") await NP.LN.requestPermissions().catch(() => {
+      });
+      await NP.LN.createChannel({ id: "rg-alerts", name: "RoadGuard alerts", description: "Messages, payments, arrivals and safety checks", importance: 5, visibility: 1, vibration: true, lights: true }).catch(() => {
+      });
+    } catch (e) {
+    }
+  })();
+  return lnReady;
+}
+async function notifyLocal(title, body) {
   try {
-    if (NATIVE && NP && NP.LN) NP.LN.schedule({ notifications: [{ id: Math.floor(Math.random() * 1e6), title, body, schedule: { at: new Date(Date.now() + 300) } }] });
+    if (NATIVE && NP && NP.LN) {
+      await lnSetup();
+      await NP.LN.schedule({ notifications: [{ id: Math.floor(Math.random() * 2e9), title, body, channelId: "rg-alerts", schedule: { at: new Date(Date.now() + 300), allowWhileIdle: true } }] });
+    } else if (window.Notification && Notification.permission === "granted") {
+      new Notification(title, { body, icon: "/icons/icon-192.png" });
+    }
   } catch (e) {
   }
 }
@@ -4042,7 +4166,15 @@ $("btnDemo2").onclick = () => {
   show("drive");
   runSim();
 };
-$("btnAvatar").onclick = () => show("account");
+$("btnAvatar").onclick = () => {
+  NOTE.user = 0;
+  setBadge();
+  show("account");
+  if (NOTE.admMsg + NOTE.admPay && $("adminLink")) setTimeout(() => {
+    const c = $("adminBox") || $("adminCard");
+    c && c.scrollIntoView({ behavior: "smooth" });
+  }, 700);
+};
 $("subBack").onclick = () => show("account");
 $("wGo").onclick = () => closeWelcome("drive");
 $("wSign").onclick = () => closeWelcome("account");
@@ -4221,7 +4353,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.0.3";
+const APP_VER = "1.0.4";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
