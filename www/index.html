@@ -504,7 +504,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.0.0. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.0.1. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1335,7 +1335,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.0.0" : "RoadGuard GH web 1.0.0", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.0.1" : "RoadGuard GH web 1.0.1", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -3158,6 +3158,7 @@ function updateAvatar() {
   }
 }
 async function authChanged(u) {
+  if (u) setTimeout(cleanOldShares, 8e3);
   try {
     if (u && u.email && $("fbReply") && !$("fbReply").value) $("fbReply").value = u.email;
   } catch (e) {
@@ -3585,6 +3586,21 @@ function stopShare(ended) {
   }
   if (!ended) toast("Sharing stopped. Your journey is still recording.");
 }
+async function cleanOldShares() {
+  try {
+    if (!B || !B.db || !signedIn()) return;
+    const last = +LS("rg_live_clean", "0");
+    if (Date.now() - last < 6 * 36e5) return;
+    localStorage.setItem("rg_live_clean", String(Date.now()));
+    const q = await B.db.collection("live").where("uid", "==", B.user().uid).get();
+    q.docs.forEach((d) => {
+      const x = d.data();
+      if (d.id !== LIVE.id && (x.startedAt || 0) < Date.now() - 864e5) d.ref.delete().catch(() => {
+      });
+    });
+  } catch (e) {
+  }
+}
 $("btnShare").onclick = startShare;
 $("btnShareStop").onclick = () => {
   if (confirm('Stop sharing this trip? People with the link will see "Sharing stopped".')) stopShare(false);
@@ -3875,7 +3891,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.0.0";
+const APP_VER = "1.0.1";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
