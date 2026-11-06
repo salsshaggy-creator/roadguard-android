@@ -384,6 +384,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
         <div class="note" style="margin:4px 0 0">On your Android phone, open the <b>Chrome</b> app and go to <b>roadguard-gh.web.app</b>, then tap <b>Get the free Android app</b>.<br>Scanning this code also works, but if the download freezes, use Chrome instead.</div></div></div>
     <div class="ctl noprint" id="ctlIdle"><button class="btn btn-go" id="btnStart">▶ START JOURNEY</button></div>
     <div class="ctl noprint" id="ctlRec" style="display:none"><button class="btn btn-stop" id="btnStop">■ END JOURNEY</button></div>
+    <div class="ctl noprint" id="ctlShare" style="display:none;margin-top:10px;gap:10px"><button class="btn btn-ghost" id="btnShare" style="font-size:17px"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>Share my trip live</button><button class="btn btn-ghost" id="btnShareStop" style="display:none;font-size:15px;flex:0 0 auto;width:auto;padding:12px 16px">Stop sharing</button></div>
     <div class="vehpick noprint" id="vehPick" style="display:none"><label for="selVeh">Driving:</label><select id="selVeh"></select></div>
     <div class="ctl noprint" style="margin-top:10px"><button class="btn btn-ghost" id="btnDemo">Try a demo drive (simulated)</button></div>
   </section>
@@ -490,7 +491,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 0.9.8. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 0.9.9. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1321,7 +1322,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 0.9.8" : "RoadGuard GH web 0.9.8", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 0.9.9" : "RoadGuard GH web 0.9.9", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -1369,6 +1370,7 @@ function addPoint(raw) {
   if (prev && !p.sus && !prev.sus && p.acc <= ACC_OK && prev.acc <= ACC_OK) live.dist += hav(prev, p);
   if (!p.sus && p.spd != null && p.acc <= ACC_OK) live.max = Math.max(live.max, p.spd);
   renderLive(p);
+  liveTick(p);
   if (pts.length % 15 === 0) hashQ.then(() => saveJ(J));
   const ahead = J.simulated ? (_a = raw.ahead) != null ? _a : null : aheadLimit(p, hdg);
   voiceFor(p, L2.place, ahead);
@@ -1479,6 +1481,8 @@ function renderLive(p) {
 function setRecordingUI(on) {
   $("ctlIdle").style.display = on ? "none" : "flex";
   $("ctlRec").style.display = on ? "flex" : "none";
+  $("ctlShare").style.display = on ? "flex" : "none";
+  if (!on) updShareUI();
   $("btnDemo").disabled = on;
   $("btnDemo2").disabled = on;
 }
@@ -1576,6 +1580,7 @@ async function startJourney() {
   );
 }
 async function stopJourney(discardIfEmpty) {
+  stopShare(true);
   if (watchId != null) {
     navigator.geolocation.clearWatch(watchId);
     watchId = null;
@@ -3331,6 +3336,141 @@ $("btnAdmin") && ($("btnAdmin").onclick = () => {
     c && c.scrollIntoView({ behavior: "smooth" });
   }, 400);
 });
+const LIVE = { id: null, trail: [], last: 0, max: 0, over: 0, started: 0 }, LIVE_EVERY = 1e4, LIVE_MS = 12 * 36e5;
+const liveUrl = (id) => SITE + "/live.html?t=" + id;
+function newLiveId() {
+  const a = new Uint8Array(16);
+  crypto.getRandomValues(a);
+  return Array.from(a, (b) => "abcdefghijkmnpqrstuvwxyz23456789"[b % 32]).join("");
+}
+function liveDoc(p) {
+  const u = B.user();
+  return {
+    uid: u.uid,
+    name: (u.name || "").split(/[ @]/)[0] || "A RoadGuard user",
+    startedAt: LIVE.started,
+    expiresAt: LIVE.started + LIVE_MS,
+    deleteAt: firebase.firestore.Timestamp.fromMillis(LIVE.started + 30 * 864e5),
+    updatedAt: Date.now(),
+    active: true,
+    demo: !!(J && J.simulated),
+    lat: p ? p.lat : null,
+    lon: p ? p.lon : null,
+    spd: p && p.spd != null ? Math.round(p.spd) : null,
+    lim: p ? p.lim || null : null,
+    road: p ? p.road || null : null,
+    acc: p ? p.acc || null : null,
+    max: Math.round(LIVE.max),
+    over: LIVE.over,
+    trail: LIVE.trail.slice(-360).map((x) => ({ a: x[0], o: x[1], s: x[2], l: x[3] }))
+  };
+}
+function updShareUI() {
+  const on = !!LIVE.id, b = $("btnShare"), x = $("btnShareStop");
+  if (!b) return;
+  b.innerHTML = on ? '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#22C55E;margin-right:8px;box-shadow:0 0 0 4px rgba(34,197,94,.25)"></span>Sharing live · send link again' : '<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>Share my trip live';
+  x.style.display = on ? "" : "none";
+}
+async function shareText(text) {
+  if (NATIVE && NP && NP.SH) {
+    try {
+      await NP.SH.share({ title: "Follow my trip", text, dialogTitle: "Share your trip" });
+      return;
+    } catch (e) {
+      if (/cancel/i.test(e.message || "")) return;
+    }
+  }
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: "Follow my trip", text });
+      return;
+    } catch (e) {
+      if (e.name === "AbortError") return;
+    }
+  }
+  window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank");
+}
+function sendLiveLink() {
+  shareText(`Follow my trip live on RoadGuard GH. You'll see where I am and how fast we're going: ${liveUrl(LIVE.id)}`);
+}
+async function startShare() {
+  if (!J) {
+    toast("Start a journey first, then share it.");
+    return;
+  }
+  if (LIVE.id) {
+    sendLiveLink();
+    return;
+  }
+  try {
+    await backend();
+  } catch (e) {
+    alert("Share my trip needs an internet connection. " + e.message);
+    return;
+  }
+  if (B.name !== "firebase") {
+    alert("Share my trip only works on the real RoadGuard site or app.");
+    return;
+  }
+  if (!signedIn()) {
+    if (confirm("Share my trip needs a free RoadGuard account. It takes one tap with Google.\n\nSign in now? Your journey keeps recording.")) show("account");
+    return;
+  }
+  LIVE.id = newLiveId();
+  LIVE.started = Date.now();
+  LIVE.trail = [];
+  LIVE.max = 0;
+  LIVE.over = 0;
+  LIVE.last = 0;
+  const p = J.points.at(-1);
+  if (p) LIVE.trail.push([+p.lat.toFixed(5), +p.lon.toFixed(5), p.spd == null ? null : Math.round(p.spd), p.lim || null]);
+  try {
+    await within(12e3, B.db.collection("live").doc(LIVE.id).set(liveDoc(p)).then(() => true), "slow");
+  } catch (e) {
+    LIVE.id = null;
+    updShareUI();
+    alert("Could not start sharing: " + e.message);
+    return;
+  }
+  J.liveId = LIVE.id;
+  LIVE.last = Date.now();
+  updShareUI();
+  sendLiveLink();
+}
+function liveTick(p) {
+  if (!LIVE.id || !B || !B.db) return;
+  if (p.spd != null && !p.sus && p.acc <= ACC_OK) LIVE.max = Math.max(LIVE.max, p.spd);
+  const now = Date.now();
+  if (now - LIVE.last < LIVE_EVERY) return;
+  LIVE.last = now;
+  if (now > LIVE.started + LIVE_MS - 6e4) {
+    stopShare(true);
+    return;
+  }
+  if (p.lim && p.spd != null && !p.sus && p.spd > p.lim + 3) LIVE.over++;
+  LIVE.trail.push([+p.lat.toFixed(5), +p.lon.toFixed(5), p.spd == null ? null : Math.round(p.spd), p.lim || null]);
+  try {
+    B.db.collection("live").doc(LIVE.id).set(liveDoc(p)).catch(() => {
+    });
+  } catch (e) {
+  }
+}
+function stopShare(ended) {
+  if (!LIVE.id) return;
+  const id = LIVE.id;
+  LIVE.id = null;
+  updShareUI();
+  try {
+    B.db.collection("live").doc(id).set({ active: false, endedAt: Date.now(), endReason: ended ? "ended" : "stopped", updatedAt: Date.now() }, { merge: true }).catch(() => {
+    });
+  } catch (e) {
+  }
+  if (!ended) toast("Sharing stopped. Your journey is still recording.");
+}
+$("btnShare").onclick = startShare;
+$("btnShareStop").onclick = () => {
+  if (confirm('Stop sharing this trip? People with the link will see "Sharing stopped".')) stopShare(false);
+};
 function showWelcome() {
   $("welcome").classList.add("open");
 }
@@ -3617,7 +3757,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "0.9.8";
+const APP_VER = "0.9.9";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
