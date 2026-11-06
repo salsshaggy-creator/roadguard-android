@@ -477,6 +477,9 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
       <details class="faq"><summary>I made my account with Google. How do I sign in on the app?</summary><p>On the sign-in screen, enter your email and tap <b>Forgot password?</b>. Set a password from the email you receive, then sign in with it. It's the same account.</p></details>
       <details class="faq"><summary>The voice is hard to hear. What can I do?</summary><p>In <b>Settings</b>, try another <b>Voice</b> and set <b>Speaking speed</b> to Slow. Turn up the phone's media volume, or connect to the car by Bluetooth. Updating <b>Speech Services by Google</b> in the Play Store adds clearer voices.</p></details>
     </div>
+    <div class="card" id="adminLink" style="display:none">
+      <div class="set"><div class="t"><b>Admin: users &amp; payments</b><span>Accounts, who is testing, trials and payments to confirm</span></div><button class="btn btn-ghost" style="width:auto;padding:10px 16px;font-size:16px" id="btnAdmin">Open</button></div>
+    </div>
     <div class="card" id="updCard" style="display:none">
       <div class="set"><div class="t"><b>App version <span id="appVer"></span></b><span id="updState">Checks for a newer version each time the app opens</span></div>
         <button class="btn btn-ghost" style="width:auto;padding:10px 16px;font-size:16px" id="btnUpd">Check now</button></div>
@@ -487,7 +490,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 0.9.6. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 0.9.7. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1318,7 +1321,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 0.9.6" : "RoadGuard GH web 0.9.6", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 0.9.7" : "RoadGuard GH web 0.9.7", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -2464,7 +2467,18 @@ const FBK = {
       await ref.set({ name: this.u.name, email: this.u.email || null, trialStart: firebase.firestore.FieldValue.serverTimestamp(), createdAt: d.exists && d.data().createdAt || Date.now() }, { merge: true });
       return (await ref.get()).data();
     }
-    return d.data();
+    const dd = d.data();
+    try {
+      if (!dd.lastSeen || Date.now() - dd.lastSeen > 36e5) {
+        const lp = NATIVE ? "Android app" : /iPhone|iPad/.test(navigator.userAgent) ? "iPhone (web)" : /Android/.test(navigator.userAgent) ? "Android (web)" : "Computer (web)";
+        ref.set({ lastSeen: Date.now(), device: lp, appVer: typeof APP_VER !== "undefined" ? APP_VER : "" }, { merge: true }).catch(() => {
+        });
+        dd.lastSeen = Date.now();
+        dd.device = lp;
+      }
+    } catch (e) {
+    }
+    return dd;
   },
   async requestPayment(p) {
     await this.db.collection("payments").add({ ...p, uid: this.u.uid, name: this.u.name, email: this.u.email || null, status: "pending", createdAt: Date.now() });
@@ -3113,6 +3127,11 @@ function updateAvatar() {
   }
 }
 async function authChanged(u) {
+  try {
+    const ad = $("adminLink");
+    if (ad) ad.style.display = arguments[0] && arguments[0].email === ADMIN_EMAIL ? "" : "none";
+  } catch (e) {
+  }
   fbFlag(u);
   updateAvatar();
   refreshVehPicker();
@@ -3264,17 +3283,32 @@ async function renderAdmin(box) {
   }
   const stats = { trial: 0, active: 0, expired: 0, none: 0 };
   users.forEach((u) => stats[planStatus(u).status]++);
-  box.innerHTML = `<div class="card admin"><h3>Admin <span class="muted small" style="font-family:Barlow">(only you see this)</span></h3>
-    <div class="kpis" style="margin-bottom:12px"><div class="kpi"><b class="num">${users.length}</b><span>accounts</span></div><div class="kpi"><b class="num">${stats.trial}</b><span>on free trial</span></div><div class="kpi"><b class="num" style="color:#86EFAC">${stats.active}</b><span>paying</span></div></div>
+  const now = Date.now(), wk = 7 * 864e5, n = (v) => +v || 0;
+  const newWk = users.filter((u) => now - n(u.createdAt) < wk).length, activeWk = users.filter((u) => now - n(u.lastSeen) < wk).length;
+  const ending = users.filter((u) => {
+    const st = planStatus(u);
+    return st.status === "trial" && st.days <= 7;
+  }).length;
+  const ago = (t) => {
+    t = n(t);
+    if (!t) return "—";
+    const m = Math.round((now - t) / 6e4);
+    return m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " days ago";
+  };
+  const kpi = (v, l, c) => `<div class="kpi"><b class="num"${c ? ` style="color:${c}"` : ""}>${v}</b><span>${l}</span></div>`;
+  box.innerHTML = `<div class="card admin" id="adminCard"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3 style="margin:0">Admin <span class="muted small" style="font-family:Barlow">(only you see this)</span></h3><button class="btn btn-ghost" id="adRefresh" style="width:auto;padding:8px 14px;font-size:15px">Refresh</button></div>
+    <div class="kpis" style="margin:12px 0;grid-template-columns:repeat(3,1fr)">${kpi(users.length, "accounts")}${kpi(newWk, "new this week", "#93C5FD")}${kpi(activeWk, "active this week", "#86EFAC")}${kpi(stats.trial, "on free trial", "var(--gold2)")}${kpi(ending, "trials ending in 7 days", "#FDBA74")}${kpi(stats.active, "paying", "#86EFAC")}</div>
     <b>Payments to confirm (${pend.length})</b>
     ${pend.length ? pend.map((x) => `<div class="veh" style="margin-top:8px"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>${esc(x.name || x.email || "")}</b><span class="num">GH₵${x.amount} · ${planName(x.plan)}</span></div>
       <div class="small muted num" style="margin:6px 0">From ${esc(x.momoNumber)} · Txn <b style="color:var(--text)">${esc(x.txnId)}</b> · Ref ${esc(x.ref || "")} · ${fmtD(x.createdAt)} ${fmtT(x.createdAt).slice(0, 5)}</div>
       <div class="row"><button class="btn btn-go adOk" data-id="${x.id}" style="font-size:15px;padding:10px">✓ Confirm</button><button class="btn btn-ghost adNo" data-id="${x.id}" style="font-size:15px;padding:10px">✕ Not found</button></div></div>`).join("") : '<p class="note">None waiting. Check your MoMo SMS against each request before confirming.</p>'}
-    <details style="margin-top:12px"><summary style="cursor:pointer;font-weight:700">All accounts (${users.length})</summary>
-      <table class="num" style="margin-top:8px"><tr><th>Name</th><th>Plan</th><th>Joined</th></tr>${users.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).map((x) => {
-    const s = planStatus(x);
-    return `<tr><td>${esc(x.name || "")}<div class="small muted">${esc(x.email || "")}</div></td><td class="small">${{ active: "Paying until " + fmtD(s.until), trial: "Trial · " + s.days + " days left", expired: "Trial ended", none: "—" }[s.status]}</td><td class="small">${x.createdAt ? fmtD(x.createdAt) : ""}</td></tr>`;
-  }).join("")}</table></details></div>`;
+    <details open style="margin-top:14px"><summary style="cursor:pointer;font-weight:700">All accounts (${users.length}), newest first</summary>
+      <div style="overflow-x:auto"><table class="num" style="margin-top:8px;min-width:520px"><tr><th>Name</th><th>Plan</th><th>Joined</th><th>Last seen</th></tr>${users.slice().sort((a, b) => n(b.createdAt) - n(a.createdAt)).map((x) => {
+    const st = planStatus(x);
+    return `<tr><td>${esc(x.name || "")}<div class="small muted">${esc(x.email || "")}</div></td><td class="small">${{ active: "Paying until " + fmtD(st.until), trial: "Trial · " + st.days + " days left", expired: "Trial ended", none: "—" }[st.status]}</td><td class="small">${x.createdAt ? fmtD(x.createdAt) : ""}</td><td class="small">${ago(x.lastSeen)}<div class="muted">${esc(x.device || "")}${x.appVer ? " · " + esc(x.appVer) : ""}</div></td></tr>`;
+  }).join("")}</table></div></details>
+    <p class="note" style="margin:10px 0 0">Counts people who made an account. People using RoadGuard without an account aren't counted, because the app doesn't track anyone.</p></div>`;
+  $("adRefresh").onclick = () => renderAdmin(box);
   const act = async (id, ok) => {
     const x = pend.find((p) => p.id === id);
     if (!x) return;
@@ -3290,6 +3324,13 @@ async function renderAdmin(box) {
   box.querySelectorAll(".adOk").forEach((b) => b.onclick = () => act(b.dataset.id, true));
   box.querySelectorAll(".adNo").forEach((b) => b.onclick = () => act(b.dataset.id, false));
 }
+$("btnAdmin") && ($("btnAdmin").onclick = () => {
+  show("account");
+  setTimeout(() => {
+    const c = $("adminBox");
+    c && c.scrollIntoView({ behavior: "smooth" });
+  }, 400);
+});
 function showWelcome() {
   $("welcome").classList.add("open");
 }
@@ -3576,7 +3617,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "0.9.6";
+const APP_VER = "0.9.7";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
