@@ -384,7 +384,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
         <div class="note" style="margin:4px 0 0">On your Android phone, open the <b>Chrome</b> app and go to <b>roadguard-gh.web.app</b>, then tap <b>Get the free Android app</b>.<br>Scanning this code also works, but if the download freezes, use Chrome instead.</div></div></div>
     <div class="ctl noprint" id="ctlIdle"><button class="btn btn-go" id="btnStart">▶ START JOURNEY</button></div>
     <div class="ctl noprint" id="ctlRec" style="display:none"><button class="btn btn-stop" id="btnStop">■ END JOURNEY</button></div>
-    <div id="shareSheet" class="noprint" style="display:none;position:fixed;inset:0;z-index:8000;background:rgba(2,6,20,.72);align-items:flex-end;justify-content:center">
+    <div id="shareSheet" class="noprint" style="display:none;position:fixed;inset:0;z-index:30000;background:rgba(2,6,20,.72);align-items:flex-end;justify-content:center">
       <div class="card" style="width:100%;max-width:560px;margin:0;border-radius:22px 22px 0 0;max-height:92vh;overflow:auto">
         <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">Share my trip live</h3><button class="btn btn-ghost" id="shClose" aria-label="Close" style="width:auto;padding:6px 12px;font-size:18px">✕</button></div>
         <p class="note" style="margin:6px 0 12px">Family will see where you are, how fast you're going, each town you pass and when you arrive. All fields are optional.</p>
@@ -399,7 +399,10 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
         <button class="btn btn-go" id="shGo" style="font-size:17px">Start sharing</button>
       </div>
     </div>
-    <div class="ctl noprint" id="ctlShare" style="display:none;margin-top:10px;gap:10px"><button class="btn btn-ghost" id="btnShare" style="font-size:17px"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>Share my trip live</button><button class="btn btn-ghost" id="btnShareStop" style="display:none;font-size:15px;flex:0 0 auto;width:auto;padding:12px 16px">Stop sharing</button></div>
+    <div class="ctl noprint" id="ctlShare" style="display:none;margin-top:10px;gap:10px"><button class="btn btn-ghost" id="btnShare" style="font-size:17px"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>Share my trip live</button><button class="btn btn-ghost" id="btnShareStop" style="display:none;font-size:15px;flex:0 0 auto;width:auto;padding:12px 16px">Stop sharing</button><button class="btn" id="btnSOS" style="flex:0 0 auto;width:auto;padding:12px 18px;font-size:17px;font-weight:800;background:#DC2626;color:#fff;border:0">SOS</button></div>
+    <div id="rgSheet" class="noprint" style="display:none;position:fixed;inset:0;z-index:30000;background:rgba(2,6,20,.75);align-items:flex-end;justify-content:center">
+      <div class="card" style="width:100%;max-width:560px;margin:0;border-radius:22px 22px 0 0;max-height:92vh;overflow:auto;padding-bottom:calc(20px + env(safe-area-inset-bottom))"><h3 id="rgSheetT" style="margin:0 0 6px"></h3><p class="note" id="rgSheetP" style="margin:0 0 14px"></p><div id="rgSheetB" style="display:flex;flex-direction:column;gap:10px"></div></div>
+    </div>
     <div class="vehpick noprint" id="vehPick" style="display:none"><label for="selVeh">Driving:</label><select id="selVeh"></select></div>
     <div class="ctl noprint" style="margin-top:10px"><button class="btn btn-ghost" id="btnDemo">Try a demo drive (simulated)</button></div>
   </section>
@@ -519,7 +522,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.0.2. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.0.3. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1352,7 +1355,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.0.2" : "RoadGuard GH web 1.0.2", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.0.3" : "RoadGuard GH web 1.0.3", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -1750,6 +1753,7 @@ async function openReport(id) {
     <h2 style="margin:6px 0 2px">${fmtD(j.startedAt)}</h2>
     <div class="muted">${fmtT(j.startedAt)} – ${fmtT(j.endedAt)} · ${esc(from.road || "Start")} → ${esc(to.road || "End")}</div>
   </div>
+  ${scoreCard(j, S)}
   <div class="kpis" style="margin-bottom:14px">
     <div class="kpi"><b class="num">${(S.dist / 1e3).toFixed(1)}</b><span>km travelled</span></div>
     <div class="kpi"><b class="num">${fmtDur(S.dur)}</b><span>duration</span></div>
@@ -1786,6 +1790,8 @@ async function openReport(id) {
   <p class="note" style="margin-top:14px">This report is an independent record made with a phone's GPS. It is not a calibrated speed-measurement instrument and does not by itself prove or disprove a traffic offence. It can support a contest by showing your recorded speed, time and position.</p>`;
   drawMap(P);
   drawChart(P, S.events, j.cal);
+  if ($("btnScoreShare")) $("btnScoreShare").onclick = () => shareScore(j);
+  if ($("btnArrived")) $("btnArrived").onclick = () => shareText(arrivedText(j));
   $("xCsv").onclick = () => download(`roadguard_${j.id}.csv`, toCSV(j), "text/csv");
   $("xJson").onclick = () => download(`roadguard_${j.id}.json`, JSON.stringify({ format: "roadguard-evidence-v1", hashAlgorithm: 'SHA-256 chain: h[i]=sha256(h[i-1]+"|"+canon(point)), h[-1]="GENESIS"', journey: j, summary: { ...S } }, null, 1), "application/json");
   $("xPdf").onclick = () => {
@@ -3589,6 +3595,7 @@ async function shareFromSheet() {
   }
   closeShareSheet();
   if (LIVE.id) {
+    J.shareDest = LIVE.dest || null;
     try {
       B.db.collection("live").doc(LIVE.id).set(liveDoc(J.points.at(-1)), { merge: true }).catch(() => {
       });
@@ -3599,13 +3606,13 @@ async function shareFromSheet() {
   }
   startShare();
 }
-async function startShare() {
+async function startShare(silent) {
   if (!J) {
     toast("Start a journey first, then share it.");
     return;
   }
   if (LIVE.id) {
-    sendLiveLink();
+    if (!silent) sendLiveLink();
     return;
   }
   try {
@@ -3619,6 +3626,7 @@ async function startShare() {
     return;
   }
   if (!signedIn()) {
+    if (silent) return;
     if (confirm("Share my trip needs a free RoadGuard account. It takes one tap with Google.\n\nSign in now? Your journey keeps recording.")) show("account");
     return;
   }
@@ -3642,9 +3650,10 @@ async function startShare() {
     return;
   }
   J.liveId = LIVE.id;
+  J.shareDest = LIVE.dest || null;
   LIVE.last = Date.now();
   updShareUI();
-  sendLiveLink();
+  if (!silent) sendLiveLink();
 }
 function liveTick(p, place) {
   if (!LIVE.id || !B || !B.db) return;
@@ -3653,7 +3662,10 @@ function liveTick(p, place) {
   if (p.spd != null && p.spd < 3) {
     if (!LIVE.stopSince) LIVE.stopSince = J.simulated ? Date.now() : p.t;
   } else if (p.spd != null && p.spd > 8) LIVE.stopSince = null;
-  if (LIVE.dest && LIVE.dest.lat != null && !LIVE.arrivedAt && hav(p, { lat: LIVE.dest.lat, lon: LIVE.dest.lon }) < 350) LIVE.arrivedAt = Date.now();
+  if (LIVE.dest && LIVE.dest.lat != null && !LIVE.arrivedAt && hav(p, { lat: LIVE.dest.lat, lon: LIVE.dest.lon }) < 350) {
+    LIVE.arrivedAt = Date.now();
+    setTimeout(arrivedPrompt, 500);
+  }
   const now = Date.now();
   if (now - LIVE.last < (J.simulated ? 1500 : LIVE_EVERY)) return;
   LIVE.last = now;
@@ -3680,6 +3692,9 @@ function stopShare(ended) {
   if (!LIVE.id) return;
   const id = LIVE.id;
   LIVE.id = null;
+  LIVE.dest = null;
+  LIVE.plate = null;
+  LIVE.arrivedAt = null;
   updShareUI();
   try {
     B.db.collection("live").doc(id).set({ active: false, endedAt: Date.now(), endReason: ended ? "ended" : "stopped", updatedAt: Date.now() }, { merge: true }).catch(() => {
@@ -3702,6 +3717,210 @@ async function cleanOldShares() {
     });
   } catch (e) {
   }
+}
+function sheet(title, text, buttons) {
+  $("rgSheetT").textContent = title;
+  $("rgSheetP").innerHTML = text;
+  const box = $("rgSheetB");
+  box.innerHTML = "";
+  buttons.forEach((b) => {
+    const el = document.createElement(b.href ? "a" : "button");
+    el.className = "btn " + (b.cls || "btn-ghost");
+    el.style.cssText = "font-size:17px;text-decoration:none;text-align:center;" + (b.href ? "color:#F4F7FF;display:block;" : "") + (b.style || "");
+    el.textContent = b.label;
+    if (b.href) el.href = b.href;
+    el.onclick = (e) => {
+      if (!b.keep) closeSheet();
+      b.onClick && b.onClick(e);
+    };
+    box.appendChild(el);
+  });
+  $("rgSheet").style.display = "flex";
+}
+function closeSheet() {
+  $("rgSheet").style.display = "none";
+}
+document.body.appendChild($("rgSheet"));
+document.body.appendChild($("shareSheet"));
+$("rgSheet").onclick = (e) => {
+  if (e.target.id === "rgSheet") closeSheet();
+};
+function notifyLocal(title, body) {
+  try {
+    if (NATIVE && NP && NP.LN) NP.LN.schedule({ notifications: [{ id: Math.floor(Math.random() * 1e6), title, body, schedule: { at: new Date(Date.now() + 300) } }] });
+  } catch (e) {
+  }
+}
+function liveSet(fields) {
+  try {
+    if (LIVE.id && B && B.db) B.db.collection("live").doc(LIVE.id).set({ ...fields, updatedAt: Date.now() }, { merge: true }).catch(() => {
+    });
+  } catch (e) {
+  }
+}
+const mapsLink = (p) => p ? `https://maps.google.com/?q=${p.lat.toFixed(5)},${p.lon.toFixed(5)}` : "";
+async function sendSOS() {
+  const p = J && J.points.at(-1);
+  if (J && !LIVE.id) {
+    try {
+      await backend();
+      if (B.name === "firebase" && signedIn()) await startShare(true);
+    } catch (e) {
+    }
+  }
+  if (LIVE.id) liveSet({ sos: { at: Date.now() } });
+  const where = p ? `${p.road ? "Near " + p.road + ". " : ""}Map: ${mapsLink(p)}` : "";
+  shareText(`SOS: I need help. ${LIVE.id ? "Follow me live: " + liveUrl(LIVE.id) + " " : ""}${where}`.trim());
+}
+function openSOS() {
+  sheet("Need help?", "Send an SOS with your location to family or friends on WhatsApp, or call for help. <b>Ghana emergency numbers</b> work even without credit.", [
+    { label: "Send SOS to family (WhatsApp)", cls: "btn-go", style: "background:#DC2626;color:#fff;border:0", onClick: sendSOS },
+    { label: "Call 112 (emergency)", href: "tel:112" },
+    { label: "Call 191 (police)", href: "tel:191" },
+    { label: "Call 193 (ambulance)", href: "tel:193" },
+    { label: "Cancel" }
+  ]);
+}
+$("btnSOS").onclick = openSOS;
+function arrivedText(j) {
+  const S = j && j.points && j.points.length ? summarize(j) : null;
+  const dd = j && j.shareDest || LIVE.dest;
+  return `I've arrived${dd ? " at " + dd.name : ""} safely.` + (S ? ` The trip took ${Math.round(S.dur / 6e4)} min, top speed ${Math.round(S.max)} km/h.` : "") + " (RoadGuard GH)";
+}
+function arrivedPrompt() {
+  notifyLocal("You have arrived", "Tap to tell your family you arrived safely.");
+  sheet("You’ve arrived!", "Let your family know you got there safely.", [{ label: "Tell family I’ve arrived", cls: "btn-go", onClick: () => shareText(arrivedText(J)) }, { label: "Not now" }]);
+}
+const CHECK = { askedAt: null, last: 0, timer: null };
+function isNight() {
+  const h = (/* @__PURE__ */ new Date()).getHours();
+  return h >= 20 || h < 5;
+}
+function checkinTick() {
+  if (!J || !LIVE.id || !isNight() || CHECK.askedAt) return;
+  const now = Date.now();
+  if (!LIVE.stopSince || now - LIVE.stopSince < 10 * 6e4 || now - CHECK.last < 30 * 6e4) return;
+  CHECK.askedAt = now;
+  CHECK.last = now;
+  liveSet({ checkin: { askedAt: now, status: "asked" } });
+  sayParts([{ tts: "Are you okay? Please tap I am fine." }], true);
+  notifyLocal("Are you okay?", "You have been stopped for a while. Tap to let your family know you are fine.");
+  sheet("Are you okay?", "You’ve been stopped for a while. Your family is following this trip. Let them know you’re fine.", [
+    { label: "I’m fine", cls: "btn-go", onClick: () => {
+      clearTimeout(CHECK.timer);
+      CHECK.askedAt = null;
+      liveSet({ checkin: { askedAt: now, status: "ok", at: Date.now() } });
+    } },
+    { label: "I need help (SOS)", style: "background:#DC2626;color:#fff;border:0", onClick: () => {
+      clearTimeout(CHECK.timer);
+      CHECK.askedAt = null;
+      liveSet({ checkin: { askedAt: now, status: "help", at: Date.now() } });
+      openSOS();
+    } }
+  ]);
+  CHECK.timer = setTimeout(() => {
+    if (CHECK.askedAt === now) {
+      liveSet({ checkin: { askedAt: now, status: "no-response", at: Date.now() } });
+      CHECK.askedAt = null;
+    }
+  }, 2 * 6e4);
+}
+setInterval(checkinTick, 3e4);
+function tripScore(S) {
+  if (S.compliance == null) return null;
+  const severe = S.events.filter((e) => e.max > e.lim + 20).length;
+  const sc = Math.max(0, Math.min(100, Math.round(S.compliance - S.events.length * 4 - severe * 8)));
+  const g = sc >= 90 ? "A" : sc >= 80 ? "B" : sc >= 65 ? "C" : sc >= 50 ? "D" : "E";
+  const col = { A: "#22C55E", B: "#84CC16", C: "#F5B301", D: "#F97316", E: "#EF4444" }[g];
+  const words = { A: "Excellent, safe driving", B: "Good, a few slips", C: "Fair, too many over-limit moments", D: "Risky, often over the limit", E: "Dangerous, far over the limit" }[g];
+  return { sc, g, col, words, severe };
+}
+function scoreCard(j, S) {
+  const T = tripScore(S);
+  if (!T) return "";
+  return `<div class="card" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><div style="flex:none;width:96px;height:96px;border-radius:50%;background:${T.col};color:#06122B;display:flex;align-items:center;justify-content:center;font:800 58px/1 'Barlow Condensed',sans-serif">${T.g}</div>
+    <div style="flex:1;min-width:180px"><div class="muted small">TRIP SAFETY SCORE</div><div style="font-size:22px;font-weight:700">${T.words}</div><div class="note" style="margin:4px 0 0">Within the limit ${Math.round(S.compliance)}% of the time · ${S.events.length} over-limit moment${S.events.length === 1 ? "" : "s"} · score ${T.sc}/100</div></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;width:100%"><button class="btn btn-go" id="btnScoreShare" style="font-size:16px;flex:1">Share my score</button>${j.liveId ? '<button class="btn btn-ghost" id="btnArrived" style="font-size:16px;flex:1">Tell family I’ve arrived</button>' : ""}</div></div>`;
+}
+async function shareScore(j) {
+  const S = summarize(j), T = tripScore(S);
+  if (!T) return;
+  const c = document.createElement("canvas");
+  c.width = 1080;
+  c.height = 1080;
+  const x = c.getContext("2d");
+  x.fillStyle = "#050D22";
+  x.fillRect(0, 0, 1080, 1080);
+  x.fillStyle = "#0B2152";
+  x.save();
+  x.translate(860, 540);
+  x.rotate(16 * Math.PI / 180);
+  x.fillRect(-170, -800, 340, 1600);
+  x.restore();
+  ["#CE1126", "#FCD116", "#006B3F"].forEach((col, i) => {
+    x.fillStyle = col;
+    x.fillRect(i * 360, 0, 360, 14);
+  });
+  const logo = document.querySelector("img.logo");
+  try {
+    if (logo) x.drawImage(logo, 64, 64, 96, 96);
+  } catch (e) {
+  }
+  x.fillStyle = "#fff";
+  x.font = '800 54px "Barlow Condensed",Barlow,sans-serif';
+  x.fillText("ROADGUARD", 180, 118);
+  x.fillStyle = "#F5B301";
+  x.fillText("GH", 180 + x.measureText("ROADGUARD ").width, 118);
+  x.fillStyle = "#B9C6E0";
+  x.font = "500 34px Barlow,sans-serif";
+  x.fillText(`Trip safety score · ${fmtD(j.startedAt)}`, 180, 160);
+  x.beginPath();
+  x.arc(540, 440, 190, 0, Math.PI * 2);
+  x.fillStyle = T.col;
+  x.fill();
+  x.fillStyle = "#06122B";
+  x.font = '800 260px "Barlow Condensed",Barlow,sans-serif';
+  x.textAlign = "center";
+  x.fillText(T.g, 540, 530);
+  x.fillStyle = "#fff";
+  x.font = "700 52px Barlow,sans-serif";
+  x.fillText(T.words, 540, 712);
+  x.font = "500 38px Barlow,sans-serif";
+  x.fillStyle = "#DCE5F7";
+  x.fillText(`${(S.dist / 1e3).toFixed(1)} km · ${Math.round(S.dur / 6e4)} min · top ${Math.round(S.max)} km/h`, 540, 782);
+  x.fillText(`Within the limit ${Math.round(S.compliance)}% of the time`, 540, 836);
+  x.fillStyle = "#F5B301";
+  x.fillRect(0, 920, 1080, 160);
+  x.fillStyle = "#050D22";
+  x.font = '800 54px "Barlow Condensed",Barlow,sans-serif';
+  x.fillText("Know your speed. Keep your proof.", 540, 990);
+  x.font = "700 38px Barlow,sans-serif";
+  x.fillText("roadguard-gh.web.app", 540, 1045);
+  const text = `My RoadGuard trip safety score: ${T.g} (${T.words.toLowerCase()}). Check your own driving: roadguard-gh.web.app`;
+  const dataUrl = c.toDataURL("image/png");
+  if (NATIVE && NP && NP.FS && NP.SH) {
+    try {
+      const r = await NP.FS.writeFile({ path: "roadguard-score.png", data: dataUrl.split(",")[1], directory: "CACHE" });
+      await NP.SH.share({ title: "My trip score", text, files: [r.uri], dialogTitle: "Share your score" });
+      return;
+    } catch (e) {
+      if (/cancel/i.test(e.message || "")) return;
+    }
+  }
+  try {
+    const blob = await (await fetch(dataUrl)).blob(), file = new File([blob], "roadguard-score.png", { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], text });
+      return;
+    }
+  } catch (e) {
+    if (e.name === "AbortError") return;
+  }
+  const a = document.createElement("a");
+  a.href = dataUrl;
+  a.download = "roadguard-score.png";
+  a.click();
+  toast("Score picture saved. Share it on WhatsApp Status!");
 }
 $("btnShare").onclick = openShareSheet;
 $("shClose").onclick = closeShareSheet;
@@ -4002,7 +4221,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.0.2";
+const APP_VER = "1.0.3";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
