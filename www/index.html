@@ -24,8 +24,7 @@
 })();
 if(!Array.prototype.at){Object.defineProperty(Array.prototype,'at',{configurable:true,writable:true,value:function(n){n=Math.trunc(n)||0;if(n<0)n+=this.length;return (n<0||n>=this.length)?undefined:this[n];}});}
 if(!String.prototype.at){Object.defineProperty(String.prototype,'at',{configurable:true,writable:true,value:function(n){n=Math.trunc(n)||0;if(n<0)n+=this.length;return (n<0||n>=this.length)?undefined:this.charAt(n);}});}
-</script>
-<script src="capacitor.js"></script>
+</script><script src="capacitor.js"></script>
 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -364,6 +363,9 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
         </div>
       </div>
 
+      <div id="demoCap" style="display:none;margin:10px 0 0;padding:10px 14px;border-radius:14px;background:rgba(245,197,24,.12);border:1px solid rgba(245,197,24,.45)">
+        <div style="font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--gold2)">DEMO DRIVE · PRETEND TRIP, NOT REAL</div>
+        <div id="demoCapTxt" style="font-size:16px;font-weight:600;margin-top:4px;line-height:1.35">Starting…</div></div>
       <div class="strip">
         <div><svg class="ico" viewBox="0 0 32 32" fill="none"><rect x="11" y="11" width="10" height="10" rx="2" transform="rotate(45 16 16)" fill="#3B82F6"/><path d="M4 9l5-5 5 5-5 5zM18 23l5-5 5 5-5 5z" fill="#93C5FD"/><path d="M6 22a7 7 0 0 0 4 4M3 22a10 10 0 0 0 7 7" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
           <div style="min-width:0"><div class="k">GPS Signal</div><div class="v q-grey" id="gpsQ">Idle</div></div></div>
@@ -508,6 +510,8 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
       <details class="faq"><summary>Does it record with the screen off?</summary><p>In the Android app, yes: start a journey, then you can lock the phone. Allow <b>Location: all the time</b> and <b>Notifications</b> when asked. On the website, keep the screen on, because a web page can't record while the phone is locked.</p></details>
       <details class="faq"><summary>Can RoadGuard start by itself when I drive?</summary><p>Yes. In <b>Settings → Auto-start</b>: <b>Start by itself when I’m moving</b> begins recording when RoadGuard is open and you go faster than 15 km/h. In the Android app, <b>Ask me when I start driving</b> sends a notification even when RoadGuard is closed; tap it to start. You can also choose <b>your car’s Bluetooth</b>, so RoadGuard reacts whenever your phone connects to your car. Android doesn’t let any app start recording your location from fully closed without you knowing, so that last step is one tap. Journeys that start by themselves can also end by themselves after 8 minutes parked.</p></details>
       <details class="faq"><summary>I’m a passenger. How do I use RoadGuard?</summary><p>Open RoadGuard and tap <b>Start Journey</b> when you get into the trotro, taxi, Bolt or bus. You’ll see how fast the vehicle is going and the speed limit. If the driver goes too fast, you’ll know. Please don’t argue with a driver while the vehicle is moving: stay safe, and report it later if you need to.</p></details>
+      <details class="faq"><summary>What does the voice tell me?</summary><p>Each time you enter a new speed zone, RoadGuard tells you where you are and the new limit, for example: “You’ve reached Madina, on the Legon Road. The speed limit here is 50 kilometres per hour.” It names the town, and the main road when it knows it. It also warns you when a lower limit is coming up, tells you when you go over, and thanks you when you slow back down. You can turn the voice off or pick another voice in Settings.</p></details>
+      <details class="faq"><summary>Is the demo drive real?</summary><p>No. The demo is a pretend trip from Accra to Tema so you can see and hear how RoadGuard works. It doesn’t use your location, and a yellow DEMO box on the screen shows what the voice is saying. The trip report at the end is marked as a demo and can’t be used as evidence.</p></details>
       <details class="faq"><summary>How does Share my trip work?</summary><p>During a journey, tap <b>Share my trip live</b>. Choose the type of vehicle, type the number plate and where you’re going (all optional), then send the link on WhatsApp. Your family opens the link on any phone, with no app needed, and sees your speed, the speed limit, every town you pass and when you arrive. Sharing stops when you end the journey or tap <b>Stop sharing</b>. You need to be signed in to share. The free plan includes 5 shared trips a month; Plus is unlimited. An SOS always works, even after your 5 shares.</p></details>
       <details class="faq"><summary>Can my family get alerts?</summary><p>Yes. On the live trip page, they tap <b>Alert me if they speed, arrive or need help</b>. Their phone will beep, vibrate and show a notification if the vehicle goes over the limit, when you arrive, or if you send an SOS.</p></details>
       <details class="faq"><summary>What does the SOS button do?</summary><p>The red <b>SOS</b> button on the Drive screen sends “SOS: I need help” with your location and live link to family on WhatsApp. It also has one-tap calls to <b>112</b> (emergency), <b>191</b> (police) and <b>193</b> (ambulance).</p></details>
@@ -543,7 +547,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.2.0. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.2.1. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -967,7 +971,7 @@ function needDist(cur, res) {
 }
 function matchAt(p, hdg) {
   const w = nearestRoad(p, hdg), L2 = limitFor(p, w), place = nearestPlace(p), rn = w ? w.t.name || w.t.ref || null : null;
-  const res = { lim: L2.lim, src: L2.src, place, road: rn ? place && !rn.includes(place) ? `${rn}, ${place}` : rn : place ? `near ${place}` : null };
+  const res = { lim: L2.lim, src: L2.src, place, rname: rn, road: rn ? place && !rn.includes(place) ? `${rn}, ${place}` : rn : place ? `near ${place}` : null };
   const step = MS.last && p.lat != null ? Math.min(hav(MS.last, p), 100) : 0;
   if (p.lat != null) MS.last = { lat: p.lat, lon: p.lon };
   if (!MS.cur || MS.cur.lim == null) {
@@ -996,7 +1000,7 @@ function matchAt(p, hdg) {
       MS.dist = 0;
       return res;
     }
-    return { ...MS.cur, road: res.road || MS.cur.road, place };
+    return { ...MS.cur, road: res.road || MS.cur.road, rname: res.rname || MS.cur.rname, place };
   }
   MS.nullDist = 0;
   if (MS.cand && MS.cand.lim === res.lim) {
@@ -1196,7 +1200,7 @@ function say(text, urgent) {
   } catch (e) {
   }
 }
-const CLIPTXT = { "limit_here": "The speed limit here is", "limit_now": "The speed limit is now", "limit_is": "The speed limit is", "kmh": "kilometres per hour.", "slow_down": "Please slow down.", "reached": "You've reached", "drops_to": "Speed limit drops to", "ahead_slow": "ahead. Please slow down.", "slow_zone": "Slow down.", "zone_ahead": "kilometre zone ahead.", "over_slow_to": "You are over the speed limit. Slow down to", "you_doing": "You are doing", "slow_please": "Slow down please. You are doing", "in_a": "in a", "zone": "zone.", "careful_cross": "Be careful, you're about to cross the speed limit of", "careful_close": "Careful. You are close to the", "limit_word": "limit.", "ease_off": "Please ease off. The limit is", "back_within": "Thank you. You're back within the limit.", "on": "RoadGuard is on. Drive safely.", "demo": "Demo drive starting.", "test": "Speed limit fifty. You are doing fifty six. Please slow down." };
+const CLIPTXT = { "limit_here": "The speed limit here is", "limit_now": "The speed limit is now", "limit_is": "The speed limit is", "kmh": "kilometres per hour.", "slow_down": "Please slow down.", "reached": "You've reached", "drops_to": "Speed limit drops to", "ahead_slow": "ahead. Please slow down.", "slow_zone": "Slow down.", "zone_ahead": "kilometre zone ahead.", "over_slow_to": "You are over the speed limit. Slow down to", "you_doing": "You are doing", "slow_please": "Slow down please. You are doing", "in_a": "in a", "zone": "zone.", "careful_cross": "Be careful, you're about to cross the speed limit of", "careful_close": "Careful. You are close to the", "limit_word": "limit.", "ease_off": "Please ease off. The limit is", "back_within": "Thank you. You're back within the limit.", "on": "RoadGuard is on. Drive safely.", "demo": "Demo drive starting.", "test": "Speed limit fifty. You are doing fifty six. Please slow down.", "youre_in": "You're in", "demo_intro": "This is a demo drive. RoadGuard will pretend to drive from Accra to Tema, so you can hear how it works. Your real location is not used.", "demo_end": "Demo finished. Here is your trip report." };
 try {
   const ov = localStorage.getItem("rg_voice");
   if (ov != null && ov !== "0" && ov !== "1") {
@@ -1207,9 +1211,11 @@ try {
 }
 const VCLIP = { on: LS("rg_voice_pick", "rg") === "rg" };
 const PLACE_CLIPS = /* @__PURE__ */ new Set(["abehenease", "abekalapaz", "abelemkpe", "abirem", "ablajei", "ablefu", "ablekuma", "ablemkpe", "aboabo", "aboadze", "aboaso", "aboasonkwanta", "abochikrom", "abochiman", "aboesi", "abofu", "abokobi", "aboman", "abosseyokai", "abrepo", "abrepokese", "abuakwa", "abuawso", "abuohia", "abuontem", "aburankwanta", "aburaso", "aburi", "aburiamanfu", "abutare", "abutentia", "accra", "accranewtown", "achiaman", "achimota", "adabraka", "adaman", "adamrobe", "adankwame", "adawkro", "adeisena", "ademkrom", "adenkrebi", "adenta", "adentaeast", "adentan", "adiamtem", "adisadel", "adjeikojo", "adjenkotoku", "adjuah", "adoagyiri", "adoatoadomanu", "adomanu", "adubensobea", "adubensobesease", "adubensokese", "adubinsua", "adukwajo", "adum", "adumase", "aduwamasi", "adwajiri", "adwinhuhia", "adwuman", "adzenkotoku", "afiaman", "afianya", "afienya", "aflao", "afrancho", "afrentia", "afuaman", "agblesia", "agbogba", "agbon", "agogo", "agona", "agonaswedru", "agwasi", "agyaakobooho", "ahensan", "aheriso", "ahinbuboi", "ahinkofikrom", "ahinkro", "ahinsai", "ahodwo", "ahunju", "aidan", "aikaidoboro", "ajeiagbo", "ajimenti", "ajiringano", "aketebommo", "aketego", "akoanso", "akokoamon", "akokome", "akotochir", "akotuako", "akpoman", "akramaman", "akramang", "akromakrom", "akrubi", "akruma", "akuamu", "akubrefa", "akufo", "akufu", "akutuase", "akwaduo", "akwani", "akweku", "akwelenkwanta", "akwesitre", "akweteman", "akweteyman", "akweti", "akyeremade", "akyiato", "aladzo", "alajo", "alavanyo", "amakom", "amamole", "amasaman", "amedua", "amia", "amisakrom", "amissano", "ampabame", "ampabami", "ampetua", "ampeyoo", "amrahia", "anagyacamp", "ankwadoboro", "anoff", "anomangye", "anomanye", "anotema", "antimoa", "antoa", "anuaho", "anumle", "anwomaso", "anyakrom", "anyino", "apagya", "apeadu", "apeasika", "apenkwa", "apeosika", "aperade", "apere", "apimasi", "apirabo", "aplaku", "apolonia", "apomasi", "aponsakwakwanwoma", "apowa", "appremdu", "apra", "aprabon", "aprachiri", "apraprem", "apremdo", "aputuoja", "asabaham", "asabi", "asago", "asamang", "asante", "asechanu", "asennua", "ashaaladza", "ashaiman", "ashaladzabotchway", "ashaleybotwe", "ashiam", "ashongman", "ashonman", "ashwenanmo", "asioja", "asofaa", "asokoremampong", "asokorimampong", "asokrochona", "asoprochona", "asrimaso", "asuabua", "asumenya", "asylumdown", "atafua", "atamakrom", "atasomanso", "atebubu", "atimatim", "atobiase", "atrama", "atrankwa", "augustinesborg", "awchioma", "awoshie", "ayeduase", "ayido", "ayija", "ayimensa", "ayitekoto", "ayuom", "baatsona", "bakacheri", "bamparasi", "bansa", "bantama", "bantang", "batanbogun", "bawalishi", "bawku", "baworo", "beahun", "bebiri", "behinase", "bekwami", "benimasi", "benyakrom", "bimbilla", "bletum", "boadi", "bobomase", "bodomasi", "boedum", "bogwabo", "boi", "bokanchi", "boko", "bolgatanga", "bonsunkwanta", "borteyman", "bortianor", "bosore", "botamfa", "botokura", "botumagyabu", "brebia", "bremanasikuma", "brentin", "bribon", "brimbrimso", "brofoyedru", "bronikrom", "brukon", "buabai", "buabakrom", "buahwini", "bubiashie", "bukom", "bukor", "buokrom", "burmacamp", "busomabina", "capecoast", "chantan", "chinankama", "chirapatre", "chirasi", "chokome", "chorkor", "christiansborg", "christiansvillage", "christianvillage", "chuana", "chuim", "chumeduasi", "chwerebuana", "chwinto", "dabaa", "dabanpanin", "dakodwo", "daku", "dakuyau", "damba", "dambai", "damfa", "danchira", "dansoman", "darkuman", "dawhwenya", "deabenekrom", "dedeiman", "dedeman", "dedesua", "denkyemmoso", "dichemso", "dida", "djankrom", "doborogonno", "dome", "domfase", "donkokrom", "duase", "duasi", "duayeden", "dukukrom", "dumanafo", "dumpon", "dzamai", "dzorwulu", "ebom", "ebron", "echi", "echuma", "effia", "effiakuma", "ehwemase", "ejuratia", "ekuasi", "ekyem", "esaase", "esaso", "esen", "esikado", "esuochi", "ewurukwa", "faana", "fahiakochure", "fahiakotwire", "famaye", "fanchiniko", "fankyenebra", "fawoade", "fetegwa", "fetekakraba", "fijai", "fise", "fiyasi", "fomasua", "fotobi", "franwasi", "fungo", "galuluya", "gbawe", "gbegbe", "giffardcamp", "goaso", "gomoafetteh", "gonse", "grefi", "gwantenang", "gyamfiwono", "gyenyasi", "haatso", "hanya", "hawhoyeyaw", "hebron", "himang", "ho", "hobor", "hohoe", "honiachim", "hwediem", "hwendo", "hwiba", "inchaban", "jachi", "jachiepramso", "jachui", "janman", "jinyasi", "joma", "jomo", "jonkobri", "juabin", "kagabil", "kakumdo", "kakumdu", "kamuo", "kanchabo", "kaneshie", "kansauradu", "kantinkrom", "kanyasi", "kapro", "kasei", "kasoa", "kasoakakraba", "kasoasuncity", "katakpo", "katamanso", "kawbra", "kentinkrono", "keta", "kinkasi", "kintampo", "kitasi", "kle", "kodie", "kodiekrom", "kodiekuma", "kodwobiowuokurom", "kodwogoku", "kodzoashon", "kofikope", "kofikrom", "koforidua", "kojoman", "kokobra", "kokode", "kokomlemle", "kokrobite", "koleman", "konkromase", "korlegonno", "kotei", "koteman", "kotobabi", "kotonponiaferi", "kpehe", "kpomkpo", "kposi", "kretiakrom", "krobobuoho", "krokohwe", "krumuase", "kudamakope", "kumasi", "kumau", "kumi", "kunkunu", "kuntunko", "kuntunse", "kurofoforom", "kuronum", "kwabenansa", "kwabenya", "kwabenyan", "kwablano", "kwadaso", "kwadwogada", "kwakuse", "kwamianum", "kwamu", "kwansimakrom", "kwantumabre", "kwaobonekrom", "kwapra", "kwapro", "kwashieman", "kwasikumaman", "kwasiman", "kwaso", "kwedonu", "kwekutsiakrom", "kweman", "kwesibohinikrom", "kwesimintsim", "la", "lashibi", "lateman", "legon", "loye", "madina", "maijaw", "makola", "makuche", "malamquarry", "malijaw", "mamfam", "mamidede", "mamomom", "mampong", "mamponten", "mamponteng", "mamprobi", "manchiman", "mandela", "mangochunia", "manhean", "mankese", "mankonahogo", "masaka", "mataheko", "mawabanjo", "medianyeye", "mendskrom", "mensaoseikrom", "mereyeni", "mesuom", "midie", "millenniumcity", "minyimdeodiba", "miotso", "mlichakpo", "mmaakuro", "mmedoma", "moabota", "moboli", "mokum", "moree", "mowire", "mpatado", "mpekadam", "mpinti", "mpoase", "nahinso", "nakabakrom", "nchabewu", "nchenechene", "nchichirechi", "newahenemakokoben", "newtakoradi", "newtetegbu", "nfejonba", "ngleshieamanfro", "ngwakwesi", "niechokunia", "niiaboman", "nima", "nkanfoa", "nkatia", "nkrofo", "nkroransa", "nkuntraudu", "nkwikwiaboahung", "nopendaw", "northlegon", "nsaki", "nsakyina", "nsawam", "nsema", "nsenie", "nsumia", "nsunfa", "nsunyamiyo", "nta", "ntankofu", "ntiakukrom", "ntiribuoho", "ntraunua", "ntuaso", "nuka", "nungua", "nwomasi", "nyanawasi", "nyanchreniasi", "nyanyano", "nyanyanu", "nyinasinasi", "obakrowe", "obeyie", "obodan", "obokwasi", "obuasi", "obutu", "ochebleku", "ochirekumfo", "ochirikrom", "odamensa", "odaso", "odorkor", "odotum", "oduman", "odumasi", "odumsi", "oduntia", "oduom", "odupon", "ofankor", "oforikrom", "ogbojo", "ohiaminohini", "ojubi", "oko", "okpoigonno", "okponglo", "okushibiade", "okusubiri", "oldsoldierssettlement", "omankope", "onibi", "onyachia", "onyansana", "onyawonso", "opa", "opah", "opeikuma", "osakrom", "oshien", "oshiuman", "oshiyie", "osimpo", "osiokpo", "osofoman", "osonkoti", "otinibi", "otoase", "otopokwamikrom", "otuaplem", "owabi", "owhim", "owuraman", "owusuansa", "oyarifa", "oyinso", "pakuso", "pankronu", "pantampa", "pantan", "pantang", "papasi", "pechuda", "pedu", "pertsea", "pigfarm", "poasi", "pobiasaawa", "pokrom", "pokromnsabaa", "pokuase", "popawso", "pra", "princestown", "saaman", "saboba", "sabonzango", "sachikrom", "saduasi", "sakaman", "sakoban", "sakorawono", "sakumono", "salam", "sansame", "santase", "santeo", "sapeman", "savelugu", "sawia", "seidi", "sekondi", "sekonditakoradi", "sempene", "sepasi", "sepe", "sepetimpom", "sesemi", "setiasi", "seyimo", "shama", "shiayena", "shikpantele", "silehu", "simeu", "sintreso", "sipe", "sisaiso", "sisirase", "sokoban", "sotuom", "sowutuom", "suame", "suami", "subin", "sugbaniate", "sunyani", "tabiri", "tabuo", "tafo", "taifa", "takoradi", "takwa", "takyiman", "takyimanmmerewagya", "tamale", "tarkwa", "tata", "tebu", "techiman", "teiman", "tema", "temanewtown", "tesa", "tesano", "teshie", "teshielascala", "teshienungua", "tetegbu", "tikrom", "titrifu", "tokuse", "toman", "tontokokoben", "tsuibleoo", "tuasi", "tuba", "tudu", "twedie", "wa", "wamase", "weija", "wiaboman", "wiabra", "wiejoshi", "winneba", "wiriman", "wonkansrew", "yabi", "yabiukwanta", "yahoman", "yamoransa", "yasori", "yebikrom", "yendi", "zenu"]);
+const ROAD_CLIPS = /* @__PURE__ */ new Set(["14thstreet", "15thstreet", "16thstreet", "1stcircularroad", "1stsouthstreet", "22ndstreet", "28thfebruaryroad", "2ndcircularroad", "2ndguggisbergroad", "4thcircularroad", "5thcircularroad", "aayeayeefavenue", "abbatoirstreet", "abekaroad", "abelemkperoad", "abliaddamahstreet", "aboakyireavenue", "abokobipantangroad", "abokyeasamreboiroad", "abomaroad", "abosoeokaistreet", "abotiastreet", "abreporoad", "aburiroad", "academicfreedomroad", "accraashaimanroad", "accraassasane", "accrakumasiroad", "accraroad", "accratemabeachroad", "achimotaforestroad", "acpkwabenyahighstreet", "adakojachieroad", "adamafiolink", "adamaroad", "adayiliroad", "additromroad", "adecoparoad", "adeisoroad", "adentadodowaroad", "adiembraroad", "adjangoteroad", "adjeikojosantorroad", "adjiringanorroad", "adontenseroad", "adumroad", "adumuahbossmanstreet", "adupokuboaheneroad", "afiakobiampemavenue", "aflaoroad", "afransiagonanyakromroad", "afransiapamroad", "afuabuamahavenue", "agapehighway", "agbaweroad", "agblezaamanetroad", "agbogbaashongmanroad", "agbonboiroad", "aggreystreet", "agogohighstreet", "agogosonantiediroad", "agomedaabonseroad", "agonabypass", "agyemanattafuahivstreet", "ahemfoavenue", "ahinakwahroad", "ahmadiyyaroad", "ahmadiyyastreet", "airportbypass", "airportroad", "akanyenestreet", "akasanomaroad", "aketenchieroad", "akilagpasawyerrroad", "akimodaroad", "akoandorstreet", "akoradwostreet", "akosombomarketstreet", "akropongroad", "akumfiameyawavenue", "akututsostreet", "akwawuavenue", "akwedjengavenue", "akweionufugbotsuistreet", "alajohighstreet", "alajoroad", "alajostreet", "alawaroad", "alhajialiumahamroad", "aliumahamastreet", "alwaleedbintalalhighway", "amakomroad", "amamoleyayawasoavenue", "amanfromroad", "amerleylaryearoad", "amoonakwaroad", "amorastreet", "anaanukpentenstreet", "annorassemahhighstreet", "antoaroad", "anwiafuturoad", "anyaaawoshieroad", "anyinamroad", "apiriroad", "appiahasanteavenue", "arcbishopsarpongroad", "asafoanyeaopekuavenue", "asafoatsekukudabistreet", "asafoatsenetteyroad", "asafoatseodonkorstreet", "asafoatseyarteystreet", "asankranguaroad", "asantemampongejuraroad", "asesewaakatengroad", "asesewabrepawroad", "asesewakoforiduaroad", "asesewaodometaroad", "ashalebotwenmaidzornroad", "ashantinewtownroad", "ashantiroad", "asofanamamoleroad", "asofanamamoleyroad", "asratoasestreet", "ataaadokoroad", "atasomansoroad", "atebubuejura", "atebubukwadjokrom", "atebubuyeji", "atimatimmaaseroad", "atomichillsestatestreet", "atroniesunyaniroad", "attamillsroad", "attamillsstreet", "atukpaistreet", "atulbastreet", "auntiededestreet", "avenorroad", "avocadostreet", "awoshieablekumahighstreet", "awoshieablekumahighway", "awoshiekwabenyaroad", "awoshiepokuasehighway", "awuahlarteylink", "awuapaninstreet", "awudomestreet", "ayanfuridiasoroad", "ayebengavenue", "ayebenstreet", "ayeduaseroad", "ayikailane", "ayikumadoryumuroad", "azumahnelsonstreet", "baatsonaaroad", "babayaraavenue", "babilejiraparoad", "bamvimavenue", "bandaroad", "bankroad", "bannermanroad", "bantamahighstreet", "bantamaroad", "barekeseroad", "barnesavenue", "bawjiaseroad", "bawkupolimakromroad", "bawkuroad", "beachdrive", "beachtrunkhighway", "beburoad", "bekwairoad", "bensoroad", "berekumdormaaahenkroroad", "berlintoproad", "bibianinyinahinkumasiroad", "bibianisefwibekwai", "bimbiladumbai", "bimponagyaroad", "birimsoroad", "bkadamastreet", "blackchallengestreet", "blacksatellitesstreet", "bobbymortonlane", "bodomasiagogoroad", "bolgatanganavrongoroad", "bomsoroad", "bondoukousampa", "bonnstreet", "bontangadalungroad", "bontangaresortecoroad", "bosomahighstreet", "boundaryroad", "bremanesikumaafransiswedrumainroad", "brenyastreet", "breweryroad", "briggenragamasuavenue", "briscoeroad", "buaderoad", "bubuashieroad", "builpelaavenue", "busaroad", "cactusstreet", "camp2road", "cantonmentsroad", "capecoasttwifoprasoroad", "captainsawyerstreet", "cardinalaturksonboulevard", "cardinalderystreet", "caselyhayfordroad", "castleroad", "caterpillarstreet", "catholicmissionlink", "ccturoad", "centralhighstreet", "centralstationroad", "chemuroad", "chiefalhajiseidustreet", "chiefimamstreet", "chindiriroad", "chiraaroad", "chogguroad", "churchstreet", "clelandroad", "cokeravenue", "collegeroad", "commercialroad", "commercialstreet", "community18road", "cornlink", "cyanideavenue", "daasebreoseibonsuiiroad", "daboasetwifopraso", "daboasetwifoprasoroad", "dadebanroad", "dadestreet", "dagombaroad", "dakpemaroad", "dalungnawuniroad", "damongocateenroad", "damongosawlaroad", "dansomanhighstreet", "dansomanroad", "dantuavenue", "dantustreet", "darkumanavenue", "darkumanroad", "dcbinneyroad", "derbyavenue", "diasoroad", "dodoostreet", "dodowahighstreet", "domepillartworoad", "domestjohnslink", "dorimonroad", "dorisaobodaistreet", "doryumustreet", "draddokuffouravenue", "dramilcarcabralroad", "drbusiahighstreet", "drhenryarchanboultroad", "drhillalimannstreet", "drkuffouravenue", "drkwamenkrumahroad", "drobourboffahlink", "dropokustreet", "droseituffourbypass", "duayawnkwantabomaaroad", "dunkwaobuasiroad", "dvlaroad", "eakuffoaddoroad", "easternbypass", "eastlatseaddostreet", "ebenezerroad", "ecowasroad", "eduardomohdlanaroad", "educationridgeroad", "edwabremavenue", "effiduaseassamangroad", "effiduasejuabenroad", "effiduasekumawuroad", "effiduasesekyerebankoroad", "effiduasiejusuroad", "efuasutherlandroad", "eggucharileroad", "ejisukumasiroad", "ejurakumasiroad", "ejuraroad", "ejurayeji", "elephantstreet", "ellisavenue", "emenadeduakoapemsoroad", "enchidadiesoroad", "enchieluboroad", "enchitarkwa", "estateroad", "etayibontestreet", "eyipestreet", "faanofaaavenue", "faanofaastreet", "fanmilkomanjorroad", "farraravenue", "fatherpatricklynchstreet", "fawohoyedenroad", "feelroad", "fellroad", "fergusonroad", "fertilizerroad", "firstringroad", "foataharoad", "forestroad", "forestrybypass", "fourthcircularroad", "frimpongmansoiistreet", "fullerroad", "gaeastroad", "gbawekwateyroad", "gbegbestreet", "gbewaahighstreet", "gbulahigunyankpalaroad", "generalacheamponghighstreet", "generalankrahhighstreet", "georgewalkerbushhighway", "geyenyaskoteiroad", "giffardroad", "gloverroad", "goasoakrodieroad", "goasohighstreet", "goldcoasthighstreet", "goldfingerwestroad", "goudastreet", "grapesavenue", "graphicroad", "greatgardenstreet", "greenwichavenue", "guggisbergavenue", "gukpeguroad", "gulfroad", "gulfstreet", "gunnamontiaroad", "gushegupiguroad", "gyahaziensuakyireroad", "gyartehavenue", "gyeliroad", "haatsoatomicroad", "halfassinimpatabaroad", "halfassininewtownroad", "hansenavenue", "hansenroad", "harbourroad", "harperroad", "hawaave", "highstreet", "hillalimannhighway", "honbaahwiredustreet", "honbaahwirudwstreet", "hondcfosustreet", "honoraryedwardsaliaroad", "hospitaldrive", "hospitalroad", "hospitalstreet", "hudsonroad", "humanrightsroad", "hurlinghamstreet", "iadustreet", "ieperstreet", "independenceavenue", "independencehighstreet", "inigrestreet", "internationalroad", "ipsroad", "isaactettehavenue", "ixoradrive", "jagaadamstreet", "jakuffouravenue", "jamerakabileroad", "japekromsamparoad", "japerkomberekumroad", "jawaharlalnehruroad", "jbdanquahroad", "jdegraftjohnsonavenue", "jhowusuacheampongavenue", "jisonayiliroad", "jjrawlingsavenue", "jjrawlingshighstreet", "jkokyereroad", "joemanoostreet", "johnevansmillsavenue", "johnpaganroad", "johnsabastreet", "jomageneralstreet", "josifbroztitoavenue", "juasokonongoroad", "juasotownroad", "jubileedrive", "jukwaroad", "justiceabrobbeyavenue", "kamaradiniroad", "kandalink", "karagaroad", "kasoaringroad", "kejetiaroad", "keneankoroad", "ketanroad", "ketekrachiyendiroad", "kinbustreet", "kingkoteyroad", "kingtackieavenue", "kingtackietawaihavenue", "kitawonsastreet", "kobinaanguboulevard", "kojothompsonavenue", "kologonaagaroad", "koniyawkokotroroad", "konkuostreet", "konongoagogoroad", "konongoejisuroad", "kootingliroad", "korleykojoavenue", "kotobabiroad", "kotokoroad", "kpakpomankraloroad", "kpambegustreet", "kpandaisalagaroad", "kpandaiyendiroad", "kpeshieroad", "kpikpiraroad", "kponeroad", "krakustreet", "kramokwamestreet", "kretekrachibimbila", "krispolcityroad", "kruperkoiiavenue", "kukurantumitaford", "kulikulischoolroad", "kumasisunyaniroad", "kumasitechiman", "kumasitechimanroad", "kumawubodomasiroad", "kumawupepiasiroad", "kumbungusaveluguroad", "kumbunguzangbalungroad", "kuncheniroad", "kunsokwanfifiroad", "kwaakwaalobitestreet", "kwabenakyereavenue", "kwabengroad", "kwabenyapokuaseroad", "kwakuatakorastreet", "kwamenkrumahavenue", "kwamenkrumahboulevard", "kwamenkrumahmotorway", "kwamenkrumahstreet", "kwameobengroad", "kwantsiseistreet", "kwashiebezrotstreet", "kwashiemanofankorroad", "kwawerewananostreet", "kwesiplangeavenue", "labawaleshiroad", "lagoonbypass", "lagosavenue", "lakeroad", "lakpanaastreet", "larabangamognoriroad", "larabangamolemognoriroad", "laroad", "larterbiokorshieroad", "lascalaroad", "lawraduoriroad", "lawrahamileroad", "lawraroad", "lawsonavenue", "legonbypass", "legonbypassroad", "legonroad", "lekmaroad", "liberationroad", "liberiaavenue", "liberialink", "littlewoodavenue", "lohoroad", "lokkostreet", "lucianaboulevard", "lumumbastreet", "maasemedumaroad", "magazineavenue", "mahamaroad", "mainstreet", "majorkobbinadrive", "mallamroad", "mamekrobotoagogoroad", "mampongejura", "mampongkumasi", "mampongkumasiroad", "mamponokaiavenue", "manguchariaroad", "manguzinguroad", "manhyiaroad", "mankessimajumakoroad", "mansoroad", "mantseboistreet", "manyeadorkoravenue", "maritimeacademyroad", "marketroad", "marketsquareroad", "marsstreet", "martinsowahroad", "maxwellroad", "meansakronyakromroad", "mediekotokuroad", "melcomroad", "mensahwoodavenue", "meridianstreet", "mile7road", "milesevenroad", "mimgambiaroad", "mimkukuomroad", "mimkwadwoaddaikromroad", "mognoribawinaroad", "moleparkroad", "moroegalaroad", "mpataporoad", "mpatasieroad", "mpohorroad", "mukoseroad", "mukosestreet", "municipalassemblyroad", "naaatsweistreet", "naabafarastreet", "naabinnestreet", "naadambastreet", "naadapilahstreet", "naakarboistreet", "naakonkuustreet", "naakorkoioblayoostreet", "nagooleakomfereroad", "nalerigunakpanduriroad", "nanaakoduaiavenue", "nanaamasaaistreet", "nanaanomakoiiistreet", "nanaarhincrescent", "nanaattafuahistreet", "nanadwamenastreet", "nanagyamfistreet", "nanakbampoestreet", "nanakgyasiroad", "nanakissihighstreet", "nanakuruhkwameroad", "nanakwamaffumstreet", "nanakwameobengstreet", "nanakwenubaahavenue", "nanapokyaankamavenue", "nanatakyistreet", "nanatufilasamoahroad", "nanawkumniparoad", "nanayawkramoavenue", "nanayawomaneistreet", "nanayawomaneistreetnanaasafoadejiroad", "narkwananabenroad", "nartehanomaistreet", "nathanquaostreet", "natoroad", "navascoroad", "navrongopagaroad", "navrongoroad", "ndabaningisitholeroad", "newroad", "newtownroad", "niiadamsstreet", "niiakweibonsustreet", "niiamasanikoiavenue", "niiamasastreet", "niiamateifiostreet", "niiankramanroad", "niiasereayiteroad", "niiatanyahighway", "niiattohmacleanavenue", "niiayiansahstreet", "niiayikushiestreet", "niiayiteystreet", "niidansostreet", "niidarkostreet", "niikojoababioavenue", "niikoteybaaleavenue", "niikpakpootistreet", "niikwashiefioavenue", "niimolaiaddostreet", "niiodaiayikuroad", "niioglieroad", "niiokaikwakustreet", "niiokaimanavenue", "niiokaimanwestmainstreet", "niiokaimanwestroad", "niiokeleyosapesuaavenue", "niiokoolaayestreet", "niiokpotiadjeicommeystreet", "niioworshikaroad", "niisairoad", "niisaiwuluroad", "niitettehamuistreet", "niitorgbocrescent", "nikoiolaistreet", "nkawkawatibieroad", "nkawkawbypass", "nkawkawhighstreet", "nkawkawobomengroad", "nkawkawroad", "nkoranzaejura", "nkoranzaejuraroad", "nkoranzasekyedumaseroad", "nkoranzerroad", "nkunimstreet", "nmaidzornadjiringanoroad", "nmaidzornpapafiohillsroad", "nmaistreet", "nohwediestreet", "northhighstreet", "northindustrialareastreet", "northlaboneavenue", "northlegonroad", "northpatasiroad", "northtarkwahighway", "nsawamroad", "nsowakromroad", "nsuakyirewinnebaroad", "nsukesecrescent", "nsutabeposoroad", "nsutaeffiduasiroad", "nsutakwamangroad", "nsutamampongroad", "nsutanintingroad", "ntankororoad", "ntrehavenue", "numawoseroad", "nunguaashaimanroad", "nuumoyaotestreet", "nyakrombremanesikumaroad", "nyarkokusiamoahstreet", "nyemignooravenue", "nyinahinadupriroad", "nyohiniroad", "nzemalinestreet", "oakstreet", "obetsebilamteyroad", "obibinistreet", "oblogoroad", "obologoweijaroad", "obomenghighstreet", "obonustreet", "obuasihighstreet", "ochisoswedru", "odaroadmandelamarketroad", "odarteytsururoad", "odumasehighstreet", "odumaseroad", "odumasikroboroad", "oduponstreet", "officialstreet", "offumanwenchi", "ogbojostreet", "oheneameyawavenue", "ohenedjanhighstreet", "ohenenanakoppongavenue", "okogyeabbourstreet", "okomfoanokyeroad", "oldaximroad", "oldfadamaroad", "oldgoldcoastroad", "oldkaragaroad", "olebuamamoleyroad", "olusegunobasanjohighstreet", "olympicsstreet", "onewaylink", "onionlink", "onyaakwashiestreet", "onyanklestreet", "opeikumaroad", "orangestreet", "orgleroad", "orphancrescent", "osaburoad", "osagyefoenimilavenue", "osakumanstreet", "oseinkwantabisaavenue", "oseitutuiavenue", "oseitutuiiboulevard", "oshimpaavenue", "oshimpastreet", "osubadustreet", "otsaamemensahlink", "otsaamemensahstreet", "otublohumstreet", "outerringroad", "owusuansahroad", "owusuboristreet", "owususamparoad", "oxfordstreet", "paagrantboulevard", "padmorestreet", "pagsararoad", "palacestreet", "pamplostreet", "panafricanstreet", "pantangabokobiroad", "pantangborlaroad", "pantangroad", "papaoavenue", "pascalgayelane", "passionfruitstreet", "patricelumumbaroad", "pawpawstreet", "penkyesankorstreet", "peteralaadjeteyavenue", "pigfarmstreet", "pineavenue", "pipelineroad", "plantationroad", "plantpoolroad", "pmillsstreet", "pobeebineyroad", "postofficeloop", "postofficestreet", "prempehiiavenue", "prempehistreet", "presidentialdrive", "princessrd", "profattamillshighstreet", "professorkabusiaroad", "profjeamillsbypass", "pronostreet", "pumpkinavenue", "pvobengavenue", "pvobengbypass", "rawlingshighstreet", "rayacquayestreet", "rdampawstreet", "redokaistreet", "reverendfathermccoystreet", "ringroadcentral", "ringroadeast", "ringroadwest", "ringroadwesthighstreet", "ringroadwestroad", "rotaryavenue", "rotarystreetliberationroad", "royaltcastleroad", "rsblaylink", "sabonjidaroad", "sagnarigukpeneroad", "sagnariguroad", "sakaaddodrive", "sakasekaroad", "salagaroad", "salerigunorthernhighway", "sampaberekum", "sampaberekumbennehroad", "sampajapekromroad", "sampawenchi", "samuelsarpongdrive", "sankanaroad", "sansumineroad", "santanaroad", "savelugusouthernhighway", "secondringroad", "sefaatweneboahiistreet", "sefwibekwaitowiawsoroad", "sefwichiranoroad", "sekonditakoradiroad", "sekwaroad", "sekyedumaseaframsoroad", "sekyeremampongakrofosoroad", "selwynmarketstreet", "sempeloop", "sevendaysstreet", "sgakyeampongstreet", "shamaroad", "sheaganingoroad", "sheagapelungue11road", "shiatongoroad", "shipperscouncilroad", "shoppersstreet", "snnitroad", "southernbypass", "southliberationlink", "southliberiaroad", "spintexroad", "ssnitroad", "stadiumroad", "stannesdrive", "starlets91road", "statestreet", "stewardavenue", "stfrancisstreet", "stjohnsdomekwabenyabrekusuroad", "stmaroad", "sunyaniatronieroad", "sunyaniavenue", "sunyanibechem", "sunyaniberekumroad", "sunyanikumasi", "sunyanikumasiroad", "sunyaniroad", "sunyanitechimanroad", "sunyanitechimanwenchiroad", "sunynaniwenchiroad", "swanikerroad", "switchbackroad", "tafotokotosomotorroad", "tahiruabdellahstreet", "takoradielubohighway", "takporoad", "tamalehospitalroad", "tamalepolytechnicroad", "tamaleroad", "tamaletechimanroad", "tanokuavenue", "tantriroad", "tarkwabogosoroad", "tarkwadamangroad", "tebibianoroad", "techimannkoranza", "techimansunyaniroad", "techimantamaleroad", "techuniversityroad", "telecomroad", "temamotorway", "tempaneshsroad", "tendaambacrescent", "tepagoasoroad", "tepamankransoroad", "teshiedemohighstreet", "teshielinkhighway", "teshierastaroad", "teshieroad", "tettehokuleyavenue", "tettehquarshieavenue", "tettehquarshieroad", "thirdringroad", "thorperoad", "tibungkpalisoguroad", "tiekubaahstreet", "tindaanzokostreet", "tingolinyankpalaroad", "tingoliwambongroad", "titusgloverstreet", "tolonkumbunguroad", "tolonroad", "tomvanderpuijestreet", "topbaseroad", "toptownroad", "trinityavenue", "trotroroad", "tseaddohighstreet", "tseaddoroad", "tsuibleooroad", "tubaroad", "tumuavenue", "tumuhamileroad", "tumunavrongoroad", "tunmastreet", "twifoprasoawisamroad", "twintwinastreet", "universityavenue", "universityfarmroad", "universityroad", "victoriadrive", "victoriaopokuwareroad", "voltastreet", "vraroad", "wachariaroad", "wacriroad", "wadihroad", "walawraroad", "walewaletamaleavenue", "wambongsankpalaroad", "waroad", "wassaafransiejukwaroad", "watervillageroad", "watumuroad", "webduboislink", "wellroad", "wesleyanroad", "westendhospitalbypass", "westernbypass", "westlandavenue", "westlandsavenue", "wiawsoachiasewansamireroad", "wiechautodorimonroad", "windybayavenue", "winnebaakimodaroad", "winnebaroad", "woforiattaroad", "yaaasantewaaroad", "yaaasantewaroad", "yarigabisibawkuroad", "yellowhousestreet", "yidaanadorzustreet", "yipalanyankpalaroad", "yongavenue", "zenuostreet", "zionroad", "zogguroad", "zongolane", "zongoroad", "zuarungunamolgoroad", "zuarungutongoroad"]);
 const placeSlug = (n) => String(n || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-const partKey = (x) => typeof x === "number" ? x >= 1 && x <= 199 ? "n" + Math.round(x) : null : typeof x === "string" ? x : x && x.tts && PLACE_CLIPS.has(placeSlug(x.tts)) ? "p_" + placeSlug(x.tts) : null;
-const partsToText = (parts) => parts.map((x) => typeof x === "number" ? String(x) : typeof x === "string" ? CLIPTXT[x] || "" : x && x.tts || "").join(" ").replace(/\s+([.,])/g, "$1").trim();
+const partKey = (x) => typeof x === "number" ? x >= 1 && x <= 199 ? "n" + Math.round(x) : null : typeof x === "string" ? x : x && x.road ? ROAD_CLIPS.has(placeSlug(x.road)) ? "r_" + placeSlug(x.road) : null : x && x.tts && PLACE_CLIPS.has(placeSlug(x.tts)) ? "p_" + placeSlug(x.tts) : null;
+const hasPlaceClip = (n) => !!n && PLACE_CLIPS.has(placeSlug(n)), hasRoadClip = (n) => !!n && ROAD_CLIPS.has(placeSlug(n));
+const partsToText = (parts) => parts.map((x) => typeof x === "number" ? String(x) : typeof x === "string" ? CLIPTXT[x] || "" : x && x.road ? "on " + x.road + "." : x && x.tts || "").join(" ").replace(/\s+([.,])/g, "$1").trim();
 let clipQ = [], clipBusy = false, clipAudio = null, clipGen = 0;
 function playClip(key) {
   return new Promise((res, rej) => {
@@ -1293,7 +1299,7 @@ async function runClips() {
       const x = parts[i], k = partKey(x);
       try {
         if (k) await playClip(k);
-        else await ttsWait(x && x.tts ? x.tts : String(x));
+        else await ttsWait(x && x.road ? "on " + x.road : x && x.tts ? x.tts : String(x));
       } catch (e) {
         say(partsToText(parts.slice(i)));
         break;
@@ -1305,6 +1311,10 @@ async function runClips() {
 function sayParts(parts, urgent) {
   if (!voiceOn) return;
   parts = parts.filter((x) => x != null && x !== "");
+  if (J && J.simulated) {
+    urgent = false;
+    demoCap(partsToText(parts));
+  }
   if (document.visibilityState === "hidden" && clipQ.length > 2) clipQ = clipQ.slice(-1);
   if (!VCLIP.on) return say(partsToText(parts), urgent);
   if (urgent) {
@@ -1324,31 +1334,54 @@ function sayParts(parts, urgent) {
   clipQ.push({ parts, gen: clipGen, at: Date.now() });
   runClips();
 }
-function voiceFor(p, place, ahead) {
-  const st = liveStatus(p), t = p.t, spd = p.spd == null ? null : Math.round(dispSpd(p.spd));
+function voiceFor(p, place, ahead, rname) {
+  const st = liveStatus(p), t = p.t, spd = p.spd == null ? null : Math.round(dispSpd(p.spd)), demo = !!(J && J.simulated);
   const placeNew = !!place && place !== V.place && t - V.placeAt > 6e4;
+  const where = () => {
+    const w = [];
+    if (placeNew) w.push("reached", { tts: place });
+    else if (hasPlaceClip(place)) w.push("youre_in", { tts: place });
+    if (hasRoadClip(rname)) w.push({ road: rname });
+    return w;
+  };
   if (p.lim != null && p.lim !== V.lim && !p.sus) {
     const over = spd != null && spd > p.lim;
     beep(1, 660);
-    sayParts([...placeNew ? ["reached", { tts: place }] : [], ...V.lim == null ? ["limit_here", p.lim] : ["limit_now", p.lim, "kmh"], ...over ? ["slow_down"] : []], over);
+    sayParts([...where(), ...V.lim == null ? ["limit_here", p.lim, "kmh"] : ["limit_now", p.lim, "kmh"], ...over && !demo ? ["slow_down"] : []], over);
     V.lim = p.lim;
+    V.road = rname;
     if (placeNew) {
       V.place = place;
       V.placeAt = t;
     }
     if (st !== "grey") V.st = st;
     V.overAt = t;
+    V.zoneNag = false;
+    V.zoneAhead = false;
     return;
   }
   if (placeNew) {
-    sayParts(["reached", { tts: place }, ...p.lim ? ["limit_is", p.lim] : []]);
+    sayParts(["reached", { tts: place }, ...p.lim ? ["limit_is", p.lim, "kmh"] : []]);
     V.place = place;
     V.placeAt = t;
   }
-  if (ahead != null && p.lim != null && ahead < p.lim && spd != null && spd > ahead + 3 && (ahead !== V.aheadLim || t - V.aheadAt > 45e3)) {
+  if (ahead != null && p.lim != null && ahead < p.lim && spd != null && spd > ahead + 3 && (demo ? !V.zoneAhead : ahead !== V.aheadLim || t - V.aheadAt > 45e3)) {
     sayParts(pick([["drops_to", ahead, "ahead_slow"], ["slow_zone", ahead, "zone_ahead"]]), true);
     V.aheadLim = ahead;
     V.aheadAt = t;
+    V.zoneAhead = true;
+  }
+  if (demo) {
+    if (st === "red" && V.st !== "red" && !V.zoneNag) {
+      beep(2, 988);
+      sayParts(["over_slow_to", p.lim]);
+      V.zoneNag = true;
+      V.overAt = t;
+    } else if (st === "green" && V.st === "red") {
+      sayParts(["back_within"]);
+    }
+    if (st !== "grey") V.st = st;
+    return;
   }
   if (st === "red" && (V.st !== "red" || t - V.overAt > 15e3)) {
     beep(2, 988);
@@ -1384,7 +1417,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.2.0" : "RoadGuard GH web 1.2.0", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.2.1" : "RoadGuard GH web 1.2.1", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -1410,7 +1443,7 @@ function addPoint(raw) {
   if (prev && hav(prev, raw) > 8 && !sus) lastBearing = bearing(prev, raw);
   const hdg = raw.hdg != null && !isNaN(raw.hdg) && spd != null && spd > 8 ? raw.hdg : lastBearing;
   if (!J.simulated) ensureTiles(raw, hdg);
-  const L2 = raw.lim !== void 0 ? { lim: raw.lim, src: raw.limSrc, road: raw.road, place: raw.place } : matchAt(raw, hdg);
+  const L2 = raw.lim !== void 0 ? { lim: raw.lim, src: raw.limSrc, road: raw.road, rname: raw.rname, place: raw.place } : matchAt(raw, hdg);
   const p = {
     t: raw.t,
     lat: +raw.lat.toFixed(6),
@@ -1441,7 +1474,7 @@ function addPoint(raw) {
   }
   if (pts.length % 15 === 0) hashQ.then(() => saveJ(J));
   const ahead = J.simulated ? (_a = raw.ahead) != null ? _a : null : aheadLimit(p, hdg);
-  if (J.simulated || Date.now() - p.t < 8e3) voiceFor(p, L2.place, ahead);
+  if (J.simulated || Date.now() - p.t < 8e3) voiceFor(p, L2.place, ahead, L2.rname);
   $("aheadTxt").textContent = ahead != null && p.lim != null && ahead !== p.lim ? `Limit changes to ${ahead} ahead` : "";
 }
 const GMAX = 160, ARC = 565.49, CIRC = 753.98, ICON_OK = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><circle cx="12" cy="12" r="10"/><path d="m7.5 12.5 3 3 6-6.5"/></svg>', ICON_WARN = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17h.01"/></svg>';
@@ -1675,6 +1708,10 @@ async function stopJourney(discardIfEmpty) {
     simTimer = null;
   }
   try {
+    $("demoCap").style.display = "none";
+  } catch (e) {
+  }
+  try {
     wake && wake.release();
   } catch (e) {
   }
@@ -1700,9 +1737,9 @@ async function stopJourney(discardIfEmpty) {
 }
 function buildSim() {
   const legs = [
-    { road: "Liberation Road, Airport Residential", place: "Airport Residential", lim: 50, src: "Built-up area (simulated)", pts: [[5.6037, -0.187], [5.61, -0.18], [5.6168, -0.173]], prof: (f) => f < 0.15 ? 20 + f * 160 : f > 0.4 && f < 0.6 ? 58 : f > 0.9 ? 38 : 46 },
-    { road: "Accra–Tema Motorway (N1)", place: "the Tema Motorway", lim: 100, src: "Motorway (simulated)", pts: [[5.6168, -0.173], [5.63, -0.14], [5.645, -0.09], [5.66, -0.04], [5.668, -0.018]], prof: (f) => f < 0.08 ? 75 : f > 0.42 && f < 0.5 ? 108 : f > 0.94 ? 70 : 93 },
-    { road: "Community 1, Tema", place: "Tema Community 1", lim: 50, src: "Built-up area (simulated)", pts: [[5.668, -0.018], [5.66, -0.012], [5.65, -0.01]], prof: (f) => f > 0.85 ? Math.max(0, 45 - (f - 0.85) * 300) : 44 }
+    { road: "Liberation Road, Airport Residential", rname: "Liberation Road", place: "Accra", lim: 50, src: "Built-up area (simulated)", pts: [[5.6037, -0.187], [5.61, -0.18], [5.6168, -0.173]], prof: (f) => f < 0.15 ? 20 + f * 160 : f > 0.4 && f < 0.6 ? 58 : f > 0.9 ? 38 : 46 },
+    { road: "Accra–Tema Motorway (N1)", rname: "Tema Motorway", place: null, lim: 100, src: "Motorway (simulated)", pts: [[5.6168, -0.173], [5.63, -0.14], [5.645, -0.09], [5.66, -0.04], [5.668, -0.018]], prof: (f) => f < 0.08 ? 75 : f > 0.42 && f < 0.5 ? 108 : f > 0.9 ? 48 : 93 },
+    { road: "Community 1, Tema", rname: null, place: "Tema", lim: 50, src: "Built-up area (simulated)", pts: [[5.668, -0.018], [5.66, -0.012], [5.65, -0.01]], prof: (f) => f > 0.85 ? Math.max(0, 45 - (f - 0.85) * 300) : 44 }
   ];
   const out = [];
   let v = 0;
@@ -1737,6 +1774,7 @@ function buildSim() {
         lim: L2.lim,
         limSrc: L2.src,
         road: L2.road,
+        rname: L2.rname,
         place: L2.place,
         leg: legs.indexOf(L2),
         frac: s / tot
@@ -1747,9 +1785,26 @@ function buildSim() {
   out[gi] = { ...out[gi], speed: 140 / 3.6, acc: 65 };
   out.forEach((p) => {
     const nx = legs[p.leg + 1];
-    if (nx && p.frac > 0.9 && nx.lim !== p.lim) p.ahead = nx.lim;
+    if (nx && p.frac > 0.8 && nx.lim !== p.lim) p.ahead = nx.lim;
   });
   return out;
+}
+function voiceBusy() {
+  try {
+    if (clipBusy || clipQ.length) return true;
+    if (!NATIVE && window.speechSynthesis && speechSynthesis.speaking) return true;
+  } catch (e) {
+  }
+  return false;
+}
+let demoCapT = null;
+function demoCap(txt) {
+  const el = $("demoCap");
+  if (!el) return;
+  if (txt) {
+    $("demoCapTxt").textContent = txt;
+  }
+  el.style.display = J && J.simulated || txt === null ? "block" : "none";
 }
 function runSim() {
   resetLive();
@@ -1757,18 +1812,34 @@ function runSim() {
   J.limitReports = [];
   tagVehicle(J);
   setRecordingUI(true);
-  sayParts(["demo"]);
+  $("demoCap").style.display = "block";
+  sayParts(["demo_intro"]);
   const pts = buildSim(), t0 = Date.now() - pts.length * 1e3;
   J.startedAt = t0;
-  let i = 0;
+  let i = 0, quietSince = 0;
   simTimer = setInterval(() => {
-    for (let k = 0; k < 4 && i < pts.length; k++, i++) addPoint({ ...pts[i], t: t0 + i * 1e3 });
+    if (voiceBusy()) {
+      quietSince = 0;
+      return;
+    }
+    if (!quietSince) {
+      quietSince = Date.now();
+      return;
+    }
+    if (Date.now() - quietSince < 700) return;
+    for (let k = 0; k < 3 && i < pts.length; k++, i++) addPoint({ ...pts[i], t: t0 + i * 1e3 });
     if (i >= pts.length) {
       clearInterval(simTimer);
       simTimer = null;
-      stopJourney();
+      sayParts(["demo_end"]);
+      const wait = setInterval(() => {
+        if (voiceBusy()) return;
+        clearInterval(wait);
+        $("demoCap").style.display = "none";
+        stopJourney();
+      }, 300);
     }
-  }, 60);
+  }, 110);
 }
 let leafletMap = null;
 async function verifyChain(j) {
@@ -4724,7 +4795,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.2.0";
+const APP_VER = "1.2.1";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);

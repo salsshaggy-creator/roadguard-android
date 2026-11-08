@@ -75,7 +75,8 @@ jobs:
         run: |
           export RG_STORE_PASSWORD="$(printf '%s' "$RG_STORE_PASSWORD_RAW" | tr -d ' \r\n\t')"
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon
+          sed -i 's/^networkTimeout=.*/networkTimeout=120000/' gradle/wrapper/gradle-wrapper.properties || true
+          ./gradlew assembleRelease --no-daemon || (sleep 20 && ./gradlew assembleRelease --no-daemon)
           cp app/build/outputs/apk/release/app-release.apk ../RoadGuardGH.apk
 
       - name: Save the app file
