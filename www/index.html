@@ -547,7 +547,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.2.1. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.2.2. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1417,7 +1417,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.2.1" : "RoadGuard GH web 1.2.1", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.2.2" : "RoadGuard GH web 1.2.2", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -2073,12 +2073,69 @@ function drawChart(P, events, cal) {
   c.ontouchmove = pick2;
 }
 function toCSV(j) {
-  const rows = [["time_iso", "lat", "lon", "gps_accuracy_m", "speed_kmh", "speed_source", "heading", "speed_limit_kmh", "limit_source", "road", "status", "set_aside", "sha256"]];
-  j.points.forEach((p) => {
-    var _a, _b, _c, _d;
-    return rows.push([new Date(p.t).toISOString(), p.lat, p.lon, p.acc, (_a = p.spd) != null ? _a : "", p.spdSrc, (_b = p.hdg) != null ? _b : "", (_c = p.lim) != null ? _c : "", p.limSrc, (_d = p.road) != null ? _d : "", statusOf(p), p.sus ? 1 : 0, p.h]);
-  });
-  return rows.map((r) => r.map((v) => /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : v).join(",")).join("\n");
+  var _a;
+  const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], z = (n) => String(n).padStart(2, "0");
+  const dOf = (t) => {
+    const d = new Date(t);
+    return `${z(d.getDate())} ${MON[d.getMonth()]} ${d.getFullYear()}`;
+  }, tOf = (t) => {
+    const d = new Date(t);
+    return `${z(d.getHours())}:${z(d.getMinutes())}:${z(d.getSeconds())}`;
+  };
+  const WORD = { green: "Within limit", amber: "Close to limit", red: "OVER LIMIT", grey: "No reading" };
+  const src = (x) => String(x || "").replace(/\s*\((simulated|map data)\)/i, "").replace(/^Posted limit$/, "Posted speed sign") || "Unknown";
+  const S = summarize(j);
+  const head = [
+    ["RoadGuard GH trip report" + (j.simulated ? " (DEMO, pretend trip, not evidence)" : "")],
+    ["Date", dOf(j.startedAt), "Start", tOf(j.startedAt), "End", j.endedAt ? tOf(j.endedAt) : ""],
+    ...j.reg ? [["Vehicle", j.reg]] : [],
+    ["Distance (km)", (S.dist / 1e3).toFixed(1), "Top speed (km/h)", Math.round(S.max || 0), "Times over the limit", S.events.length],
+    [],
+    ["Date", "Time", "Road / Location", "Speed limit (km/h)", "My speed (km/h)", "Over the limit by (km/h)", "Limit source", "Status", "Latitude", "Longitude"]
+  ];
+  const rows = [];
+  let last = null;
+  for (const p of j.points) {
+    const st = p.sus ? "set" : statusOf(p), spd = p.spd == null ? null : Math.round(p.spd);
+    const changed = !last || p.road !== last.p.road || p.lim !== last.p.lim || st !== last.st;
+    const gap = p.t - (last ? last.t : 0), every = st === "red" ? 2e3 : 1e4;
+    if (!changed && gap < every && p !== j.points.at(-1)) continue;
+    const over = st === "red" && spd != null && p.lim != null ? spd - p.lim : "";
+    rows.push([dOf(p.t), tOf(p.t), p.road || "Unnamed road", (_a = p.lim) != null ? _a : "", p.sus ? "" : spd != null ? spd : "", over, src(p.limSrc), p.sus ? "GPS glitch (ignored)" : WORD[st], p.lat, p.lon]);
+    last = { p, st, t: p.t };
+  }
+  return "\uFEFF" + [...head, ...rows, [], ["Comment on this journey"], ...tripComment(j, S).map((x) => [x])].map((r) => r.map((v) => /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : v).join(",")).join("\r\n");
+}
+function tripComment(j, S) {
+  const out = [], T = tripScore(S), z = (n) => String(n).padStart(2, "0"), hm = (t) => {
+    const d = new Date(t);
+    return z(d.getHours()) + ":" + z(d.getMinutes());
+  };
+  const mins = (ms) => {
+    const m = Math.round(ms / 6e4);
+    return m < 1 ? "less than a minute" : m === 1 ? "1 minute" : m + " minutes";
+  };
+  if (j.simulated) out.push("This was a demo drive (a pretend trip). It is not real and cannot be used as evidence.");
+  if (T) out.push(`Overall grade: ${T.g} (${T.sc} out of 100). ${T.words}.`);
+  if (S.compliance != null) out.push(`You stayed within the speed limit for ${Math.round(S.compliance)}% of the journey.`);
+  const ev = S.events;
+  if (!ev.length) out.push("You did not go over the speed limit on this journey. Well done.");
+  else {
+    const w = ev.reduce((a, e) => e.max - e.lim > a.max - a.lim ? e : a), overT = ev.reduce((a, e) => a + (e.end - e.start), 0);
+    out.push(`You went over the limit ${ev.length === 1 ? "once" : ev.length + " times"}, for ${mins(overT)} in total.`);
+    out.push(`The biggest was ${Math.round(w.max)} km/h in a ${w.lim} km/h zone${w.road ? " on " + w.road : ""} at ${hm(w.start)}, which is ${Math.round(w.max - w.lim)} km/h over.`);
+    if (T && T.severe) out.push(`${T.severe === 1 ? "Once" : T.severe + " times"} you were more than 20 km/h over the limit. That is dangerous and can bring a heavy fine.`);
+  }
+  try {
+    const g = detectGaps(j.points, j.bg);
+    if (g.length) {
+      const gt = g.reduce((a, x) => a + (x.to - x.from), 0);
+      out.push(`Recording paused ${g.length === 1 ? "once" : g.length + " times"} (${mins(gt)}) because the ${g[0].why}.`);
+    }
+  } catch (e) {
+  }
+  out.push(!ev.length ? "Keep driving like this." : T && T.g <= "B" ? "Good driving overall. Watch your speed where the limit drops, especially in towns." : "Please slow down. Watch for the speed limit changes and keep below the limit, especially in towns and near schools.");
+  return out;
 }
 async function nativeShare(name, data) {
   try {
@@ -4795,7 +4852,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.2.1";
+const APP_VER = "1.2.2";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
