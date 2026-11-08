@@ -547,7 +547,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.2.2. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.2.3. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1417,7 +1417,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.2.2" : "RoadGuard GH web 1.2.2", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.2.3" : "RoadGuard GH web 1.2.3", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -1730,6 +1730,12 @@ async function stopJourney(discardIfEmpty) {
   j.endedAt = j.points.at(-1).t;
   j.finalHash = prevHash;
   await saveJ(j);
+  try {
+    const k = j.simulated ? "rg_n_demo" : "rg_n_drive";
+    localStorage.setItem(k, String((+localStorage.getItem(k) || 0) + 1));
+    devicePing(true);
+  } catch (e) {
+  }
   if (j.vid) {
     uploadPending().then((n) => toast(n ? `Trip shared with the owner of ${j.reg}` : `Trip saved. It will upload to the owner when you're online.`));
   }
@@ -2728,6 +2734,10 @@ const FBK = {
     const q = await this.db.collection("users").get();
     return q.docs.map((d) => ({ uid: d.id, ...d.data() }));
   },
+  async devices() {
+    const q = await this.db.collection("devices").get();
+    return q.docs.map((d) => ({ id: d.id, ...d.data() }));
+  },
   async feedbackList() {
     const q = await this.db.collection("feedback").orderBy("createdAt", "desc").limit(100).get();
     return q.docs.map((d) => ({ id: d.id, ...d.data() }));
@@ -3021,6 +3031,47 @@ function backend() {
   return Bp;
 }
 const signedIn = () => !!(B && B.user());
+function deviceId() {
+  let id = null;
+  try {
+    id = localStorage.getItem("rg_dev");
+  } catch (e) {
+  }
+  if (!id || !/^RG-[A-Z0-9]{8}$/.test(id)) {
+    const A = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const r = new Uint8Array(8);
+    crypto.getRandomValues(r);
+    id = "RG-" + [...r].map((x) => A[x % A.length]).join("");
+    try {
+      localStorage.setItem("rg_dev", id);
+      localStorage.setItem("rg_dev_first", String(Date.now()));
+    } catch (e) {
+    }
+  }
+  return id;
+}
+async function devicePing(force) {
+  try {
+    const last = +localStorage.getItem("rg_dev_ping") || 0;
+    if (!force && Date.now() - last < 6 * 36e5) return;
+    await backend();
+    if (B !== FBK || !B.db) return;
+    const id = deviceId(), ua = navigator.userAgent, num = (k) => Math.min(1e5, +localStorage.getItem(k) || 0);
+    const platform = NATIVE ? "Android app" : /iPhone|iPad/.test(ua) ? "iPhone (web)" : /Android/.test(ua) ? "Android (web)" : "Computer (web)";
+    await B.db.collection("devices").doc(id).set({
+      platform,
+      appVer: typeof APP_VER !== "undefined" ? APP_VER : "",
+      firstSeen: +localStorage.getItem("rg_dev_first") || Date.now(),
+      lastSeen: Date.now(),
+      drives: num("rg_n_drive"),
+      demos: num("rg_n_demo"),
+      signedIn: signedIn()
+    });
+    localStorage.setItem("rg_dev_ping", String(Date.now()));
+  } catch (e) {
+  }
+}
+setTimeout(() => devicePing(false), 5e3);
 function toast(msg) {
   let t = $("toast");
   if (!t) {
@@ -3694,9 +3745,9 @@ async function renderFamily(box) {
 }
 async function renderAdmin(box) {
   box.innerHTML = '<div class="card"><h3>Admin</h3><p class="note" style="margin:0">Loading…</p></div>';
-  let pend = [], users = [], msgs = [];
+  let pend = [], users = [], msgs = [], devs = [];
   try {
-    [pend, users, msgs] = await Promise.all([B.pendingPayments(), B.allUsers(), B.feedbackList ? B.feedbackList().catch(() => []) : []]);
+    [pend, users, msgs, devs] = await Promise.all([B.pendingPayments(), B.allUsers(), B.feedbackList ? B.feedbackList().catch(() => []) : [], B.devices ? B.devices().catch(() => []) : []]);
   } catch (e) {
     box.innerHTML = `<div class="card"><h3>Admin</h3><p class="note">${esc(e.message)}</p></div>`;
     return;
@@ -3732,7 +3783,13 @@ async function renderAdmin(box) {
     const st = planStatus(x);
     return `<tr><td>${esc(x.name || "")}<div class="small muted">${esc(x.email || "")}</div></td><td class="small">${{ active: (x.tier && x.tier !== "plus" ? TIERS[x.tier].name + (x.tier === "fleet" ? " (" + (x.fleetVehicles || 1) + ")" : "") + " · " : "Plus · ") + "until " + fmtD(st.until), trial: "Trial · " + st.days + " days left", expired: "Trial ended", none: "—" }[st.status]}</td><td class="small">${x.createdAt ? fmtD(x.createdAt) : ""}</td><td class="small">${ago(x.lastSeen)}<div class="muted">${esc(x.device || "")}${x.appVer ? " · " + esc(x.appVer) : ""}</div></td></tr>`;
   }).join("")}</table></div></details>
-    <p class="note" style="margin:10px 0 0">Counts people who made an account. People using RoadGuard without an account aren't counted, because the app doesn't track anyone.</p></div>`;
+    <p class="note" style="margin:10px 0 0">Counts people who made an account. Phones without an account are counted below by a random ID only.</p>
+    <details open style="margin-top:14px"><summary style="cursor:pointer;font-weight:700">Phones that tried RoadGuard (${devs.length})</summary>
+      <div class="kpis" style="margin:10px 0;grid-template-columns:repeat(3,1fr)">${kpi(devs.length, "phones in total")}${kpi(devs.filter((d) => now - n(d.lastSeen) < wk).length, "opened this week", "#86EFAC")}${kpi(devs.filter((d) => now - n(d.firstSeen) < wk).length, "new this week", "#93C5FD")}${kpi(devs.filter((d) => n(d.drives) > 0).length, "did a real drive", "var(--gold2)")}${kpi(devs.filter((d) => n(d.demos) > 0).length, "ran the demo")}${kpi(devs.filter((d) => !d.signedIn).length, "no account")}</div>
+      <div class="small muted" style="margin-bottom:6px">${["Android app", "Android (web)", "iPhone (web)", "Computer (web)"].map((k) => `${k}: <b style="color:var(--text)">${devs.filter((d) => d.platform === k).length}</b>`).join(" · ")}</div>
+      <div style="overflow-x:auto"><table class="num" style="margin-top:4px;min-width:560px"><tr><th>Phone ID</th><th>Type</th><th>Version</th><th>First seen</th><th>Last seen</th><th>Drives / demos</th></tr>${devs.slice().sort((a, b) => n(b.lastSeen) - n(a.lastSeen)).slice(0, 100).map((d) => `<tr><td>${esc(d.id)}${d.signedIn ? ' <span class="small" style="color:#86EFAC">· account</span>' : ""}</td><td class="small">${esc(d.platform || "")}</td><td class="small">${esc(d.appVer || "")}</td><td class="small">${d.firstSeen ? fmtD(d.firstSeen) : "—"}</td><td class="small">${ago(d.lastSeen)}</td><td>${n(d.drives)} / ${n(d.demos)}</td></tr>`).join("")}</table></div>
+      ${devs.length > 100 ? '<p class="note">Showing the 100 most recent.</p>' : ""}
+      <p class="note" style="margin:8px 0 0">Each phone sends only a random ID, the app version, the phone type, when it was opened and how many drives and demos it has done. No name, number or location.</p></details></div>`;
   $("adRefresh").onclick = () => renderAdmin(box);
   try {
     if (!NATIVE && window.Notification && Notification.permission === "default") Notification.requestPermission();
@@ -4852,7 +4909,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.2.2";
+const APP_VER = "1.2.3";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
