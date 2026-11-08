@@ -54,6 +54,12 @@ import android.webkit.WebView;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
+    @Override
+    public void onCreate(android.os.Bundle savedInstanceState) {
+        registerPlugin(AutoStartPlugin.class);
+        super.onCreate(savedInstanceState);
+    }
+
     private void stayAwake() {
         try {
             WebView w = getBridge() != null ? getBridge().getWebView() : null;
@@ -79,3 +85,29 @@ public class MainActivity extends BridgeActivity {
 }
 `);
 console.log('MainActivity: web engine stays awake in the background');
+
+// 5. Auto-start: driving detection, car Bluetooth and the one-tap "Looks like you're driving" notification
+for (const f of ['AutoStartPlugin.java', 'DriveReceiver.java', 'AutoNotify.java'])
+  fs.copyFileSync(path.join(__dirname, '..', 'android-src', f), path.join(mainDir, f));
+let g2 = fs.readFileSync(gradleFile, 'utf8');
+if (!g2.includes('play-services-location')) {
+  g2 = g2.replace(/dependencies\s*\{/, 'dependencies {\n    implementation "com.google.android.gms:play-services-location:21.3.0"');
+  fs.writeFileSync(gradleFile, g2);
+}
+let m2 = fs.readFileSync(manFile, 'utf8');
+if (!m2.includes('ACTIVITY_RECOGNITION')) {
+  m2 = m2.replace('<uses-permission android:name="android.permission.INTERNET" />', `<uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION" />
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />`);
+  m2 = m2.replace('</application>', `    <receiver android:name=".DriveReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.device.action.ACL_CONNECTED" />
+            </intent-filter>
+        </receiver>
+    </application>`);
+  fs.writeFileSync(manFile, m2);
+}
+console.log('Auto-start parts added');

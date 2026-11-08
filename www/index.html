@@ -479,6 +479,13 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
       <div class="set"><div class="t"><b>Demo drive</b><span>Play a simulated Accra–Tema trip to see how it works</span></div><button class="btn btn-ghost" style="width:auto;padding:10px 16px;font-size:16px" id="btnDemo2">Run</button></div>
       <div class="set"><div class="t"><b>Delete all journeys</b><span>Removes every journey saved on this phone</span></div><button class="btn btn-ghost" style="width:auto;padding:10px 16px;font-size:16px;color:#FCA5A5" id="btnClear">Delete</button></div>
     </div>
+    <div class="card" id="autoCard">
+      <h3>Auto-start</h3>
+      <div class="set"><div class="t"><b>Start by itself when I’m moving</b><span>When RoadGuard is open, it starts recording once you’re going faster than 15 km/h</span></div><button class="tog" id="togAutoMove" aria-label="Start by itself when moving"></button></div>
+      <div class="set autoNative"><div class="t"><b>Ask me when I start driving</b><span>Even when RoadGuard is closed, a notification asks if you want to start</span></div><button class="tog" id="togAutoDetect" aria-label="Ask when driving is detected"></button></div>
+      <div class="set autoNative"><div class="t"><b>My car’s Bluetooth</b><span id="autoCarName">Not set. RoadGuard reacts when your phone connects to your car.</span></div><button class="btn btn-ghost" id="btnAutoCar" style="width:auto;padding:10px 16px;font-size:16px">Choose</button></div>
+      <div class="set"><div class="t"><b>End by itself after parking</b><span>Journeys that started by themselves end after 8 minutes without moving</span></div><button class="tog" id="togAutoStop" aria-label="End by itself after parking"></button></div>
+    </div>
     <div class="card" id="contactCard">
       <h3>Contact us</h3>
       <p class="note" style="margin:0 0 12px">Found a problem, have an idea or a question? Tell us here. We read every message.</p>
@@ -499,6 +506,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
       <details class="faq"><summary>The limit on a sign is different from the app. Why?</summary><p>RoadGuard has no camera, so it can't read signs. Many Ghanaian roads aren't on the map with their limits yet, so on those roads the app uses the general rules above. When a sign's limit is added to OpenStreetMap, RoadGuard picks it up automatically within about 30 days.</p></details>
       <details class="faq"><summary>Why is my car's speedometer a little higher than RoadGuard?</summary><p>Car speedometers are built to read slightly high, by law. GPS shows your true speed. Use <b>Settings → Match my car's speedometer</b> so the screen matches your dial. Your saved records always keep the true GPS speed.</p></details>
       <details class="faq"><summary>Does it record with the screen off?</summary><p>In the Android app, yes: start a journey, then you can lock the phone. Allow <b>Location: all the time</b> and <b>Notifications</b> when asked. On the website, keep the screen on, because a web page can't record while the phone is locked.</p></details>
+      <details class="faq"><summary>Can RoadGuard start by itself when I drive?</summary><p>Yes. In <b>Settings → Auto-start</b>: <b>Start by itself when I’m moving</b> begins recording when RoadGuard is open and you go faster than 15 km/h. In the Android app, <b>Ask me when I start driving</b> sends a notification even when RoadGuard is closed; tap it to start. You can also choose <b>your car’s Bluetooth</b>, so RoadGuard reacts whenever your phone connects to your car. Android doesn’t let any app start recording your location from fully closed without you knowing, so that last step is one tap. Journeys that start by themselves can also end by themselves after 8 minutes parked.</p></details>
       <details class="faq"><summary>I’m a passenger. How do I use RoadGuard?</summary><p>Open RoadGuard and tap <b>Start Journey</b> when you get into the trotro, taxi, Bolt or bus. You’ll see how fast the vehicle is going and the speed limit. If the driver goes too fast, you’ll know. Please don’t argue with a driver while the vehicle is moving: stay safe, and report it later if you need to.</p></details>
       <details class="faq"><summary>How does Share my trip work?</summary><p>During a journey, tap <b>Share my trip live</b>. Choose the type of vehicle, type the number plate and where you’re going (all optional), then send the link on WhatsApp. Your family opens the link on any phone, with no app needed, and sees your speed, the speed limit, every town you pass and when you arrive. Sharing stops when you end the journey or tap <b>Stop sharing</b>. You need to be signed in to share. The free plan includes 5 shared trips a month; Plus is unlimited. An SOS always works, even after your 5 shares.</p></details>
       <details class="faq"><summary>Can my family get alerts?</summary><p>Yes. On the live trip page, they tap <b>Alert me if they speed, arrive or need help</b>. Their phone will beep, vibrate and show a notification if the vehicle goes over the limit, when you arrive, or if you send an SOS.</p></details>
@@ -535,7 +543,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.1.0. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.2.0. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1117,7 +1125,7 @@ function englishVoices(list) {
 }
 function pickVoice() {
   try {
-    const all = englishVoices(speechSynthesis.getVoices()), want = LS("rg_voice", "rg");
+    const all = englishVoices(speechSynthesis.getVoices()), want = LS("rg_voice_pick", "rg");
     VOICE = want && all.find((v) => (v.voiceURI || v.name) === want) || all[0] || null;
     fillVoiceSel(all, (v) => v.voiceURI || v.name);
   } catch (e) {
@@ -1127,7 +1135,7 @@ async function loadNativeVoices() {
   try {
     const r = await NP.TTS.getSupportedVoices();
     NVOICES = r && r.voices || [];
-    const all = englishVoices(NVOICES), want = LS("rg_voice", "rg");
+    const all = englishVoices(NVOICES), want = LS("rg_voice_pick", "rg");
     NVOICE = want && all.find((v) => (v.voiceURI || v.name) === want) || all.find((v) => /en[-_]GB/i.test(v.lang || "") && !/network/i.test(v.name || "")) || all[0] || null;
     fillVoiceSel(all, (v) => v.voiceURI || v.name);
   } catch (e) {
@@ -1136,7 +1144,7 @@ async function loadNativeVoices() {
 function fillVoiceSel(all, key) {
   const sel = document.getElementById("voiceSel");
   if (!sel) return;
-  const want = LS("rg_voice", "rg");
+  const want = LS("rg_voice_pick", "rg");
   sel.innerHTML = '<option value="rg"' + (want === "rg" ? " selected" : "") + '>RoadGuard voice (recommended)</option><option value=""' + (want === "" ? " selected" : "") + ">Phone voice: best available</option>" + all.slice(0, 40).map((v, i) => `<option value="${esc(key(v))}"${key(v) === want ? " selected" : ""}>${esc(voiceLabel(v, i, all))}</option>`).join("");
 }
 if (!NATIVE && "speechSynthesis" in window) {
@@ -1189,7 +1197,15 @@ function say(text, urgent) {
   }
 }
 const CLIPTXT = { "limit_here": "The speed limit here is", "limit_now": "The speed limit is now", "limit_is": "The speed limit is", "kmh": "kilometres per hour.", "slow_down": "Please slow down.", "reached": "You've reached", "drops_to": "Speed limit drops to", "ahead_slow": "ahead. Please slow down.", "slow_zone": "Slow down.", "zone_ahead": "kilometre zone ahead.", "over_slow_to": "You are over the speed limit. Slow down to", "you_doing": "You are doing", "slow_please": "Slow down please. You are doing", "in_a": "in a", "zone": "zone.", "careful_cross": "Be careful, you're about to cross the speed limit of", "careful_close": "Careful. You are close to the", "limit_word": "limit.", "ease_off": "Please ease off. The limit is", "back_within": "Thank you. You're back within the limit.", "on": "RoadGuard is on. Drive safely.", "demo": "Demo drive starting.", "test": "Speed limit fifty. You are doing fifty six. Please slow down." };
-const VCLIP = { on: LS("rg_voice", "rg") === "rg" };
+try {
+  const ov = localStorage.getItem("rg_voice");
+  if (ov != null && ov !== "0" && ov !== "1") {
+    localStorage.setItem("rg_voice_pick", ov);
+    localStorage.setItem("rg_voice", "1");
+  }
+} catch (e) {
+}
+const VCLIP = { on: LS("rg_voice_pick", "rg") === "rg" };
 const PLACE_CLIPS = /* @__PURE__ */ new Set(["abehenease", "abekalapaz", "abelemkpe", "abirem", "ablajei", "ablefu", "ablekuma", "ablemkpe", "aboabo", "aboadze", "aboaso", "aboasonkwanta", "abochikrom", "abochiman", "aboesi", "abofu", "abokobi", "aboman", "abosseyokai", "abrepo", "abrepokese", "abuakwa", "abuawso", "abuohia", "abuontem", "aburankwanta", "aburaso", "aburi", "aburiamanfu", "abutare", "abutentia", "accra", "accranewtown", "achiaman", "achimota", "adabraka", "adaman", "adamrobe", "adankwame", "adawkro", "adeisena", "ademkrom", "adenkrebi", "adenta", "adentaeast", "adentan", "adiamtem", "adisadel", "adjeikojo", "adjenkotoku", "adjuah", "adoagyiri", "adoatoadomanu", "adomanu", "adubensobea", "adubensobesease", "adubensokese", "adubinsua", "adukwajo", "adum", "adumase", "aduwamasi", "adwajiri", "adwinhuhia", "adwuman", "adzenkotoku", "afiaman", "afianya", "afienya", "aflao", "afrancho", "afrentia", "afuaman", "agblesia", "agbogba", "agbon", "agogo", "agona", "agonaswedru", "agwasi", "agyaakobooho", "ahensan", "aheriso", "ahinbuboi", "ahinkofikrom", "ahinkro", "ahinsai", "ahodwo", "ahunju", "aidan", "aikaidoboro", "ajeiagbo", "ajimenti", "ajiringano", "aketebommo", "aketego", "akoanso", "akokoamon", "akokome", "akotochir", "akotuako", "akpoman", "akramaman", "akramang", "akromakrom", "akrubi", "akruma", "akuamu", "akubrefa", "akufo", "akufu", "akutuase", "akwaduo", "akwani", "akweku", "akwelenkwanta", "akwesitre", "akweteman", "akweteyman", "akweti", "akyeremade", "akyiato", "aladzo", "alajo", "alavanyo", "amakom", "amamole", "amasaman", "amedua", "amia", "amisakrom", "amissano", "ampabame", "ampabami", "ampetua", "ampeyoo", "amrahia", "anagyacamp", "ankwadoboro", "anoff", "anomangye", "anomanye", "anotema", "antimoa", "antoa", "anuaho", "anumle", "anwomaso", "anyakrom", "anyino", "apagya", "apeadu", "apeasika", "apenkwa", "apeosika", "aperade", "apere", "apimasi", "apirabo", "aplaku", "apolonia", "apomasi", "aponsakwakwanwoma", "apowa", "appremdu", "apra", "aprabon", "aprachiri", "apraprem", "apremdo", "aputuoja", "asabaham", "asabi", "asago", "asamang", "asante", "asechanu", "asennua", "ashaaladza", "ashaiman", "ashaladzabotchway", "ashaleybotwe", "ashiam", "ashongman", "ashonman", "ashwenanmo", "asioja", "asofaa", "asokoremampong", "asokorimampong", "asokrochona", "asoprochona", "asrimaso", "asuabua", "asumenya", "asylumdown", "atafua", "atamakrom", "atasomanso", "atebubu", "atimatim", "atobiase", "atrama", "atrankwa", "augustinesborg", "awchioma", "awoshie", "ayeduase", "ayido", "ayija", "ayimensa", "ayitekoto", "ayuom", "baatsona", "bakacheri", "bamparasi", "bansa", "bantama", "bantang", "batanbogun", "bawalishi", "bawku", "baworo", "beahun", "bebiri", "behinase", "bekwami", "benimasi", "benyakrom", "bimbilla", "bletum", "boadi", "bobomase", "bodomasi", "boedum", "bogwabo", "boi", "bokanchi", "boko", "bolgatanga", "bonsunkwanta", "borteyman", "bortianor", "bosore", "botamfa", "botokura", "botumagyabu", "brebia", "bremanasikuma", "brentin", "bribon", "brimbrimso", "brofoyedru", "bronikrom", "brukon", "buabai", "buabakrom", "buahwini", "bubiashie", "bukom", "bukor", "buokrom", "burmacamp", "busomabina", "capecoast", "chantan", "chinankama", "chirapatre", "chirasi", "chokome", "chorkor", "christiansborg", "christiansvillage", "christianvillage", "chuana", "chuim", "chumeduasi", "chwerebuana", "chwinto", "dabaa", "dabanpanin", "dakodwo", "daku", "dakuyau", "damba", "dambai", "damfa", "danchira", "dansoman", "darkuman", "dawhwenya", "deabenekrom", "dedeiman", "dedeman", "dedesua", "denkyemmoso", "dichemso", "dida", "djankrom", "doborogonno", "dome", "domfase", "donkokrom", "duase", "duasi", "duayeden", "dukukrom", "dumanafo", "dumpon", "dzamai", "dzorwulu", "ebom", "ebron", "echi", "echuma", "effia", "effiakuma", "ehwemase", "ejuratia", "ekuasi", "ekyem", "esaase", "esaso", "esen", "esikado", "esuochi", "ewurukwa", "faana", "fahiakochure", "fahiakotwire", "famaye", "fanchiniko", "fankyenebra", "fawoade", "fetegwa", "fetekakraba", "fijai", "fise", "fiyasi", "fomasua", "fotobi", "franwasi", "fungo", "galuluya", "gbawe", "gbegbe", "giffardcamp", "goaso", "gomoafetteh", "gonse", "grefi", "gwantenang", "gyamfiwono", "gyenyasi", "haatso", "hanya", "hawhoyeyaw", "hebron", "himang", "ho", "hobor", "hohoe", "honiachim", "hwediem", "hwendo", "hwiba", "inchaban", "jachi", "jachiepramso", "jachui", "janman", "jinyasi", "joma", "jomo", "jonkobri", "juabin", "kagabil", "kakumdo", "kakumdu", "kamuo", "kanchabo", "kaneshie", "kansauradu", "kantinkrom", "kanyasi", "kapro", "kasei", "kasoa", "kasoakakraba", "kasoasuncity", "katakpo", "katamanso", "kawbra", "kentinkrono", "keta", "kinkasi", "kintampo", "kitasi", "kle", "kodie", "kodiekrom", "kodiekuma", "kodwobiowuokurom", "kodwogoku", "kodzoashon", "kofikope", "kofikrom", "koforidua", "kojoman", "kokobra", "kokode", "kokomlemle", "kokrobite", "koleman", "konkromase", "korlegonno", "kotei", "koteman", "kotobabi", "kotonponiaferi", "kpehe", "kpomkpo", "kposi", "kretiakrom", "krobobuoho", "krokohwe", "krumuase", "kudamakope", "kumasi", "kumau", "kumi", "kunkunu", "kuntunko", "kuntunse", "kurofoforom", "kuronum", "kwabenansa", "kwabenya", "kwabenyan", "kwablano", "kwadaso", "kwadwogada", "kwakuse", "kwamianum", "kwamu", "kwansimakrom", "kwantumabre", "kwaobonekrom", "kwapra", "kwapro", "kwashieman", "kwasikumaman", "kwasiman", "kwaso", "kwedonu", "kwekutsiakrom", "kweman", "kwesibohinikrom", "kwesimintsim", "la", "lashibi", "lateman", "legon", "loye", "madina", "maijaw", "makola", "makuche", "malamquarry", "malijaw", "mamfam", "mamidede", "mamomom", "mampong", "mamponten", "mamponteng", "mamprobi", "manchiman", "mandela", "mangochunia", "manhean", "mankese", "mankonahogo", "masaka", "mataheko", "mawabanjo", "medianyeye", "mendskrom", "mensaoseikrom", "mereyeni", "mesuom", "midie", "millenniumcity", "minyimdeodiba", "miotso", "mlichakpo", "mmaakuro", "mmedoma", "moabota", "moboli", "mokum", "moree", "mowire", "mpatado", "mpekadam", "mpinti", "mpoase", "nahinso", "nakabakrom", "nchabewu", "nchenechene", "nchichirechi", "newahenemakokoben", "newtakoradi", "newtetegbu", "nfejonba", "ngleshieamanfro", "ngwakwesi", "niechokunia", "niiaboman", "nima", "nkanfoa", "nkatia", "nkrofo", "nkroransa", "nkuntraudu", "nkwikwiaboahung", "nopendaw", "northlegon", "nsaki", "nsakyina", "nsawam", "nsema", "nsenie", "nsumia", "nsunfa", "nsunyamiyo", "nta", "ntankofu", "ntiakukrom", "ntiribuoho", "ntraunua", "ntuaso", "nuka", "nungua", "nwomasi", "nyanawasi", "nyanchreniasi", "nyanyano", "nyanyanu", "nyinasinasi", "obakrowe", "obeyie", "obodan", "obokwasi", "obuasi", "obutu", "ochebleku", "ochirekumfo", "ochirikrom", "odamensa", "odaso", "odorkor", "odotum", "oduman", "odumasi", "odumsi", "oduntia", "oduom", "odupon", "ofankor", "oforikrom", "ogbojo", "ohiaminohini", "ojubi", "oko", "okpoigonno", "okponglo", "okushibiade", "okusubiri", "oldsoldierssettlement", "omankope", "onibi", "onyachia", "onyansana", "onyawonso", "opa", "opah", "opeikuma", "osakrom", "oshien", "oshiuman", "oshiyie", "osimpo", "osiokpo", "osofoman", "osonkoti", "otinibi", "otoase", "otopokwamikrom", "otuaplem", "owabi", "owhim", "owuraman", "owusuansa", "oyarifa", "oyinso", "pakuso", "pankronu", "pantampa", "pantan", "pantang", "papasi", "pechuda", "pedu", "pertsea", "pigfarm", "poasi", "pobiasaawa", "pokrom", "pokromnsabaa", "pokuase", "popawso", "pra", "princestown", "saaman", "saboba", "sabonzango", "sachikrom", "saduasi", "sakaman", "sakoban", "sakorawono", "sakumono", "salam", "sansame", "santase", "santeo", "sapeman", "savelugu", "sawia", "seidi", "sekondi", "sekonditakoradi", "sempene", "sepasi", "sepe", "sepetimpom", "sesemi", "setiasi", "seyimo", "shama", "shiayena", "shikpantele", "silehu", "simeu", "sintreso", "sipe", "sisaiso", "sisirase", "sokoban", "sotuom", "sowutuom", "suame", "suami", "subin", "sugbaniate", "sunyani", "tabiri", "tabuo", "tafo", "taifa", "takoradi", "takwa", "takyiman", "takyimanmmerewagya", "tamale", "tarkwa", "tata", "tebu", "techiman", "teiman", "tema", "temanewtown", "tesa", "tesano", "teshie", "teshielascala", "teshienungua", "tetegbu", "tikrom", "titrifu", "tokuse", "toman", "tontokokoben", "tsuibleoo", "tuasi", "tuba", "tudu", "twedie", "wa", "wamase", "weija", "wiaboman", "wiabra", "wiejoshi", "winneba", "wiriman", "wonkansrew", "yabi", "yabiukwanta", "yahoman", "yamoransa", "yasori", "yebikrom", "yendi", "zenu"]);
 const placeSlug = (n) => String(n || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 const partKey = (x) => typeof x === "number" ? x >= 1 && x <= 199 ? "n" + Math.round(x) : null : typeof x === "string" ? x : x && x.tts && PLACE_CLIPS.has(placeSlug(x.tts)) ? "p_" + placeSlug(x.tts) : null;
@@ -1368,7 +1384,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.1.0" : "RoadGuard GH web 1.1.0", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.2.0" : "RoadGuard GH web 1.2.0", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -1417,6 +1433,12 @@ function addPoint(raw) {
   if (!p.sus && p.spd != null && p.acc <= ACC_OK) live.max = Math.max(live.max, p.spd);
   renderLive(p);
   liveTick(p, L2.place);
+  if (!J.simulated && pts.length === 3) {
+    try {
+      localStorage.setItem("rg_loc_ok", "1");
+    } catch (e) {
+    }
+  }
   if (pts.length % 15 === 0) hashQ.then(() => saveJ(J));
   const ahead = J.simulated ? (_a = raw.ahead) != null ? _a : null : aheadLimit(p, hdg);
   if (J.simulated || Date.now() - p.t < 8e3) voiceFor(p, L2.place, ahead);
@@ -1525,6 +1547,17 @@ function renderLive(p) {
   setGps(p.acc, false);
 }
 function setRecordingUI(on) {
+  try {
+    if (typeof AP !== "undefined" && AP) AP.setJourneyActive({ active: !!on }).catch(() => {
+    });
+  } catch (e) {
+  }
+  setTimeout(() => {
+    try {
+      autoWatchUpdate();
+    } catch (e) {
+    }
+  }, 500);
   $("ctlIdle").style.display = on ? "none" : "flex";
   $("ctlRec").style.display = on ? "flex" : "none";
   $("ctlShare").style.display = on ? "flex" : "none";
@@ -3701,6 +3734,134 @@ function startWatchers(u) {
   }, () => {
   }));
 }
+const AUTO = { move: LS("rg_auto_move", "1") === "1", stop: LS("rg_auto_stop", "1") === "1", watch: null, fast: 0, still: null };
+const AP = NATIVE && window.Capacitor && Capacitor.isPluginAvailable && Capacitor.isPluginAvailable("AutoStart") ? capPlugin("AutoStart") : null;
+function setTog(id, on) {
+  const b = $(id);
+  if (b) b.classList.toggle("on", !!on);
+}
+function autoWatchUpdate() {
+  const want = AUTO.move && !J && document.visibilityState === "visible" && "geolocation" in navigator && LS("rg_loc_ok", "") === "1";
+  if (want && AUTO.watch == null) {
+    AUTO.fast = 0;
+    AUTO.watch = navigator.geolocation.watchPosition((pos) => {
+      if (J) return;
+      const v = pos.coords.speed;
+      if (v != null && v * 3.6 > 15 && pos.coords.accuracy < 60) {
+        if (++AUTO.fast >= 4) autoStart("move");
+      } else AUTO.fast = Math.max(0, AUTO.fast - 1);
+    }, () => {
+    }, { enableHighAccuracy: true, maximumAge: 5e3, timeout: 2e4 });
+  } else if (!want && AUTO.watch != null) {
+    navigator.geolocation.clearWatch(AUTO.watch);
+    AUTO.watch = null;
+  }
+}
+async function autoStart(reason) {
+  if (J) return;
+  if (AUTO.watch != null) {
+    navigator.geolocation.clearWatch(AUTO.watch);
+    AUTO.watch = null;
+  }
+  toast(reason === "bt" ? "Connected to your car: RoadGuard is recording" : "Driving detected: RoadGuard is recording");
+  show("drive");
+  await startJourney();
+  if (J) {
+    J.autoStarted = reason;
+    AUTO.still = null;
+  }
+}
+setInterval(() => {
+  if (!J || !J.autoStarted || !AUTO.stop || J.simulated) return;
+  const p = J.points.at(-1);
+  if (!p) return;
+  if (p.spd != null && p.spd < 3) {
+    if (!AUTO.still) AUTO.still = Date.now();
+    if (Date.now() - AUTO.still > 8 * 6e4) {
+      AUTO.still = null;
+      stopJourney();
+      notifyLocal("Journey saved", "RoadGuard ended your journey after you parked.");
+    }
+  } else if (p.spd != null && p.spd > 8) AUTO.still = null;
+}, 15e3);
+document.addEventListener("visibilitychange", autoWatchUpdate);
+$("togAutoMove").onclick = () => {
+  AUTO.move = !AUTO.move;
+  try {
+    localStorage.setItem("rg_auto_move", AUTO.move ? "1" : "0");
+  } catch (e) {
+  }
+  setTog("togAutoMove", AUTO.move);
+  autoWatchUpdate();
+  if (AUTO.move && LS("rg_loc_ok", "") !== "1") toast("This starts working after your first journey, once location is allowed.");
+};
+$("togAutoStop").onclick = () => {
+  AUTO.stop = !AUTO.stop;
+  try {
+    localStorage.setItem("rg_auto_stop", AUTO.stop ? "1" : "0");
+  } catch (e) {
+  }
+  setTog("togAutoStop", AUTO.stop);
+};
+setTog("togAutoMove", AUTO.move);
+setTog("togAutoStop", AUTO.stop);
+if (!AP) document.querySelectorAll(".autoNative").forEach((e) => e.style.display = "none");
+else {
+  AP.getSettings().then((r) => {
+    setTog("togAutoDetect", r.detect);
+    if (r.carName) $("autoCarName").textContent = "Connected to: " + r.carName;
+  }).catch(() => {
+  });
+  $("togAutoDetect").onclick = async () => {
+    const on = !$("togAutoDetect").classList.contains("on");
+    try {
+      await AP.setDriveDetect({ enabled: on });
+      setTog("togAutoDetect", on);
+      if (on) {
+        lnSetup();
+        toast("RoadGuard will ask you when you start driving");
+      }
+    } catch (e) {
+      setTog("togAutoDetect", false);
+      alert(e.message || "Could not turn this on.");
+    }
+  };
+  $("btnAutoCar").onclick = async () => {
+    let r;
+    try {
+      r = await AP.listBluetooth();
+    } catch (e) {
+      alert(e.message || "Could not list Bluetooth devices.");
+      return;
+    }
+    const ds = (r.devices || []).filter((d) => d.address);
+    if (!ds.length) {
+      alert("No paired Bluetooth devices found. Pair your phone with your car first, in your phone’s Bluetooth settings.");
+      return;
+    }
+    sheet(
+      "Choose your car",
+      "Pick your car’s Bluetooth or car radio. When your phone connects to it, RoadGuard starts (or asks you to start).",
+      ds.map((d) => ({ label: d.name || d.address, onClick: async () => {
+        await AP.setCar({ address: d.address, name: d.name || d.address });
+        $("autoCarName").textContent = "Connected to: " + (d.name || d.address);
+        lnSetup();
+        toast("Car saved");
+      } })).concat([{ label: "Remove my car", onClick: async () => {
+        await AP.setCar({});
+        $("autoCarName").textContent = "Not set. RoadGuard reacts when your phone connects to your car.";
+      } }, { label: "Cancel" }])
+    );
+  };
+  AP.addListener("autostart", (e) => {
+    if (!J) autoStart(e && e.reason || "detect");
+  });
+  AP.consumeLaunch().then((r) => {
+    if (r && r.reason) setTimeout(() => autoStart(r.reason), 1200);
+  }).catch(() => {
+  });
+}
+setTimeout(autoWatchUpdate, 2500);
 const WEB3FORMS_KEY = "";
 function devLabel() {
   return NATIVE ? "Android app" : /iPhone|iPad/.test(navigator.userAgent) ? "iPhone (web)" : /Android/.test(navigator.userAgent) ? "Android (web)" : "Computer (web)";
@@ -4344,7 +4505,7 @@ $("rateSel").onchange = (e) => {
 $("voiceSel").onchange = (e) => {
   const v = e.target.value;
   try {
-    localStorage.setItem("rg_voice", v);
+    localStorage.setItem("rg_voice_pick", v);
   } catch (_) {
   }
   VCLIP.on = v === "rg";
@@ -4563,7 +4724,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.1.0";
+const APP_VER = "1.2.0";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
