@@ -87,7 +87,7 @@ public class MainActivity extends BridgeActivity {
 console.log('MainActivity: web engine stays awake in the background');
 
 // 5. Auto-start: driving detection, car Bluetooth and the one-tap "Looks like you're driving" notification
-for (const f of ['AutoStartPlugin.java', 'DriveReceiver.java', 'AutoNotify.java'])
+for (const f of ['AutoStartPlugin.java', 'DriveReceiver.java', 'AutoNotify.java', 'RgVoice.java'])
   fs.copyFileSync(path.join(__dirname, '..', 'android-src', f), path.join(mainDir, f));
 let g2 = fs.readFileSync(gradleFile, 'utf8');
 if (!g2.includes('play-services-location')) {
@@ -102,7 +102,8 @@ if (!m2.includes('ACTIVITY_RECOGNITION')) {
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />`);
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />`);
   m2 = m2.replace('</application>', `    <receiver android:name=".DriveReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.bluetooth.device.action.ACL_CONNECTED" />

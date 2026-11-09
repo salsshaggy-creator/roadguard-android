@@ -5,6 +5,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
+import android.provider.Settings;
 import com.google.android.gms.location.ActivityTransition;
 import com.google.android.gms.location.ActivityTransitionEvent;
 import com.google.android.gms.location.ActivityTransitionResult;
@@ -47,8 +49,24 @@ public class DriveReceiver extends BroadcastReceiver {
     }
 
     static void trigger(Context c, String reason) {
-        // If RoadGuard is on screen, let it start by itself; otherwise ask with a notification.
-        if (AutoStartPlugin.instance != null && AutoStartPlugin.instance.appVisible()) AutoStartPlugin.instance.fire(reason);
-        else AutoNotify.show(c, reason, false);
+        // If RoadGuard is on screen, let it start by itself.
+        if (AutoStartPlugin.instance != null && AutoStartPlugin.instance.appVisible()) { AutoStartPlugin.instance.fire(reason); return; }
+        SharedPreferences p = AutoNotify.prefs(c);
+        long now = System.currentTimeMillis();
+        boolean running = now - p.getLong("journeyActiveAt", 0) < 3 * 60 * 1000L;
+        // Fully automatic: open RoadGuard by itself (Android allows this once "Display over other apps" is on).
+        if (!running && p.getBoolean("fullAuto", false) && (Build.VERSION.SDK_INT < 23 || Settings.canDrawOverlays(c))
+                && now - p.getLong("lastAutoOpen", 0) > 15 * 60 * 1000L) {
+            try {
+                Intent i = new Intent(c, MainActivity.class);
+                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                i.putExtra("rg_autostart", reason); i.putExtra("rg_bg", true);
+                c.startActivity(i);
+                p.edit().putLong("lastAutoOpen", now).apply();
+                AutoNotify.signal(c, "RoadGuard started by itself (" + ("bt".equals(reason) ? "car Bluetooth" : "driving detected") + ")");
+                return;
+            } catch (Exception e) { AutoNotify.signal(c, "RoadGuard could not open by itself, so it asked instead"); }
+        }
+        AutoNotify.show(c, reason, false);
     }
 }

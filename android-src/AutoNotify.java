@@ -18,7 +18,7 @@ import androidx.core.app.NotificationManagerCompat;
 
 /** Shows the one-tap "Looks like you're driving" notification. Tapping it opens RoadGuard and starts a journey. */
 public class AutoNotify {
-    static final String CHANNEL = "rg-auto";
+    static final String CHANNEL = "rg-drive";   // new channel: louder, with a long vibration
     static final String PREFS = "rg_auto";
     static final int NOTE_ID = 7301;
 
@@ -54,6 +54,9 @@ public class AutoNotify {
             NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
             NotificationChannel ch = new NotificationChannel(CHANNEL, "Driving detected", NotificationManager.IMPORTANCE_HIGH);
             ch.setDescription("Asks if you want to start RoadGuard when you start driving");
+            ch.enableVibration(true); ch.setVibrationPattern(new long[]{0, 700, 300, 700, 300, 700});
+            ch.enableLights(true); ch.setLightColor(0xFFF5B301); ch.setLockscreenVisibility(android.app.Notification.VISIBILITY_PUBLIC);
+            try { nm.deleteNotificationChannel("rg-auto"); } catch (Exception e) { }
             nm.createNotificationChannel(ch);
         }
         Intent open = new Intent(c, MainActivity.class);
@@ -67,7 +70,12 @@ public class AutoNotify {
                                           : "Tap to start RoadGuard and record your journey.";
         NotificationCompat.Builder b = new NotificationCompat.Builder(c, CHANNEL)
             .setSmallIcon(c.getApplicationInfo().icon)
-            .setContentTitle("Looks like you're driving")
+            .setContentTitle("🚗 Driving? Tap to start RoadGuard")
+            .setColor(0xFFF5B301).setColorized(true)
+            .setVibrate(new long[]{0, 700, 300, 700, 300, 700})
+            .setDefaults(NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_LIGHTS)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setTimeoutAfter(20 * 60 * 1000L)
             .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_NAVIGATION)
