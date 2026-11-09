@@ -7,6 +7,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
+import com.google.android.gms.location.ActivityRecognition;
+import com.google.android.gms.location.ActivityTransition;
+import com.google.android.gms.location.ActivityTransitionRequest;
+import com.google.android.gms.location.DetectedActivity;
+import java.util.ArrayList;
+import java.util.List;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
@@ -18,12 +24,31 @@ public class AutoNotify {
 
     static SharedPreferences prefs(Context c) { return c.getSharedPreferences(PREFS, Context.MODE_PRIVATE); }
 
-    static void show(Context c, String reason) {
+    /** Remember the last thing the phone told us, so Settings can show it. */
+    static void signal(Context c, String what) {
+        prefs(c).edit().putString("lastSignal", what).putLong("lastSignalAt", System.currentTimeMillis()).apply();
+    }
+
+    static PendingIntent detectIntent(Context c) {
+        Intent i = new Intent(c, DriveReceiver.class);
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 31 ? PendingIntent.FLAG_MUTABLE : 0);
+        return PendingIntent.getBroadcast(c, 7303, i, flags);
+    }
+
+    /** Ask Android to tell us when the phone starts travelling in a vehicle. Lost after a restart or update, so it is called again then. */
+    static void registerDetect(Context c) {
+        try {
+            List<ActivityTransition> t = new ArrayList<>();
+            t.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.IN_VEHICLE).setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER).build());
+            ActivityRecognition.getClient(c).requestActivityTransitionUpdates(new ActivityTransitionRequest(t), detectIntent(c));
+        } catch (SecurityException e) { /* permission removed */ }
+    }
+
+    static void show(Context c, String reason, boolean force) {
         SharedPreferences p = prefs(c);
         long now = System.currentTimeMillis();
-        if (now - p.getLong("lastNote", 0) < 20 * 60 * 1000L) return;      // at most once every 20 minutes
-        if (now - p.getLong("journeyActiveAt", 0) < 3 * 60 * 1000L) return; // a journey is already running
-        p.edit().putLong("lastNote", now).apply();
+        if (!force && now - p.getLong("lastNote", 0) < 20 * 60 * 1000L) return;      // at most once every 20 minutes
+        if (!force && now - p.getLong("journeyActiveAt", 0) < 3 * 60 * 1000L) return; // a journey is already running
 
         if (Build.VERSION.SDK_INT >= 26) {
             NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -37,7 +62,8 @@ public class AutoNotify {
         int flags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0);
         PendingIntent pi = PendingIntent.getActivity(c, 7302, open, flags);
 
-        String text = "bt".equals(reason) ? "Connected to your car. Tap to start recording your journey."
+        String text = "test".equals(reason) ? "This is a test. When you start driving, this is the alert you will see. Tap it to start."
+                    : "bt".equals(reason) ? "Connected to your car. Tap to start recording your journey."
                                           : "Tap to start RoadGuard and record your journey.";
         NotificationCompat.Builder b = new NotificationCompat.Builder(c, CHANNEL)
             .setSmallIcon(c.getApplicationInfo().icon)
@@ -48,6 +74,8 @@ public class AutoNotify {
             .setAutoCancel(true)
             .setContentIntent(pi)
             .addAction(0, "Start RoadGuard", pi);
-        try { NotificationManagerCompat.from(c).notify(NOTE_ID, b.build()); } catch (SecurityException e) { /* notifications not allowed */ }
+        if (!NotificationManagerCompat.from(c).areNotificationsEnabled()) { signal(c, "A driving alert could not be shown because notifications are off"); return; }
+        try { NotificationManagerCompat.from(c).notify(NOTE_ID, b.build()); p.edit().putLong("lastNote", now).apply(); }
+        catch (SecurityException e) { signal(c, "A driving alert could not be shown because notifications are off"); }
     }
 }

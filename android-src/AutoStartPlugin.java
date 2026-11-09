@@ -8,7 +8,13 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.PowerManager;
+import android.provider.Settings;
+import androidx.core.app.NotificationManagerCompat;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PermissionState;
@@ -76,6 +82,13 @@ public class AutoStartPlugin extends Plugin {
     public void getSettings(PluginCall call) {
         SharedPreferences p = prefs(); JSObject o = new JSObject();
         o.put("detect", p.getBoolean("detect", false)); o.put("carAddress", p.getString("carAddress", null)); o.put("carName", p.getString("carName", null));
+        o.put("lastSignal", p.getString("lastSignal", null)); o.put("lastSignalAt", p.getLong("lastSignalAt", 0)); o.put("lastNote", p.getLong("lastNote", 0));
+        o.put("notifications", NotificationManagerCompat.from(getContext()).areNotificationsEnabled());
+        o.put("activityPerm", Build.VERSION.SDK_INT < 29 || getPermissionState("activity") == PermissionState.GRANTED);
+        o.put("btPerm", Build.VERSION.SDK_INT < 31 || getPermissionState("bluetooth") == PermissionState.GRANTED);
+        boolean batt = true;
+        try { PowerManager pm = (PowerManager) getContext().getSystemService(Context.POWER_SERVICE); if (Build.VERSION.SDK_INT >= 23 && pm != null) batt = pm.isIgnoringBatteryOptimizations(getContext().getPackageName()); } catch (Exception e) {}
+        o.put("batteryFree", batt);
         call.resolve(o);
     }
 
@@ -94,10 +107,23 @@ public class AutoStartPlugin extends Plugin {
         applyDetect(call, true);
     }
 
-    private PendingIntent transitionIntent() {
-        Intent i = new Intent(getContext(), DriveReceiver.class);
-        int flags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 31 ? PendingIntent.FLAG_MUTABLE : 0);
-        return PendingIntent.getBroadcast(getContext(), 7303, i, flags);
+    private PendingIntent transitionIntent() { return AutoNotify.detectIntent(getContext()); }
+
+    /** Show the driving alert in 10 seconds, so the user can close RoadGuard and see it arrive. */
+    @PluginMethod
+    public void testAlert(PluginCall call) {
+        final Context c = getContext().getApplicationContext();
+        new Handler(Looper.getMainLooper()).postDelayed(() -> AutoNotify.show(c, "test", true), 10000);
+        call.resolve();
+    }
+
+    /** Open RoadGuard's page in the phone's settings (battery, notifications, permissions). */
+    @PluginMethod
+    public void openAppSettings(PluginCall call) {
+        try {
+            Intent i = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getContext().getPackageName()));
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); getContext().startActivity(i); call.resolve();
+        } catch (Exception e) { call.reject("Could not open settings"); }
     }
 
     private void applyDetect(PluginCall call, boolean on) {

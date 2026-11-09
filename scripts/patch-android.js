@@ -101,10 +101,15 @@ if (!m2.includes('ACTIVITY_RECOGNITION')) {
     <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION" />
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />`);
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />`);
   m2 = m2.replace('</application>', `    <receiver android:name=".DriveReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.bluetooth.device.action.ACL_CONNECTED" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
     </application>`);

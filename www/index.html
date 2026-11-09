@@ -487,6 +487,13 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
       <div class="set autoNative"><div class="t"><b>Ask me when I start driving</b><span>Even when RoadGuard is closed, a notification asks if you want to start</span></div><button class="tog" id="togAutoDetect" aria-label="Ask when driving is detected"></button></div>
       <div class="set autoNative"><div class="t"><b>My car’s Bluetooth</b><span id="autoCarName">Not set. RoadGuard reacts when your phone connects to your car.</span></div><button class="btn btn-ghost" id="btnAutoCar" style="width:auto;padding:10px 16px;font-size:16px">Choose</button></div>
       <div class="set"><div class="t"><b>End by itself after parking</b><span>Journeys that started by themselves end after 8 minutes without moving</span></div><button class="tog" id="togAutoStop" aria-label="End by itself after parking"></button></div>
+      <div class="autoNative" id="autoCheck" style="margin-top:14px;padding:14px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1)">
+        <b style="font-size:15px">Is everything ready?</b>
+        <div id="autoChecks" class="small" style="margin-top:8px;line-height:1.7">Checking…</div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button class="btn btn-ghost" id="btnAutoTest" style="width:auto;flex:1;padding:10px 12px;font-size:15px">Send a test alert</button>
+          <button class="btn btn-ghost" id="btnAutoFix" style="width:auto;flex:1;padding:10px 12px;font-size:15px">Phone settings</button></div>
+      </div>
     </div>
     <div class="card" id="contactCard">
       <h3>Contact us</h3>
@@ -508,7 +515,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
       <details class="faq"><summary>The limit on a sign is different from the app. Why?</summary><p>RoadGuard has no camera, so it can't read signs. Many Ghanaian roads aren't on the map with their limits yet, so on those roads the app uses the general rules above. When a sign's limit is added to OpenStreetMap, RoadGuard picks it up automatically within about 30 days.</p></details>
       <details class="faq"><summary>Why is my car's speedometer a little higher than RoadGuard?</summary><p>Car speedometers are built to read slightly high, by law. GPS shows your true speed. Use <b>Settings → Match my car's speedometer</b> so the screen matches your dial. Your saved records always keep the true GPS speed.</p></details>
       <details class="faq"><summary>Does it record with the screen off?</summary><p>In the Android app, yes: start a journey, then you can lock the phone. Allow <b>Location: all the time</b> and <b>Notifications</b> when asked. On the website, keep the screen on, because a web page can't record while the phone is locked.</p></details>
-      <details class="faq"><summary>Can RoadGuard start by itself when I drive?</summary><p>Yes. In <b>Settings → Auto-start</b>: <b>Start by itself when I’m moving</b> begins recording when RoadGuard is open and you go faster than 15 km/h. In the Android app, <b>Ask me when I start driving</b> sends a notification even when RoadGuard is closed; tap it to start. You can also choose <b>your car’s Bluetooth</b>, so RoadGuard reacts whenever your phone connects to your car. Android doesn’t let any app start recording your location from fully closed without you knowing, so that last step is one tap. Journeys that start by themselves can also end by themselves after 8 minutes parked.</p></details>
+      <details class="faq"><summary>Can RoadGuard start by itself when I drive?</summary><p>Yes. In <b>Settings → Auto-start</b>: <b>Start by itself when I’m moving</b> begins recording when RoadGuard is open and you go faster than 15 km/h. In the Android app, <b>Ask me when I start driving</b> sends a notification even when RoadGuard is closed; tap it to start. You can also choose <b>your car’s Bluetooth</b>, so RoadGuard reacts whenever your phone connects to your car. Android doesn’t let any app start recording your location from fully closed without you knowing, so that last step is one tap. Journeys that start by themselves can also end by themselves after 8 minutes parked. Android doesn’t let any app start recording by itself while it is closed, so in that case you tap the alert once. Under Auto-start, <b>Is everything ready?</b> shows anything that could stop the alert, and <b>Send a test alert</b> lets you check it works. On Tecno, Infinix, itel and Samsung phones, set RoadGuard’s battery to <b>Unrestricted</b>.</p></details>
       <details class="faq"><summary>I’m a passenger. How do I use RoadGuard?</summary><p>Open RoadGuard and tap <b>Start Journey</b> when you get into the trotro, taxi, Bolt or bus. You’ll see how fast the vehicle is going and the speed limit. If the driver goes too fast, you’ll know. Please don’t argue with a driver while the vehicle is moving: stay safe, and report it later if you need to.</p></details>
       <details class="faq"><summary>What does the voice tell me?</summary><p>Each time you enter a new speed zone, RoadGuard tells you where you are and the new limit, for example: “You’ve reached Madina, on the Legon Road. The speed limit here is 50 kilometres per hour.” It names the town, and the main road when it knows it. It also warns you when a lower limit is coming up, tells you when you go over, and thanks you when you slow back down. You can turn the voice off or pick another voice in Settings.</p></details>
       <details class="faq"><summary>Is the demo drive real?</summary><p>No. The demo is a pretend trip from Accra to Tema so you can see and hear how RoadGuard works. It doesn’t use your location, and a yellow DEMO box on the screen shows what the voice is saying. The trip report at the end is marked as a demo and can’t be used as evidence.</p></details>
@@ -548,7 +555,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.2.5. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.2.6. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1418,7 +1425,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.2.5" : "RoadGuard GH web 1.2.5", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.2.6" : "RoadGuard GH web 1.2.6", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -4042,8 +4049,48 @@ else {
   AP.getSettings().then((r) => {
     setTog("togAutoDetect", r.detect);
     if (r.carName) $("autoCarName").textContent = "Connected to: " + r.carName;
+    if (r.detect && r.activityPerm) AP.setDriveDetect({ enabled: true }).catch(() => {
+    });
+    autoChecks();
   }).catch(() => {
   });
+  async function autoChecks() {
+    const el = $("autoChecks");
+    if (!el) return;
+    let r;
+    try {
+      r = await AP.getSettings();
+    } catch (e) {
+      return;
+    }
+    const ok = (good, yes, no) => `<div>${good ? '<span style="color:#86EFAC">✓</span>' : '<span style="color:#FCA5A5">✗</span>'} ${good ? yes : no}</div>`;
+    const when = (t) => {
+      if (!t) return "";
+      const d = new Date(t), z = (n) => String(n).padStart(2, "0"), today = (/* @__PURE__ */ new Date()).toDateString() === d.toDateString();
+      return " · " + (today ? "today" : d.toLocaleDateString("en-GB", { day: "numeric", month: "short" })) + " " + z(d.getHours()) + ":" + z(d.getMinutes());
+    };
+    el.innerHTML = r.detect || r.carName ? [
+      ok(r.notifications, "Notifications are allowed", "Notifications are off, so alerts can’t show. Tap <b>Phone settings</b> → Notifications → Allow."),
+      r.detect ? ok(r.activityPerm, "Driving detection is allowed", "Physical activity permission is off. Turn <b>Ask me when I start driving</b> off and on again.") : "",
+      r.carName ? ok(r.btPerm, "Your car’s Bluetooth is set: " + esc(r.carName), "Bluetooth permission is off. Tap <b>Choose</b> again and allow it.") : "",
+      ok(r.batteryFree, "Battery saver won’t stop RoadGuard", "Your phone may stop RoadGuard to save battery. Tap <b>Phone settings</b> → Battery → <b>Unrestricted</b>."),
+      `<div class="muted" style="margin-top:6px">Last signal from your phone: ${r.lastSignal ? esc(r.lastSignal) + when(r.lastSignalAt) : "none yet"}</div>`,
+      r.lastNote ? `<div class="muted">Last driving alert: ${when(r.lastNote).slice(3)}</div>` : ""
+    ].join("") : '<span class="muted">Turn on <b>Ask me when I start driving</b> or choose your car to use alerts when RoadGuard is closed.</span>';
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") autoChecks();
+  });
+  $("btnAutoTest").onclick = async () => {
+    try {
+      await lnSetup();
+      await AP.testAlert();
+      toast("Now close RoadGuard or lock your phone. The alert comes in 10 seconds.");
+    } catch (e) {
+      alert(e.message || "Could not send a test.");
+    }
+  };
+  $("btnAutoFix").onclick = () => AP.openAppSettings().catch(() => alert("Open your phone Settings → Apps → RoadGuard GH."));
   $("togAutoDetect").onclick = async () => {
     const on = !$("togAutoDetect").classList.contains("on");
     try {
@@ -4053,6 +4100,7 @@ else {
         lnSetup();
         toast("RoadGuard will ask you when you start driving");
       }
+      autoChecks();
     } catch (e) {
       setTog("togAutoDetect", false);
       alert(e.message || "Could not turn this on.");
@@ -4079,6 +4127,7 @@ else {
         $("autoCarName").textContent = "Connected to: " + (d.name || d.address);
         lnSetup();
         toast("Car saved");
+        autoChecks();
       } })).concat([{ label: "Remove my car", onClick: async () => {
         await AP.setCar({});
         $("autoCarName").textContent = "Not set. RoadGuard reacts when your phone connects to your car.";
@@ -4956,7 +5005,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.2.5";
+const APP_VER = "1.2.6";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
