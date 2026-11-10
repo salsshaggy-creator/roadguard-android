@@ -402,6 +402,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
       </div>
     </div>
     <div class="ctl noprint" id="ctlShare" style="display:none;margin-top:10px;gap:10px"><button class="btn btn-ghost" id="btnShare" style="font-size:17px"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>Share my trip live</button><button class="btn btn-ghost" id="btnShareStop" style="display:none;font-size:15px;flex:0 0 auto;width:auto;padding:12px 16px">Stop sharing</button><button class="btn" id="btnSOS" style="flex:0 0 auto;width:auto;padding:12px 18px;font-size:17px;font-weight:800;background:#DC2626;color:#fff;border:0">SOS</button></div>
+    <div class="ctl noprint" id="ctlReport" style="display:none;margin-top:10px"><button class="btn btn-ghost" id="btnReport" style="font-size:16px">⚠️ Report a speed camera or police barrier</button></div>
     <div id="rgSheet" class="noprint" style="display:none;position:fixed;inset:0;z-index:30000;background:rgba(2,6,20,.75);align-items:flex-end;justify-content:center">
       <div class="card" style="width:100%;max-width:560px;margin:0;border-radius:22px 22px 0 0;max-height:92vh;overflow:auto;padding-bottom:calc(20px + env(safe-area-inset-bottom))"><h3 id="rgSheetT" style="margin:0 0 6px"></h3><p class="note" id="rgSheetP" style="margin:0 0 14px"></p><div id="rgSheetB" style="display:flex;flex-direction:column;gap:10px"></div></div>
     </div>
@@ -518,6 +519,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
       <details class="faq"><summary>Does it record with the screen off?</summary><p>In the Android app, yes: start a journey, then you can lock the phone. Allow <b>Location: all the time</b> and <b>Notifications</b> when asked. On the website, keep the screen on, because a web page can't record while the phone is locked.</p></details>
       <details class="faq"><summary>Can RoadGuard start by itself when I drive?</summary><p>Yes. In <b>Settings → Auto-start</b>: <b>Start by itself when I’m moving</b> begins recording when RoadGuard is open and you go faster than 15 km/h. In the Android app, <b>Ask me when I start driving</b> sends a notification even when RoadGuard is closed; tap it to start. You can also choose <b>your car’s Bluetooth</b>, so RoadGuard reacts whenever your phone connects to your car. Android doesn’t let any app start recording your location from fully closed without you knowing, so that last step is one tap. Journeys that start by themselves can also end by themselves after 8 minutes parked. Android doesn’t let any app start recording by itself while it is closed, so in that case you tap the alert once. Under Auto-start, <b>Is everything ready?</b> shows anything that could stop the alert, and <b>Send a test alert</b> lets you check it works. On Tecno, Infinix, itel and Samsung phones, set RoadGuard’s battery to <b>Unrestricted</b>.</p></details>
       <details class="faq"><summary>I’m a passenger. How do I use RoadGuard?</summary><p>Open RoadGuard and tap <b>Start Journey</b> when you get into the trotro, taxi, Bolt or bus. You’ll see how fast the vehicle is going and the speed limit. If the driver goes too fast, you’ll know. Please don’t argue with a driver while the vehicle is moving: stay safe, and report it later if you need to.</p></details>
+      <details class="faq"><summary>Does RoadGuard warn me about speed cameras and police barriers?</summary><p>Yes. When a speed camera or police barrier has been reported on the road ahead, RoadGuard warns you about 500 metres before it, for example “Speed camera ahead. The speed limit is 50 kilometres per hour.” Reports come from RoadGuard drivers: while recording, signed-in drivers can tap <b>Report a speed camera or police barrier</b>. Reports are shared without your name. A police barrier report clears itself after 3 hours and a camera after 30 days, unless someone reports it again. TraffiTech cameras can also be mobile, so always keep to the limit.</p></details>
       <details class="faq"><summary>What does the voice tell me?</summary><p>Each time you enter a new speed zone, RoadGuard tells you where you are and the new limit, for example: “You’ve reached Madina, on the Legon Road. The speed limit here is 50 kilometres per hour.” It names the town, and the main road when it knows it. It also warns you when a lower limit is coming up, tells you when you go over, and thanks you when you slow back down. You can turn the voice off or pick another voice in Settings.</p></details>
       <details class="faq"><summary>Is the demo drive real?</summary><p>No. The demo is a pretend trip from Accra to Tema so you can see and hear how RoadGuard works. It doesn’t use your location, and a yellow DEMO box on the screen shows what the voice is saying. The trip report at the end is marked as a demo and can’t be used as evidence.</p></details>
       <details class="faq"><summary>How does Share my trip work?</summary><p>During a journey, tap <b>Share my trip live</b>. Choose the type of vehicle, type the number plate and where you’re going (all optional), then send the link on WhatsApp. Your family opens the link on any phone, with no app needed, and sees your speed, the speed limit, every town you pass and when you arrive. Sharing stops when you end the journey or tap <b>Stop sharing</b>. You need to be signed in to share. The free plan includes 5 shared trips a month; Plus is unlimited. An SOS always works, even after your 5 shares.</p></details>
@@ -556,7 +558,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.2.9. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.3.0. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1048,6 +1050,89 @@ function aheadLimit(p, hdg) {
   return AH.n >= 3 ? v : null;
 }
 const AH = { v: null, n: 0 };
+const HZ = { key: "", list: [], at: 0, warned: /* @__PURE__ */ new Set(), loading: false };
+const HZ_LIFE = { police: 3 * 36e5, camera: 30 * 864e5 };
+const GH32 = "0123456789bcdefghjkmnpqrstuvwxyz";
+function geohash(lat, lon, len) {
+  let la = [-90, 90], lo = [-180, 180], h = "", bit = 0, ch = 0, ev = true;
+  while (h.length < len) {
+    const r = ev ? lo : la, v = ev ? lon : lat, m = (r[0] + r[1]) / 2;
+    if (v >= m) {
+      ch = ch * 2 + 1;
+      r[0] = m;
+    } else {
+      ch = ch * 2;
+      r[1] = m;
+    }
+    ev = !ev;
+    if (++bit === 5) {
+      h += GH32[ch];
+      bit = 0;
+      ch = 0;
+    }
+  }
+  return h;
+}
+function hzCells(p) {
+  const c = /* @__PURE__ */ new Set();
+  for (const a of [-0.045, 0, 0.045]) for (const o of [-0.045, 0, 0.045]) c.add(geohash(p.lat + a, p.lon + o, 5));
+  return [...c].sort();
+}
+async function hzRefresh(p, force) {
+  const cells = hzCells(p), key = cells.join();
+  if (!force && (HZ.loading || key === HZ.key && Date.now() - HZ.at < 5 * 6e4)) return;
+  HZ.loading = true;
+  try {
+    await backend();
+    if (B !== FBK || !B.db) return;
+    const q = await B.db.collection("hazards").where("g5", "in", cells).get();
+    const now = Date.now();
+    HZ.list = q.docs.map((d) => ({ id: d.id, ...d.data() })).filter((h) => h.exp > now && h.lat != null);
+    HZ.key = key;
+    HZ.at = Date.now();
+  } catch (e) {
+  } finally {
+    HZ.loading = false;
+  }
+}
+function hzCheck(p, hdg) {
+  if (!HZ.list.length || hdg == null || p.spd == null || p.spd < 10) return;
+  for (const h of HZ.list) {
+    if (HZ.warned.has(h.id)) continue;
+    const d = hav(p, h);
+    if (d > 500 || d < 25) continue;
+    let df = Math.abs((bearing(p, h) - hdg + 540) % 360 - 180);
+    if (df > 35) continue;
+    HZ.list.forEach((o) => {
+      if (o.type === h.type && hav(o, h) < 200) HZ.warned.add(o.id);
+    });
+    beep(2, 880);
+    sayParts(h.type === "camera" ? ["cam_ahead", ...p.lim ? ["limit_is", p.lim, "kmh"] : []] : ["police_ahead"]);
+    return;
+  }
+}
+async function reportHazard(type) {
+  const p = J && J.points.at(-1);
+  if (!p || p.lat == null) {
+    toast("Waiting for GPS. Try again in a moment.");
+    return;
+  }
+  if (!signedIn()) {
+    toast("Sign in to report cameras and police barriers");
+    return;
+  }
+  const now = Date.now(), exp = now + HZ_LIFE[type];
+  try {
+    await backend();
+    const same = HZ.list.find((h) => h.type === type && hav(h, p) < 150);
+    if (same) await B.db.collection("hazards").doc(same.id).update({ at: now, exp });
+    else await B.db.collection("hazards").add({ type, lat: +p.lat.toFixed(5), lon: +p.lon.toFixed(5), g5: geohash(p.lat, p.lon, 5), at: now, exp });
+    toast(type === "camera" ? "Thank you. Other drivers will be warned about this camera." : "Thank you. Other drivers will be warned for the next 3 hours.");
+    hzRefresh(p, true);
+  } catch (e) {
+    toast("Could not send the report. Check your internet.");
+  }
+}
 const V = { lim: null, place: null, placeAt: 0, st: "grey", overAt: 0, amberAt: 0, aheadAt: 0, aheadLim: null };
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 let CAL = (() => {
@@ -1214,7 +1299,7 @@ function say(text, urgent) {
   } catch (e) {
   }
 }
-const CLIPTXT = { "limit_here": "The speed limit here is", "limit_now": "The speed limit is now", "limit_is": "The speed limit is", "kmh": "kilometres per hour.", "slow_down": "Please slow down.", "reached": "You've reached", "drops_to": "Speed limit drops to", "ahead_slow": "ahead. Please slow down.", "slow_zone": "Slow down.", "zone_ahead": "kilometre zone ahead.", "over_slow_to": "You are over the speed limit. Slow down to", "you_doing": "You are doing", "slow_please": "Slow down please. You are doing", "in_a": "in a", "zone": "zone.", "careful_cross": "Be careful, you're about to cross the speed limit of", "careful_close": "Careful. You are close to the", "limit_word": "limit.", "ease_off": "Please ease off. The limit is", "back_within": "Thank you. You're back within the limit.", "on": "RoadGuard is on. Drive safely.", "demo": "Demo drive starting.", "test": "Speed limit fifty. You are doing fifty six. Please slow down.", "youre_in": "You're in", "demo_intro": "This is a demo drive. RoadGuard will pretend to drive from Accra to Tema, so you can hear how it works. Your real location is not used.", "demo_end": "Demo finished. Here is your trip report.", "on_duty": "RoadGuard is now on duty. Your journey is being monitored. Drive safe!" };
+const CLIPTXT = { "limit_here": "The speed limit here is", "limit_now": "The speed limit is now", "limit_is": "The speed limit is", "kmh": "kilometres per hour.", "slow_down": "Please slow down.", "reached": "You've reached", "drops_to": "Speed limit drops to", "ahead_slow": "ahead. Please slow down.", "slow_zone": "Slow down.", "zone_ahead": "kilometre zone ahead.", "over_slow_to": "You are over the speed limit. Slow down to", "you_doing": "You are doing", "slow_please": "Slow down please. You are doing", "in_a": "in a", "zone": "zone.", "careful_cross": "Be careful, you're about to cross the speed limit of", "careful_close": "Careful. You are close to the", "limit_word": "limit.", "ease_off": "Please ease off. The limit is", "back_within": "Thank you. You're back within the limit.", "on": "RoadGuard is on. Drive safely.", "demo": "Demo drive starting.", "test": "Speed limit fifty. You are doing fifty six. Please slow down.", "youre_in": "You're in", "demo_intro": "This is a demo drive. RoadGuard will pretend to drive from Accra to Tema, so you can hear how it works. Your real location is not used.", "demo_end": "Demo finished. Here is your trip report.", "on_duty": "RoadGuard is now on duty. Your journey is being monitored. Drive safe!", "cam_ahead": "Speed camera ahead.", "police_ahead": "Police barrier ahead. Slow down and have your licence ready." };
 try {
   const ov = localStorage.getItem("rg_voice");
   if (ov != null && ov !== "0" && ov !== "1") {
@@ -1453,7 +1538,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.2.9" : "RoadGuard GH web 1.2.9", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.3.0" : "RoadGuard GH web 1.3.0", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -1511,6 +1596,10 @@ function addPoint(raw) {
   if (pts.length % 15 === 0) hashQ.then(() => saveJ(J));
   const ahead = J.simulated ? (_a = raw.ahead) != null ? _a : null : aheadLimit(p, hdg);
   if (J.simulated || Date.now() - p.t < 8e3) voiceFor(p, L2.place, ahead, L2.rname);
+  if (!J.simulated && !p.sus && Date.now() - p.t < 8e3) {
+    hzRefresh(p);
+    hzCheck(p, hdg);
+  }
   $("aheadTxt").textContent = ahead != null && p.lim != null && ahead !== p.lim ? `Limit changes to ${ahead} ahead` : "";
 }
 const GMAX = 160, ARC = 565.49, CIRC = 753.98, ICON_OK = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><circle cx="12" cy="12" r="10"/><path d="m7.5 12.5 3 3 6-6.5"/></svg>', ICON_WARN = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17h.01"/></svg>';
@@ -1630,6 +1719,11 @@ function setRecordingUI(on) {
   $("ctlIdle").style.display = on ? "none" : "flex";
   $("ctlRec").style.display = on ? "flex" : "none";
   $("ctlShare").style.display = on ? "flex" : "none";
+  $("ctlReport").style.display = on && signedIn() ? "flex" : "none";
+  if (on) {
+    HZ.warned = /* @__PURE__ */ new Set();
+    HZ.key = "";
+  }
   if (!on) updShareUI();
   $("btnDemo").disabled = on;
   $("btnDemo2").disabled = on;
@@ -4559,6 +4653,11 @@ function sheet(title, text, buttons) {
 function closeSheet() {
   $("rgSheet").style.display = "none";
 }
+$("btnReport").onclick = () => sheet("What did you see?", "It is shared with other RoadGuard drivers near here, without your name.", [
+  { label: "📷 Speed camera", cls: "btn-go", onClick: () => reportHazard("camera") },
+  { label: "🚓 Police barrier", cls: "btn-go", onClick: () => reportHazard("police") },
+  { label: "Cancel" }
+]);
 document.body.appendChild($("rgSheet"));
 document.body.appendChild($("shareSheet"));
 $("rgSheet").onclick = (e) => {
@@ -5069,7 +5168,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.2.9";
+const APP_VER = "1.3.0";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
