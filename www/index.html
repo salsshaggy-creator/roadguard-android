@@ -562,7 +562,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.3.2. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.3.3. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1542,7 +1542,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.3.2" : "RoadGuard GH web 1.3.2", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.3.3" : "RoadGuard GH web 1.3.3", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -1769,25 +1769,48 @@ async function startJourneyNative() {
   setGps(null, false);
   $("roadName").textContent = "Finding you…";
   try {
-    nativeWatch = await NP.BG.addWatcher(
-      { backgroundTitle: "RoadGuard GH is recording", backgroundMessage: "Your speed is being recorded. Tap to open RoadGuard.", requestPermissions: true, stale: false, distanceFilter: 0 },
-      (loc, err) => {
-        if (err) {
-          if (err.code === "NOT_AUTHORIZED") {
-            stopJourney(true);
-            if (confirm("RoadGuard needs your location to record your speed. Open settings to allow it?")) NP.BG.openSettings();
-          }
-          return;
-        }
-        if (!J || !loc) return;
-        addPoint({ t: loc.time || Date.now(), lat: loc.latitude, lon: loc.longitude, acc: loc.accuracy, speed: loc.speed, hdg: loc.bearing, mock: !!loc.simulated });
-      }
-    );
+    await startNativeWatch();
   } catch (e) {
     alert("Could not start GPS: " + (e.message || e));
     stopJourney(true);
   }
 }
+let lastFixAt = 0;
+async function startNativeWatch() {
+  lastFixAt = Date.now();
+  nativeWatch = await NP.BG.addWatcher(
+    { backgroundTitle: "RoadGuard GH is recording", backgroundMessage: "Your speed is being recorded. Tap to open RoadGuard.", requestPermissions: true, stale: false, distanceFilter: 0 },
+    (loc, err) => {
+      if (err) {
+        if (err.code === "NOT_AUTHORIZED") {
+          stopJourney(true);
+          if (confirm("RoadGuard needs your location to record your speed. Open settings to allow it?")) NP.BG.openSettings();
+        }
+        return;
+      }
+      if (!J || !loc) return;
+      lastFixAt = Date.now();
+      addPoint({ t: loc.time || Date.now(), lat: loc.latitude, lon: loc.longitude, acc: loc.accuracy, speed: loc.speed, hdg: loc.bearing, mock: !!loc.simulated });
+    }
+  );
+}
+async function gpsWatchdog() {
+  if (!NATIVE || !J || J.simulated || nativeWatch == null) return;
+  if (Date.now() - lastFixAt < 6e4) return;
+  try {
+    await NP.BG.removeWatcher({ id: nativeWatch });
+  } catch (e) {
+  }
+  nativeWatch = null;
+  try {
+    await startNativeWatch();
+  } catch (e) {
+  }
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") gpsWatchdog();
+});
+setInterval(gpsWatchdog, 2e4);
 async function startJourney() {
   if (NATIVE) return startJourneyNative();
   if (!("geolocation" in navigator)) {
@@ -4487,11 +4510,30 @@ async function autoStart(reason, bg) {
     J.autoStarted = reason;
     AUTO.still = null;
   }
-  if (bg && J && AP && AP.moveToBack) setTimeout(() => AP.moveToBack().catch(() => {
-  }), 6e3);
+  if (bg && J && AP && AP.moveToBack) {
+    const t0 = Date.now(), w = setInterval(() => {
+      if (!J) {
+        clearInterval(w);
+        return;
+      }
+      if (J.points.length >= 3) {
+        clearInterval(w);
+        setTimeout(() => AP.moveToBack().catch(() => {
+        }), 2e3);
+      } else if (Date.now() - t0 > 12e4) clearInterval(w);
+    }, 1e3);
+  }
 }
 setInterval(() => {
-  if (!J || !J.autoStarted || !AUTO.stop || J.simulated) return;
+  if (!J || J.simulated) return;
+  const last = J.points.length ? J.points.at(-1).t : J.startedAt;
+  if (Date.now() - last > (J.autoStarted && AUTO.stop ? 15 : 45) * 6e4) {
+    AUTO.still = null;
+    stopJourney(true);
+    notifyLocal("Journey saved", "RoadGuard ended your journey because it had stopped moving.");
+    return;
+  }
+  if (!J.autoStarted || !AUTO.stop) return;
   const p = J.points.at(-1);
   if (!p) return;
   if (p.spd != null && p.spd < 3) {
@@ -5516,7 +5558,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.3.2";
+const APP_VER = "1.3.3";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);

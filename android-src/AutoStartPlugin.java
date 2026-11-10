@@ -48,14 +48,24 @@ public class AutoStartPlugin extends Plugin {
         instance = this;
         voice = new RgVoice(getContext());
         Intent i = getActivity() != null ? getActivity().getIntent() : null;
-        if (i != null && i.hasExtra("rg_autostart")) { pendingReason = i.getStringExtra("rg_autostart"); pendingBg = i.getBooleanExtra("rg_bg", false); i.removeExtra("rg_autostart"); }
+        if (i != null && i.hasExtra("rg_autostart")) { pendingReason = i.getStringExtra("rg_autostart"); pendingBg = i.getBooleanExtra("rg_bg", false); i.removeExtra("rg_autostart"); if (pendingBg) showOverLock(true); }
+    }
+
+    /** While RoadGuard starts itself, show it over the lock screen and wake the screen: Android only gives GPS to an app the person can see. */
+    void showOverLock(boolean on) {
+        final android.app.Activity a = getActivity(); if (a == null) return;
+        a.runOnUiThread(() -> { try {
+            if (Build.VERSION.SDK_INT >= 27) { a.setShowWhenLocked(on); a.setTurnScreenOn(on); }
+            else { int f = android.view.WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED | android.view.WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON;
+                   if (on) a.getWindow().addFlags(f); else a.getWindow().clearFlags(f); }
+        } catch (Exception e) { } });
     }
     private boolean pendingBg = false;
 
     @Override
     protected void handleOnNewIntent(Intent i) {
         super.handleOnNewIntent(i);
-        if (i != null && i.hasExtra("rg_autostart")) { String r = i.getStringExtra("rg_autostart"); boolean bg = i.getBooleanExtra("rg_bg", false); i.removeExtra("rg_autostart"); fire(r, bg); }
+        if (i != null && i.hasExtra("rg_autostart")) { String r = i.getStringExtra("rg_autostart"); boolean bg = i.getBooleanExtra("rg_bg", false); i.removeExtra("rg_autostart"); if (bg) showOverLock(true); fire(r, bg); }
     }
 
     @Override protected void handleOnResume() { super.handleOnResume(); visible = true; }
@@ -79,7 +89,9 @@ public class AutoStartPlugin extends Plugin {
     /** JS tells us when a journey is running, so we don't nag while recording. */
     @PluginMethod
     public void setJourneyActive(PluginCall call) {
-        prefs().edit().putLong("journeyActiveAt", call.getBoolean("active", false) ? System.currentTimeMillis() : 0).apply();
+        boolean on = call.getBoolean("active", false);
+        prefs().edit().putLong("journeyActiveAt", on ? System.currentTimeMillis() : 0).putBoolean("journeyActive", on).apply();
+        if (!on) showOverLock(false);
         call.resolve();
     }
 
@@ -149,6 +161,7 @@ public class AutoStartPlugin extends Plugin {
     /** After starting by itself, step aside so the app you were using (maps, music) comes back. Recording carries on. */
     @PluginMethod
     public void moveToBack(PluginCall call) {
+        showOverLock(false);
         try { if (getActivity() != null) getActivity().runOnUiThread(() -> getActivity().moveTaskToBack(true)); } catch (Exception e) { }
         call.resolve();
     }

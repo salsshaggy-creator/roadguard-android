@@ -53,9 +53,15 @@ public class DriveReceiver extends BroadcastReceiver {
         if (AutoStartPlugin.instance != null && AutoStartPlugin.instance.appVisible()) { AutoStartPlugin.instance.fire(reason); return; }
         SharedPreferences p = AutoNotify.prefs(c);
         long now = System.currentTimeMillis();
-        boolean running = now - p.getLong("journeyActiveAt", 0) < 3 * 60 * 1000L;
+        // a journey is already running (forget it after 12 hours in case the app was closed without ending it)
+        boolean running = p.getBoolean("journeyActive", false) && now - p.getLong("journeyActiveAt", 0) < 12 * 3600 * 1000L;
+        if (running) return;
+        // never jump on screen during a phone call: ask with a notification instead
+        boolean inCall = false;
+        try { android.media.AudioManager am = (android.media.AudioManager) c.getSystemService(Context.AUDIO_SERVICE);
+              int m = am.getMode(); inCall = m == android.media.AudioManager.MODE_IN_CALL || m == android.media.AudioManager.MODE_IN_COMMUNICATION || m == android.media.AudioManager.MODE_RINGTONE; } catch (Exception e) { }
         // Fully automatic: open RoadGuard by itself (Android allows this once "Display over other apps" is on).
-        if (!running && p.getBoolean("fullAuto", false) && (Build.VERSION.SDK_INT < 23 || Settings.canDrawOverlays(c))
+        if (!inCall && p.getBoolean("fullAuto", false) && (Build.VERSION.SDK_INT < 23 || Settings.canDrawOverlays(c))
                 && now - p.getLong("lastAutoOpen", 0) > 15 * 60 * 1000L) {
             try {
                 Intent i = new Intent(c, MainActivity.class);

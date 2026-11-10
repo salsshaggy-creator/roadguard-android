@@ -48,7 +48,7 @@ public class AutoNotify {
         SharedPreferences p = prefs(c);
         long now = System.currentTimeMillis();
         if (!force && now - p.getLong("lastNote", 0) < 20 * 60 * 1000L) return;      // at most once every 20 minutes
-        if (!force && now - p.getLong("journeyActiveAt", 0) < 3 * 60 * 1000L) return; // a journey is already running
+        if (!force && p.getBoolean("journeyActive", false) && now - p.getLong("journeyActiveAt", 0) < 12 * 3600 * 1000L) return; // a journey is already running
 
         if (Build.VERSION.SDK_INT >= 26) {
             NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
