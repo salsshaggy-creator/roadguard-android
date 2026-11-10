@@ -538,7 +538,8 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
       <details class="faq"><summary>How much does it cost?</summary><p>Downloading RoadGuard is free, and every new user gets <b>30 days of everything</b>. After that, the core stays <b>free forever</b>, including SOS. You only pay for what you need: the proof for <b>one trip</b> for GH₵5, <b>Plus</b> from GH₵10 a month (GH₵25 for 3 months, GH₵90 a year), <b>Family</b> from GH₵20 a month, <b>Fleet</b> at GH₵40 per vehicle a month, or a <b>Safe Driver Certificate</b> for GH₵10. No account is needed to pay for Plus, a trip’s proof or a certificate.</p></details>
       <details class="faq"><summary>What is free and what is in Plus?</summary><p><b>Always free:</b> live speed, automatic speed limits, voice warnings, speed camera and police barrier warnings, SOS, night check-ins, the trip safety score, 3 shared trips a month, your last 7 days of journeys, and the scam check on any speeding SMS.<br><b>Plus adds:</b> unlimited Share my trip with arrival time and family alerts, every journey kept, full reports and the evidence file, and comparing a ticket with your trip plus the contest letter.</p></details>
       <details class="faq"><summary>How do I pay?</summary><p>Tap your profile picture, then <b>See plans</b>. Choose a plan and tap <b>Pay with Paystack</b>. You can pay with MTN, Telecel or AirtelTigo Mobile Money, or with a bank card. Paystack is a secure payment company; RoadGuard never sees your PIN or card number. Plus switches on straight away; we confirm the payment in the background, usually within a few hours. You don’t need an account to pay for Plus on your phone. Signed-in users can also send MoMo directly and enter the transaction ID from the SMS.</p></details>
-      <details class="faq"><summary>Do I need an account to pay?</summary><p>No. Pay with Mobile Money or a card and <b>this phone</b> is unlocked straight away. Your phone has its own ID (shown on the plans page). Sign in with Google or email only if you want Family or Fleet, or to keep Plus when you change phones.</p></details>
+      <details class="faq"><summary>Do I need an account to pay?</summary><p>No. Pay with Mobile Money or a card and <b>this phone</b> is unlocked straight away. Your phone gets its own random ID made by RoadGuard (not your phone number or IMEI). After paying you get a <b>recovery code</b>: keep it safe. If you change phones, reinstall RoadGuard or reset your phone, tap <b>Restore my purchases</b> on the plans page and enter it. Sign in with Google or email if you want Family or Fleet.</p></details>
+      <details class="faq"><summary>What do the payment statuses mean?</summary><p><b>⏳ Awaiting confirmation:</b> your payment arrived and access is on straight away while we check it, usually within a few hours. <b>✅ Confirmed:</b> checked; your plan, trip proof or certificate is permanent. <b>⌛ Not confirmed in time:</b> if we can’t confirm a payment within 3 days, the temporary access ends; contact us with your reference. <b>❌ Payment not found:</b> we couldn’t find it in Paystack; contact us with your reference if money left your account. See all of these under <b>My purchases</b> on the plans page.</p></details>
       <details class="faq"><summary>What is a trip’s proof (GH₵5)?</summary><p>If you get a speeding fine, you don’t need a plan. Open that trip in <b>Journeys</b> and unlock its proof for GH₵5: the full report as a PDF, the simple table, the evidence file and your contest letter.</p></details>
       <details class="faq"><summary>What is the Safe Driver Certificate?</summary><p>A certificate of your last 30 days of driving: trips, kilometres, the share of time within the limit, and your grade, with a code anyone can check on roadguard-gh.web.app. Useful when applying for driving jobs. You need at least 5 trips and 20 km. It costs GH₵10; get it from <b>Journeys</b>.</p></details>
       <details class="faq"><summary>What is the Family plan?</summary><p>Family gives Plus to you and <b>up to 3 more people</b>. After paying, open <b>Account → My family</b> and add the email address each person signs in to RoadGuard with. They get Plus straight away, for as long as your plan is active. It’s ideal for parents following school runs.</p></details>
@@ -561,7 +562,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.3.1. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.3.2. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1541,7 +1542,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.3.1" : "RoadGuard GH web 1.3.1", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.3.2" : "RoadGuard GH web 1.3.2", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -2861,6 +2862,9 @@ const FBK = {
   },
   async decidePayment(p, ok) {
     const pref = this.db.collection("payments").doc(p.id);
+    const FV = firebase.firestore.FieldValue, dref = p.device ? this.db.collection("devplans").doc(p.device) : null;
+    if (dref) await dref.set(ok ? { refs: FV.arrayUnion(p.ref || p.txnId || ""), ...p.recHash ? { recHash: p.recHash } : {} } : { rejected: FV.arrayUnion(p.ref || p.txnId || "") }, { merge: true }).catch(() => {
+    });
     if (!ok) {
       await pref.update({ status: "rejected", decidedAt: Date.now() });
       if (p.kind === "cert" && p.certId) await this.db.collection("certs").doc(p.certId).update({ status: "rejected" }).catch(() => {
@@ -2878,8 +2882,8 @@ const FBK = {
       return;
     }
     if (!p.uid && p.device) {
-      const dref = this.db.collection("devplans").doc(p.device), cur2 = (await dref.get()).data() || {}, base2 = Math.max(Date.now(), cur2.paidUntil || 0);
-      await dref.set({ paidUntil: base2 + p.days * 864e5, plan: p.plan, tier: "plus" }, { merge: true });
+      const dref2 = this.db.collection("devplans").doc(p.device), cur2 = (await dref2.get()).data() || {}, base2 = Math.max(Date.now(), cur2.paidUntil || 0);
+      await dref2.set({ paidUntil: base2 + p.days * 864e5, plan: p.plan, tier: "plus" }, { merge: true });
       await pref.update({ status: "approved", decidedAt: Date.now() });
       return;
     }
@@ -3637,7 +3641,7 @@ function devPlus() {
   const now = Date.now();
   if (DEVPLAN && DEVPLAN.paidUntil > now) return true;
   const pv = lget("rg_prov", null);
-  return !!(pv && pv.until > now);
+  return !!(pv && pv.until > now && !(DEVPLAN && DEVPLAN.rejected || []).includes(pv.ref));
 }
 function hasPack(jid) {
   return !!jid && (DEVPLAN && (DEVPLAN.packs || []).includes(jid) || lget("rg_packs", []).includes(jid));
@@ -3650,9 +3654,97 @@ function payEmail() {
   const u = B && B.user ? B.user() : null;
   return u && u.email || PROFILE && PROFILE.email || deviceId().toLowerCase() + "@roadguard-gh.web.app";
 }
+function recoverySecret() {
+  let r = lget("rg_rec", null);
+  if (!r || !/^[A-Z0-9]{12}$/.test(r)) {
+    const A = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    r = [...crypto.getRandomValues(new Uint8Array(12))].map((x) => A[x % 32]).join("");
+    lset("rg_rec", r);
+  }
+  return r;
+}
+function recoveryCode() {
+  const r = recoverySecret();
+  return deviceId().slice(3) + "-" + r.slice(0, 4) + "-" + r.slice(4, 8) + "-" + r.slice(8);
+}
+function addPurchase(x) {
+  lset("rg_purchases", [{ ...x, at: Date.now() }, ...lget("rg_purchases", [])].slice(0, 50));
+}
+const CONFIRM_DAYS = 3;
+function purchaseStatus(x) {
+  const refs = DEVPLAN && DEVPLAN.refs || [], rej = DEVPLAN && DEVPLAN.rejected || [];
+  if (rej.includes(x.ref)) return "rejected";
+  if (refs.includes(x.ref)) return "confirmed";
+  if (x.kind === "plan" && PROFILE && x.signed && (PROFILE.paidUntil || 0) > x.at + 864e5) return "confirmed";
+  return Date.now() - x.at < CONFIRM_DAYS * 864e5 ? "pending" : "expired";
+}
+function purchasesCard() {
+  const list = lget("rg_purchases", []);
+  if (!list.length) return "";
+  const label = {
+    confirmed: ["✅ Confirmed", "Your payment has been checked. This purchase is permanent.", "#86EFAC"],
+    pending: ["⏳ Awaiting confirmation", "Payment received and access is on. We check every payment, usually within a few hours.", "var(--gold2)"],
+    expired: ["⌛ Not confirmed in time", "We couldn’t confirm this payment within 3 days, so the temporary access ended. Contact us with the reference and we’ll sort it out.", "#FDBA74"],
+    rejected: ["❌ Payment not found", "We couldn’t find this payment in Paystack. If money left your account, contact us with the reference.", "#FCA5A5"]
+  };
+  return `<div class="card"><h3>My purchases</h3>${list.map((x) => {
+    const st = purchaseStatus(x), L2 = label[st];
+    return `<div style="padding:10px 0;border-bottom:1px solid var(--line)"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(x.label)}</b><span class="num">GH₵${x.amount}</span></div>
+      <div style="color:${L2[2]};font-weight:700;margin-top:4px">${L2[0]}</div><div class="note" style="margin:2px 0 0">${L2[1]}${st === "pending" ? " Temporary access lasts until <b>" + fmtD(x.at + CONFIRM_DAYS * 864e5) + "</b>." : ""}<br>${fmtD(x.at)} · reference <span class="num">${esc(x.ref)}</span></div></div>`;
+  }).join("")}
+    <div style="margin-top:14px;padding:12px;border-radius:12px;background:rgba(245,179,1,.1);border:1px solid rgba(245,179,1,.4)"><b>Your recovery code</b>
+      <div class="num" style="font-size:17px;font-weight:800;letter-spacing:.5px;margin:6px 0;white-space:nowrap">${recoveryCode()}</div>
+      <div class="note" style="margin:0">Write it down or take a screenshot. If you change phones, reinstall RoadGuard or reset your phone, enter it under <b>Restore my purchases</b> to get them back. Keep it private.</div>
+      <button class="btn btn-ghost" id="btnCopyRec" style="margin-top:10px;font-size:15px;padding:10px">Copy recovery code</button></div></div>`;
+}
+function wireRec() {
+  if ($("btnCopyRec")) $("btnCopyRec").onclick = () => {
+    try {
+      navigator.clipboard.writeText(recoveryCode());
+      toast("Recovery code copied");
+    } catch (e) {
+      alert(recoveryCode());
+    }
+  };
+}
+async function restorePurchases() {
+  const raw = (prompt("Enter your recovery code (from the phone you paid on):") || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (!raw) return;
+  if (raw.length !== 20) {
+    alert("That code doesn’t look right. It has 20 letters and numbers, like ABCD2345-EFGH-JKLM-NPQR.");
+    return;
+  }
+  const dev = "RG-" + raw.slice(0, 8), sec = raw.slice(8);
+  try {
+    await backend();
+    if (B !== FBK || !B.db) throw new Error("Restoring needs an internet connection.");
+    const d = await B.db.collection("devplans").doc(dev).get();
+    if (!d.exists || !d.data().recHash) {
+      alert("No confirmed purchase was found for this code yet. If you paid recently, wait until the payment is confirmed (usually a few hours), then try again, or contact us.");
+      return;
+    }
+    if (d.data().recHash !== await sha256("rgrec|" + sec)) {
+      alert("That recovery code is not correct. Check it and try again.");
+      return;
+    }
+    localStorage.setItem("rg_dev", dev);
+    lset("rg_rec", sec);
+    DEVPLAN = d.data();
+    lset("rg_devplan", DEVPLAN);
+    toast("Your purchases are back on this phone.");
+    renderSubscribe();
+  } catch (e) {
+    alert(e.message);
+  }
+}
 async function recordPayment(p) {
   await backend();
   const u = signedIn() ? B.user() : null;
+  try {
+    p = { ...p, recHash: await sha256("rgrec|" + recoverySecret()) };
+  } catch (e) {
+  }
+  addPurchase({ ref: p.ref, kind: p.kind || "plan", amount: p.amount, signed: !!u, label: p.kind === "pack" ? "Trip proof" : p.kind === "cert" ? "Safe Driver Certificate " + (p.certId || "") : planName(p.plan) + (u ? "" : " (this phone)") });
   const doc = { ...p, device: deviceId(), uid: u ? u.uid : null, name: u ? u.name || "" : "No account · " + deviceId(), email: u ? u.email || null : null, status: "pending", createdAt: Date.now(), method: "paystack", momoNumber: "Paystack", test: /^pk_test_/.test(PAYSTACK_PK) };
   if (B === FBK && B.db) await B.db.collection("payments").add(doc);
   else if (u) await B.requestPayment(p);
@@ -3697,7 +3789,7 @@ async function buyPack(j) {
   await paystack(PACK_PRICE, "Trip proof " + fmtD(j.startedAt) + " " + fmtT(j.startedAt).slice(0, 5), { kind: "pack", journey: j.id }, async (ref) => {
     lset("rg_packs", [...lget("rg_packs", []), j.id]);
     lset("rg_packs_at", [...lget("rg_packs_at", []), Date.now()]);
-    toast("Unlocked. The proof for this trip is yours.");
+    toast("Payment received: this trip’s proof is unlocked. We’ll confirm it shortly.");
     try {
       await recordPayment({ kind: "pack", journeyId: j.id, plan: "pack", tier: "pack", vehicles: 1, amount: PACK_PRICE, days: 0, txnId: ref, ref });
     } catch (e) {
@@ -3992,6 +4084,7 @@ async function renderSubscribe() {
     return;
   }
   if (!signedIn()) {
+    await loadDevPlan();
     const T0 = TIERS.plus;
     if (!T0.plans.some((x) => x.id === selPlan)) selPlan = T0.plans[0].id;
     const p0 = T0.plans.find((x) => x.id === selPlan);
@@ -4003,15 +4096,19 @@ async function renderSubscribe() {
     <div class="plans">${T0.plans.map((x) => `<button class="plan ${x.id === selPlan ? "sel" : ""}" data-p="${x.id}">${x.best ? '<span class="best">BEST VALUE</span>' : ""}<span class="pn">${x.name}</span><span class="pp">GH₵${x.price}</span><span class="pd">${x.save || "Pay monthly"}</span></button>`).join("")}</div>
     <div class="card"><button class="btn btn-go" id="psPhone">PAY GH₵${p0.price} WITH MOBILE MONEY OR CARD</button>
       <p class="note" style="margin:8px 0 0">Plus switches on straight away. Only need one trip’s proof? Open the trip in <b>Journeys</b> and unlock it for <b>GH₵${PACK_PRICE}</b>.</p></div>
+    ${purchasesCard()}
+    <div class="card"><h3>Changed or reset your phone?</h3><p class="note" style="margin-top:0">Get back Plus, trip proofs and certificates you paid for on another phone.</p><button class="btn btn-ghost" id="btnRestore">Restore my purchases</button></div>
     <div class="card"><h3>Family or Fleet, or keep Plus on a new phone?</h3><p class="note" style="margin-top:0">Sign in with Google or email. Family covers up to 4 people from <b>GH₵20 a month</b>; Fleet is per vehicle.</p><div id="subSign"></div></div>`;
     renderSignIn($("subSign"), renderSubscribe);
+    $("btnRestore").onclick = () => restorePurchases();
+    wireRec();
     el.querySelectorAll(".plan").forEach((b) => b.onclick = () => {
       selPlan = b.dataset.p;
       renderSubscribe();
     });
     $("psPhone").onclick = () => paystack(p0.price, "RoadGuard Plus " + p0.name + " (phone " + deviceId() + ")", { kind: "plan", tier: "plus", plan: p0.id }, async (ref) => {
-      lset("rg_prov", { until: Date.now() + 3 * 864e5, plan: p0.id, tier: "plus" });
-      toast("Thank you! RoadGuard Plus is on for this phone.");
+      lset("rg_prov", { until: Date.now() + 3 * 864e5, plan: p0.id, tier: "plus", ref });
+      toast("Payment received: Plus is on. We’ll confirm it shortly.");
       try {
         await recordPayment({ kind: "plan", plan: p0.id, tier: "plus", vehicles: 1, amount: p0.price, days: p0.days, txnId: ref, ref });
       } catch (e) {
@@ -4026,7 +4123,9 @@ async function renderSubscribe() {
   }
   const T = TIERS[selTier];
   if (!T.plans.some((x) => x.id === selPlan)) selPlan = T.plans.at(-1).id;
-  const st = planStatus(PROFILE), pays = await B.myPayments().catch(() => []), p = T.plans.find((x) => x.id === selPlan);
+  loadDevPlan();
+  let pays = await B.myPayments().catch(() => []);
+  const st = planStatus(PROFILE), p = T.plans.find((x) => x.id === selPlan);
   const qty = T.perVehicle ? selVeh : 1, total = p.price * qty;
   el.innerHTML = `
   <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><b>Your plan</b>${statusPill(st)}</div>
@@ -4050,8 +4149,10 @@ async function renderSubscribe() {
       <label>Transaction ID (from the MoMo SMS)</label><input id="pyTx" placeholder="e.g. 54839201733" autocapitalize="characters">
       <button class="btn btn-go" id="pySend" style="margin-top:14px">I'VE PAID, CONFIRM MY PLAN</button>
       <p class="note">Your plan switches on as soon as we confirm the payment, usually within a few hours. Only pay to the number above.</p>` : `<p class="note" style="margin:0">Payments open soon.</p>`}</div>
-  ${pays.length ? `<div class="card"><h3>My payments</h3><table class="num"><tr><th>Date</th><th>Plan</th><th>Amount</th><th>Status</th></tr>${pays.map((x) => `<tr><td>${fmtD(x.createdAt)}</td><td>${planName(x.plan)}${x.vehicles > 1 ? " ×" + x.vehicles : ""}</td><td>GH₵${x.amount}</td><td>${{ pending: "⏳ Waiting", approved: "✅ Confirmed", rejected: "❌ Not found" }[x.status] || ""}</td></tr>`).join("")}</table>
+  ${purchasesCard()}
+  ${(pays = pays.filter((x) => x.method !== "paystack")).length ? `<div class="card"><h3>My MoMo payments</h3><table class="num"><tr><th>Date</th><th>Plan</th><th>Amount</th><th>Status</th></tr>${pays.map((x) => `<tr><td>${fmtD(x.createdAt)}</td><td>${planName(x.plan)}${x.vehicles > 1 ? " ×" + x.vehicles : ""}</td><td>GH₵${x.amount}</td><td>${{ pending: "⏳ Waiting", approved: "✅ Confirmed", rejected: "❌ Not found" }[x.status] || ""}</td></tr>`).join("")}</table>
     ${pays.some((x) => x.status === "rejected") ? `<p class="note">“Not found” means we couldn't match the transaction. Check the ID and try again, or contact us.</p>` : ""}</div>` : ""}`;
+  wireRec();
   el.querySelectorAll(".tierBtn").forEach((b) => b.onclick = () => {
     selTier = b.dataset.t;
     selPlan = TIERS[selTier].plans.at(-1).id;
@@ -4072,9 +4173,9 @@ async function renderSubscribe() {
     };
   }
   if ($("psPay")) $("psPay").onclick = () => paystack(total, `${T.name} ${p.name}${qty > 1 ? " x" + qty : ""}`, { kind: "plan", uid: (B.user() || {}).uid, tier: selTier, plan: p.id, vehicles: qty }, async (ref) => {
-    lset("rg_prov", { until: Date.now() + 3 * 864e5, plan: p.id, tier: selTier });
+    lset("rg_prov", { until: Date.now() + 3 * 864e5, plan: p.id, tier: selTier, ref });
     await recordPayment({ kind: "plan", plan: p.id, tier: selTier, vehicles: qty, amount: total, days: p.days, txnId: ref, ref });
-    toast("Thank you! Plus is on now; your full plan is confirmed shortly.");
+    toast("Payment received: Plus is on. We’ll confirm your plan shortly.");
     renderSubscribe();
   });
   if ($("pySend")) $("pySend").onclick = async () => {
@@ -4185,6 +4286,10 @@ async function renderAdmin(box) {
     return `<tr><td>${esc(x.name || "")}<div class="small muted">${esc(x.email || "")}</div></td><td class="small">${{ active: (x.tier && x.tier !== "plus" ? TIERS[x.tier].name + (x.tier === "fleet" ? " (" + (x.fleetVehicles || 1) + ")" : "") + " · " : "Plus · ") + "until " + fmtD(st.until), trial: "Trial · " + st.days + " days left", expired: "Trial ended", none: "—" }[st.status]}</td><td class="small">${x.createdAt ? fmtD(x.createdAt) : ""}</td><td class="small">${ago(x.lastSeen)}<div class="muted">${esc(x.device || "")}${x.appVer ? " · " + esc(x.appVer) : ""}</div></td></tr>`;
   }).join("")}</table></div></details>
     <p class="note" style="margin:10px 0 0">Counts people who made an account. Phones without an account are counted below by a random ID only.</p>
+    <details style="margin-top:14px"><summary style="cursor:pointer;font-weight:700">Move purchases to a new phone</summary>
+      <p class="note">For someone who lost their recovery code: check their payment reference in Paystack first, then copy everything from the old phone ID to the new one.</p>
+      <div class="row" style="gap:8px"><input id="mvOld" placeholder="Old phone ID, e.g. RG-AB12CD34" autocapitalize="characters"><input id="mvNew" placeholder="New phone ID" autocapitalize="characters"></div>
+      <button class="btn btn-ghost" id="mvGo" style="margin-top:8px">Move purchases</button></details>
     <details open style="margin-top:14px"><summary style="cursor:pointer;font-weight:700">Phones that tried RoadGuard (${devs.length})</summary>
       <div class="kpis" style="margin:10px 0;grid-template-columns:repeat(3,1fr)">${kpi(devs.length, "phones in total")}${kpi(devs.filter((d) => now - n(d.lastSeen) < wk).length, "opened this week", "#86EFAC")}${kpi(devs.filter((d) => now - n(d.firstSeen) < wk).length, "new this week", "#93C5FD")}${kpi(devs.filter((d) => n(d.drives) > 0).length, "did a real drive", "var(--gold2)")}${kpi(devs.filter((d) => n(d.demos) > 0).length, "ran the demo")}${kpi(devs.filter((d) => !d.signedIn).length, "no account")}</div>
       <div class="small muted" style="margin-bottom:6px">${["Android app", "Android (web)", "iPhone (web)", "Computer (web)"].map((k) => `${k}: <b style="color:var(--text)">${devs.filter((d) => d.platform === k).length}</b>`).join(" · ")}</div>
@@ -4212,6 +4317,27 @@ async function renderAdmin(box) {
       await B.decidePayment(x, ok);
       toast(ok ? "Payment confirmed. Plan activated." : "Marked as not found");
       renderAdmin(box);
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+  if ($("mvGo")) $("mvGo").onclick = async () => {
+    const o = $("mvOld").value.trim().toUpperCase(), nw = $("mvNew").value.trim().toUpperCase();
+    if (!/^RG-[A-Z0-9]{8}$/.test(o) || !/^RG-[A-Z0-9]{8}$/.test(nw)) {
+      alert("Phone IDs look like RG-AB12CD34.");
+      return;
+    }
+    try {
+      const d = await B.db.collection("devplans").doc(o).get();
+      if (!d.exists) {
+        alert("Nothing was bought on " + o + ".");
+        return;
+      }
+      const x = { ...d.data() };
+      delete x.recHash;
+      await B.db.collection("devplans").doc(nw).set({ ...x, movedFrom: o, movedAt: Date.now() }, { merge: true });
+      await B.db.collection("devplans").doc(o).set({ paidUntil: 0, movedTo: nw }, { merge: true });
+      toast("Purchases moved to " + nw);
     } catch (e) {
       alert(e.message);
     }
@@ -5390,7 +5516,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.3.1";
+const APP_VER = "1.3.2";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
