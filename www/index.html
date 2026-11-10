@@ -556,7 +556,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.2.7. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.2.8. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -833,19 +833,19 @@ function parseTile(k, els) {
   const cnt = els.find((x) => x.type === "count");
   const amen = els.filter((x) => x.tags && x.tags.amenity).map((x) => x.center ? [x.center.lat, x.center.lon] : [x.lat, x.lon]).filter((p) => p[0] != null);
   const places = els.filter((x) => x.type === "node" && x.tags && x.tags.place && x.tags.name).map((x) => ({ n: x.tags.name, lat: x.lat, lon: x.lon }));
-  return { k, at: Date.now(), ways, buildings: cnt ? +cnt.tags.total || 0 : 0, amen, places };
+  return { k, v: 2, at: Date.now(), ways, buildings: cnt ? +cnt.tags.total || 0 : 0, amen, places };
 }
 async function loadTile(k) {
   const cur = tiles.get(k);
   if (cur && (cur.ways || cur.loading || cur.fail && Date.now() - cur.fail < 15e3)) return;
   tiles.set(k, { loading: true });
   const c = await tileGet(k);
-  if (c && c.ways && Date.now() - c.at < TILE_TTL) {
+  if (c && c.ways && c.v === 2 && Date.now() - c.at < TILE_TTL) {
     tiles.set(k, c);
     return;
   }
   const [a, o] = k.split(":").map(Number), bb = [a * TILE, o * TILE, (a + 1) * TILE, (o + 1) * TILE].map((x) => x.toFixed(4)).join(",");
-  const q = `[out:json][timeout:25];way[highway~"${HW}"](${bb});out tags geom;way[building](${bb});out count;nwr[amenity~"^(school|kindergarten|college|marketplace|hospital|clinic)$"](${bb});out center tags;node[place~"^(city|town|suburb|village|neighbourhood|quarter)$"][name](${bb});out tags;`;
+  const q = `[out:json][timeout:25];way[highway~"${HW}"](${bb});out tags geom;way[building](${bb});out count;nwr[amenity~"^(school|kindergarten|college|marketplace|hospital|clinic)$"](${bb});out center;node[place~"^(city|town|suburb|village|neighbourhood|quarter)$"][name](${bb});out;`;
   for (let i = 0; i < MIRRORS.length; i++) {
     try {
       const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 25e3);
@@ -945,15 +945,20 @@ function builtUp(p) {
   return near >= 2 || near >= 1 && c.buildings >= BUILT_UP_MIN / 3;
 }
 function nearestPlace(p) {
-  let best = null, bd = 2500;
+  let best = null, bd = 2500, bestV = null, bdV = 2500;
   for (const t of tilesNear(p)) for (const pl of t.places) {
+    if (pl.lat == null) continue;
     const d = hav(p, pl);
     if (d < bd) {
       bd = d;
       best = pl.n;
     }
+    if (d < bdV && PLACE_CLIPS.has(placeSlug(pl.n))) {
+      bdV = d;
+      bestV = pl.n;
+    }
   }
-  return best;
+  return bestV || best;
 }
 function parseMax(v) {
   if (!v) return null;
@@ -1447,7 +1452,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.2.7" : "RoadGuard GH web 1.2.7", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.2.8" : "RoadGuard GH web 1.2.8", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -5063,7 +5068,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.2.7";
+const APP_VER = "1.2.8";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
