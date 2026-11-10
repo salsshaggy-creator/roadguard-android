@@ -1,6 +1,6 @@
 {
   "name": "roadguard-gh-android",
-  "version": "1.2.8",
+  "version": "1.2.9",
   "private": true,
   "description": "RoadGuard GH Android app (Capacitor shell around the web app)",
   "scripts": {

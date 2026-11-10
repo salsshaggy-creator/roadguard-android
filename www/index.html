@@ -556,7 +556,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.2.8. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.2.9. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1370,7 +1370,8 @@ function sayParts(parts, urgent) {
   runClips();
 }
 function voiceFor(p, place, ahead, rname) {
-  const st = liveStatus(p), t = p.t, spd = p.spd == null ? null : Math.round(dispSpd(p.spd)), demo = !!(J && J.simulated);
+  const t = p.t, spd = p.spd == null ? null : Math.round(dispSpd(p.spd)), demo = !!(J && J.simulated);
+  const st0 = liveStatus(p), st = st0 === "red" && (spd == null || p.lim == null || spd < p.lim + 3) ? "amber" : st0;
   const placeNew = !!place && place !== V.place && t - V.placeAt > 6e4;
   const where = () => {
     const w = [];
@@ -1380,7 +1381,7 @@ function voiceFor(p, place, ahead, rname) {
     return w;
   };
   if (p.lim != null && p.lim !== V.lim && !p.sus) {
-    const over = spd != null && spd > p.lim;
+    const over = spd != null && spd >= p.lim + 3;
     beep(1, 660);
     sayParts([...where(), ...V.lim == null ? ["limit_here", p.lim, "kmh"] : ["limit_now", p.lim, "kmh"], ...over && !demo ? ["slow_down"] : []], over);
     V.lim = p.lim;
@@ -1422,7 +1423,7 @@ function voiceFor(p, place, ahead, rname) {
     beep(2, 988);
     sayParts(pick([["slow_down", "limit_is", p.lim, "you_doing", spd], ["over_slow_to", p.lim], ["slow_please", spd, "in_a", p.lim, "zone"]]), true);
     V.overAt = t;
-  } else if (st === "amber" && V.st === "green" && t - V.amberAt > 3e4) {
+  } else if (st === "amber" && V.st === "green" && t - V.amberAt > 18e4) {
     beep(1, 740);
     sayParts(pick([["careful_cross", p.lim], ["careful_close", p.lim, "limit_word"], ["ease_off", p.lim]]));
     V.amberAt = t;
@@ -1452,7 +1453,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.2.8" : "RoadGuard GH web 1.2.8", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.2.9" : "RoadGuard GH web 1.2.9", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -5068,7 +5069,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.2.8";
+const APP_VER = "1.2.9";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
