@@ -564,7 +564,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.3.8. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.3.9. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -894,12 +894,32 @@ function ensureTiles(p, hdg) {
   }
   [...ks].forEach((k, i) => tileQueue(k, i === 0));
 }
-const TQ = { list: [], busy: 0 };
+const TQ = { list: [], busy: 0, checking: /* @__PURE__ */ new Set(), miss: /* @__PURE__ */ new Set() };
+async function cacheTile(k) {
+  const c = await tileGet(k);
+  if (c && c.ways && c.v === 2 && Date.now() - c.at < TILE_TTL) {
+    if (!(tiles.get(k) || {}).ways) tiles.set(k, c);
+    return true;
+  }
+  return false;
+}
 function tileQueue(k, first) {
   if (tileBusy(tiles.get(k))) return;
   if (first) {
     TQ.list = TQ.list.filter((x) => x !== k);
     loadTile(k);
+    return;
+  }
+  if (!TQ.miss.has(k)) {
+    if (TQ.checking.has(k)) return;
+    TQ.checking.add(k);
+    cacheTile(k).then((hit) => {
+      TQ.checking.delete(k);
+      if (!hit) {
+        TQ.miss.add(k);
+        tileQueue(k, false);
+      }
+    });
     return;
   }
   if (!TQ.list.includes(k)) TQ.list.push(k);
@@ -1055,7 +1075,7 @@ function matchAt(p, hdg) {
   }
   if (res.lim == null) {
     MS.nullDist += step;
-    if (MS.nullDist > (/^Loading/.test(res.src || "") ? 2e3 : 400)) {
+    if (MS.nullDist > (/^Loading/.test(res.src || "") ? 8e3 : 400)) {
       MS.cur = res;
       MS.cand = null;
       MS.n = 0;
@@ -1242,7 +1262,7 @@ async function hzAnswer(h, still) {
   } catch (e) {
   }
 }
-const V = { lim: null, place: null, placeAt: 0, st: "grey", overAt: 0, amberAt: 0, atAt: 0, atLim: false, aheadAt: 0, aheadLim: null };
+const V = { lim: null, place: null, placeAt: 0, st: "grey", overAt: 0, amberAt: 0, atAt: 0, atLim: false, noLimSince: 0, noLimAt: 0, aheadAt: 0, aheadLim: null };
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 let CAL = (() => {
   try {
@@ -1408,7 +1428,7 @@ function say(text, urgent) {
   } catch (e) {
   }
 }
-const CLIPTXT = { "limit_here": "The speed limit here is", "limit_now": "The speed limit is now", "limit_is": "The speed limit is", "kmh": "kilometres per hour.", "slow_down": "Please slow down.", "reached": "You've reached", "drops_to": "Speed limit drops to", "ahead_slow": "ahead. Please slow down.", "slow_zone": "Slow down.", "zone_ahead": "kilometre zone ahead.", "over_slow_to": "You are over the speed limit. Slow down to", "you_doing": "You are doing", "slow_please": "Slow down please. You are doing", "in_a": "in a", "zone": "zone.", "careful_cross": "Be careful, you're about to cross the speed limit of", "careful_close": "Careful. You are close to the", "limit_word": "limit.", "ease_off": "Please ease off. The limit is", "back_within": "Thank you. You're back within the limit.", "on": "RoadGuard is on. Drive safely.", "demo": "Demo drive starting.", "test": "Speed limit fifty. You are doing fifty six. Please slow down.", "youre_in": "You're in", "demo_intro": "This is a demo drive. RoadGuard will pretend to drive from Accra to Tema, so you can hear how it works. Your real location is not used.", "demo_end": "Demo finished. Here is your trip report.", "on_duty": "RoadGuard is now on duty. Your journey is being monitored. Drive safe!", "cam_ahead": "Speed camera ahead.", "police_ahead": "Police barrier ahead. Slow down and have your licence ready.", "pothole_ahead": "Pothole ahead. Slow down.", "bump_ahead": "Speed bump ahead.", "accident_ahead": "Accident ahead. Slow down and drive carefully.", "breakdown_ahead": "Broken-down vehicle ahead.", "flood_ahead": "Flooded road ahead. Drive with care.", "works_ahead": "Road works ahead. Slow down." };
+const CLIPTXT = { "no_limit": "Speed limit not available here. Please watch the road signs.", "limit_here": "The speed limit here is", "limit_now": "The speed limit is now", "limit_is": "The speed limit is", "kmh": "kilometres per hour.", "slow_down": "Please slow down.", "reached": "You've reached", "drops_to": "Speed limit drops to", "ahead_slow": "ahead. Please slow down.", "slow_zone": "Slow down.", "zone_ahead": "kilometre zone ahead.", "over_slow_to": "You are over the speed limit. Slow down to", "you_doing": "You are doing", "slow_please": "Slow down please. You are doing", "in_a": "in a", "zone": "zone.", "careful_cross": "Be careful, you're about to cross the speed limit of", "careful_close": "Careful. You are close to the", "limit_word": "limit.", "ease_off": "Please ease off. The limit is", "back_within": "Thank you. You're back within the limit.", "on": "RoadGuard is on. Drive safely.", "demo": "Demo drive starting.", "test": "Speed limit fifty. You are doing fifty six. Please slow down.", "youre_in": "You're in", "demo_intro": "This is a demo drive. RoadGuard will pretend to drive from Accra to Tema, so you can hear how it works. Your real location is not used.", "demo_end": "Demo finished. Here is your trip report.", "on_duty": "RoadGuard is now on duty. Your journey is being monitored. Drive safe!", "cam_ahead": "Speed camera ahead.", "police_ahead": "Police barrier ahead. Slow down and have your licence ready.", "pothole_ahead": "Pothole ahead. Slow down.", "bump_ahead": "Speed bump ahead.", "accident_ahead": "Accident ahead. Slow down and drive carefully.", "breakdown_ahead": "Broken-down vehicle ahead.", "flood_ahead": "Flooded road ahead. Drive with care.", "works_ahead": "Road works ahead. Slow down." };
 try {
   const ov = localStorage.getItem("rg_voice");
   if (ov != null && ov !== "0" && ov !== "1") {
@@ -1585,6 +1605,16 @@ function voiceFor(p, place, ahead, rname) {
     if (hasRoadClip(rname)) w.push({ road: rname });
     return w;
   };
+  if (p.lim == null) {
+    if (!demo && spd != null && spd >= 15 && !p.sus) {
+      if (!V.noLimSince) V.noLimSince = t;
+      else if (t - V.noLimSince > 6e4 && (!V.noLimAt || t - V.noLimAt > 6e5)) {
+        sayParts(["no_limit"]);
+        V.noLimAt = t;
+        V.lim = null;
+      }
+    }
+  } else V.noLimSince = 0;
   if (p.lim != null && p.lim !== V.lim && !p.sus) {
     const over = spd != null && spd >= p.lim + 3;
     beep(1, 660);
@@ -1664,7 +1694,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.3.8" : "RoadGuard GH web 1.3.8", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.3.9" : "RoadGuard GH web 1.3.9", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -1861,7 +1891,7 @@ function resetLive() {
   hashQ = Promise.resolve();
   lastBearing = null;
   Object.assign(MS, { cur: null, cand: null, n: 0, dist: 0, last: null, nullDist: 0 });
-  Object.assign(V, { lim: null, place: null, placeAt: 0, st: "grey", overAt: 0, amberAt: 0, atAt: 0, atLim: false, aheadAt: 0, aheadLim: null });
+  Object.assign(V, { lim: null, place: null, placeAt: 0, st: "grey", overAt: 0, amberAt: 0, atAt: 0, atLim: false, noLimSince: 0, noLimAt: 0, aheadAt: 0, aheadLim: null });
 }
 function tagVehicle(j) {
   const sel = $("selVeh");
@@ -5788,7 +5818,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.3.8";
+const APP_VER = "1.3.9";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
