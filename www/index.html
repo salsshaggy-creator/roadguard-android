@@ -564,7 +564,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.3.5. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.3.6. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1231,7 +1231,7 @@ async function hzAnswer(h, still) {
   } catch (e) {
   }
 }
-const V = { lim: null, place: null, placeAt: 0, st: "grey", overAt: 0, amberAt: 0, aheadAt: 0, aheadLim: null };
+const V = { lim: null, place: null, placeAt: 0, st: "grey", overAt: 0, amberAt: 0, atAt: 0, atLim: false, aheadAt: 0, aheadLim: null };
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 let CAL = (() => {
   try {
@@ -1565,6 +1565,7 @@ function sayParts(parts, urgent) {
 function voiceFor(p, place, ahead, rname) {
   const t = p.t, spd = p.spd == null ? null : Math.round(dispSpd(p.spd)), demo = !!(J && J.simulated);
   const st0 = liveStatus(p), st = st0 === "red" && (spd == null || p.lim == null || spd < p.lim + 3) ? "amber" : st0;
+  const atLim = spd != null && p.lim != null && !p.sus && spd > p.lim && spd < p.lim + 3;
   const placeNew = !!place && place !== V.place && t - V.placeAt > 6e4;
   const where = () => {
     const w = [];
@@ -1616,14 +1617,20 @@ function voiceFor(p, place, ahead, rname) {
     beep(2, 988);
     sayParts(pick([["slow_down", "limit_is", p.lim, "you_doing", spd], ["over_slow_to", p.lim], ["slow_please", spd, "in_a", p.lim, "zone"]]), true);
     V.overAt = t;
-  } else if (st === "amber" && V.st === "green" && t - V.amberAt > 18e4) {
+  } else if (atLim && !V.atLim && t - V.atAt > 3e4) {
     beep(1, 740);
-    sayParts(pick([["careful_cross", p.lim], ["careful_close", p.lim, "limit_word"], ["ease_off", p.lim]]));
+    sayParts(["ease_off", p.lim]);
+    V.atAt = t;
+    V.amberAt = t;
+  } else if (st === "amber" && !atLim && V.st === "green" && t - V.amberAt > 6e4) {
+    beep(1, 740);
+    sayParts(pick([["careful_cross", p.lim], ["careful_close", p.lim, "limit_word"]]));
     V.amberAt = t;
   } else if (st === "green" && V.st === "red") {
     sayParts(["back_within"]);
   }
   if (st !== "grey") V.st = st;
+  V.atLim = atLim;
 }
 let nativeWatch = null, J = null, watchId = null, wake = null, prevHash = "GENESIS", hashQ = Promise.resolve(), simTimer = null, lastVoice = 0, voiceOn = true, live = { dist: 0, max: 0 };
 async function keepAwake() {
@@ -1646,7 +1653,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.3.5" : "RoadGuard GH web 1.3.5", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.3.6" : "RoadGuard GH web 1.3.6", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -1843,7 +1850,7 @@ function resetLive() {
   hashQ = Promise.resolve();
   lastBearing = null;
   Object.assign(MS, { cur: null, cand: null, n: 0, dist: 0, last: null, nullDist: 0 });
-  Object.assign(V, { lim: null, place: null, placeAt: 0, st: "grey", overAt: 0, amberAt: 0, aheadAt: 0, aheadLim: null });
+  Object.assign(V, { lim: null, place: null, placeAt: 0, st: "grey", overAt: 0, amberAt: 0, atAt: 0, atLim: false, aheadAt: 0, aheadLim: null });
 }
 function tagVehicle(j) {
   const sel = $("selVeh");
@@ -5671,7 +5678,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.3.5";
+const APP_VER = "1.3.6";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
