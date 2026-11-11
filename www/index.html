@@ -564,7 +564,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.3.6. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.3.7. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1653,7 +1653,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.3.6" : "RoadGuard GH web 1.3.6", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.3.7" : "RoadGuard GH web 1.3.7", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -2183,7 +2183,8 @@ async function openReport(id) {
   <div class="card"><h3>Record integrity</h3><div class="integrity" id="integ"><div class="ic">⏳</div><div>Checking ${P.length} records…</div></div></div>
   <div class="card"><h3>Device &amp; data quality</h3>
     <p class="note" style="margin:0">${P.length} GPS readings · ${S.quality.toFixed(0)}% within ±${ACC_OK} m accuracy · ${P.filter((p) => p.sus).length} readings set aside as implausible (kept in the raw data)<br>Recorded by: ${esc(j.app)}<br>Device: ${esc(j.device)}<br>Journey ID: ${j.id}</p></div>
-  <div class="row noprint"><button class="btn btn-ghost" id="xCsv">Download CSV</button><button class="btn btn-ghost" id="xJson">Evidence file (JSON)</button></div>
+  <div class="row noprint" style="margin-bottom:10px"><button class="btn btn-go" id="xXlsx">Download report table (Excel)</button></div>
+  <div class="row noprint"><button class="btn btn-ghost" id="xCsv">Plain CSV</button><button class="btn btn-ghost" id="xJson">Evidence file (JSON)</button></div>
   <div class="row noprint" style="margin-top:10px"><button class="btn btn-go" id="xPdf">Save as PDF / Print</button></div>
   <p class="note" style="margin-top:14px">This report is an independent record made with a phone's GPS. It is not a calibrated speed-measurement instrument and does not by itself prove or disprove a traffic offence. It can support a contest by showing your recorded speed, time and position.</p>`;
   drawMap(P);
@@ -2192,6 +2193,7 @@ async function openReport(id) {
   if ($("btnArrived")) $("btnArrived").onclick = () => shareText(arrivedText(j));
   const _pl = () => needProof(j);
   $("xCsv").onclick = () => _pl() && download(`roadguard_${j.id}.csv`, toCSV(j), "text/csv");
+  $("xXlsx").onclick = () => _pl() && download(`RoadGuard_trip_${j.id}.xlsx`, toXLSX(j), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
   $("xJson").onclick = () => _pl() && download(`roadguard_${j.id}.json`, JSON.stringify({ format: "roadguard-evidence-v1", hashAlgorithm: 'SHA-256 chain: h[i]=sha256(h[i-1]+"|"+canon(point)), h[-1]="GENESIS"', journey: j, summary: { ...S } }, null, 1), "application/json");
   $("xPdf").onclick = () => {
     if (!_pl()) return;
@@ -2350,7 +2352,7 @@ function drawChart(P, events, cal) {
   c.onpointerdown = pick2;
   c.ontouchmove = pick2;
 }
-function toCSV(j) {
+function reportTable(j) {
   var _a;
   const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], z = (n) => String(n).padStart(2, "0");
   const dOf = (t) => {
@@ -2382,7 +2384,96 @@ function toCSV(j) {
     rows.push([dOf(p.t), tOf(p.t), p.road || "Unnamed road", (_a = p.lim) != null ? _a : "", p.sus ? "" : spd != null ? spd : "", over, src(p.limSrc), p.sus ? "GPS glitch (ignored)" : WORD[st], p.lat, p.lon]);
     last = { p, st, t: p.t };
   }
-  return "\uFEFF" + [...head, ...rows, [], ["Comment on this journey"], ...tripComment(j, S).map((x) => [x])].map((r) => r.map((v) => /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : v).join(",")).join("\r\n");
+  return { head, rows, comment: tripComment(j, S), S, date: dOf(j.startedAt) };
+}
+function toCSV(j) {
+  const { head, rows, comment } = reportTable(j);
+  return "\uFEFF" + [...head, ...rows, [], ["Comment on this journey"], ...comment.map((x) => [x])].map((r) => r.map((v) => /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : v).join(",")).join("\r\n");
+}
+const CRC_T = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 3988292384 ^ c >>> 1 : c >>> 1;
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+function zipStore(files) {
+  const enc = new TextEncoder(), parts = [], cent = [];
+  let off = 0;
+  const u16 = (v) => [v & 255, v >> 8 & 255], u32 = (v) => [v & 255, v >> 8 & 255, v >> 16 & 255, v >>> 24 & 255];
+  for (const [name, str] of files) {
+    const n = enc.encode(name), d = enc.encode(str);
+    let c = 4294967295;
+    for (const b of d) c = CRC_T[(c ^ b) & 255] ^ c >>> 8;
+    c = (c ^ 4294967295) >>> 0;
+    const loc = [...u32(67324752), ...u16(20), ...u16(2048), ...u16(0), ...u16(0), ...u16(33), ...u32(c), ...u32(d.length), ...u32(d.length), ...u16(n.length), ...u16(0)];
+    parts.push(new Uint8Array(loc), n, d);
+    cent.push(new Uint8Array([...u32(33639248), ...u16(20), ...u16(20), ...u16(2048), ...u16(0), ...u16(0), ...u16(33), ...u32(c), ...u32(d.length), ...u32(d.length), ...u16(n.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(0), ...u32(off)]), n);
+    off += loc.length + n.length + d.length;
+  }
+  const cs = cent.reduce((a, b) => a + b.length, 0);
+  const all = [...parts, ...cent, new Uint8Array([...u32(101010256), ...u16(0), ...u16(0), ...u16(files.length), ...u16(files.length), ...u32(cs), ...u32(off), ...u16(0)])];
+  const out = new Uint8Array(all.reduce((a, b) => a + b.length, 0));
+  let p = 0;
+  for (const a of all) {
+    out.set(a, p);
+    p += a.length;
+  }
+  return out;
+}
+function toXLSX(j) {
+  const { head, rows, comment, S, date } = reportTable(j), x = (v) => String(v != null ? v : "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  const NC = 10, col = (i) => String.fromCharCode(66 + i);
+  const sheet2 = [];
+  let r = 0;
+  const row = (cells, ht) => {
+    r++;
+    sheet2.push(`<row r="${r}"${ht ? ` ht="${ht}" customHeight="1"` : ""}><c r="A${r}" s="1"/>${cells.map(([v, st, num], i) => num && v !== "" && v != null ? `<c r="${col(i)}${r}" s="${st}"><v>${v}</v></c>` : v === "" || v == null ? `<c r="${col(i)}${r}" s="${st}"/>` : `<c r="${col(i)}${r}" s="${st}" t="inlineStr"><is><t xml:space="preserve">${x(v)}</t></is></c>`).join("")}</row>`);
+  };
+  const fill = (st) => Array.from({ length: NC }, () => ["", st]), merges = [];
+  row([], 14);
+  row([["ROADGUARD GH · TRIP REPORT" + (j.simulated ? " (DEMO, NOT EVIDENCE)" : ""), 2], ...fill(1).slice(1)], 22);
+  row([[`Trip on ${date}`, 3], ...fill(1).slice(1)], 40);
+  row([[`${head[1][2]} ${head[1][3]}  to  ${head[1][5] || "–"}   ·   ${(S.dist / 1e3).toFixed(1)} km   ·   top speed ${Math.round(S.max || 0)} km/h   ·   ${S.events.length} time${S.events.length === 1 ? "" : "s"} over the limit` + (j.reg ? `   ·   vehicle ${j.reg}` : ""), 4], ...fill(1).slice(1)], 22);
+  row([], 14);
+  const H = ["Date", "Time", "Road / Location", "Limit", "My speed", "Over by", "Source", "Status", "Latitude", "Longitude"];
+  row(H.map((h) => [h, 5]), 30);
+  for (const rw of rows) {
+    const over = rw[7] === "OVER LIMIT";
+    row([[rw[0], 6], [rw[1], 6], [rw[2], 6], [rw[3], 10, 1], [rw[4], 10, 1], [rw[5], over ? 7 : 10, 1], [rw[6], 6], [rw[7], over ? 7 : 6], [rw[8], 10, 1], [rw[9], 10, 1]], 26);
+  }
+  row([], 18);
+  row([["Comment on this journey", 8], ...fill(8).slice(1)], 30);
+  merges.push(`B${r}:K${r}`);
+  for (const c of comment) {
+    row([[c, 9], ...fill(9).slice(1)], 22);
+    merges.push(`B${r}:K${r}`);
+  }
+  row([["", 9], ...fill(9).slice(1)], 10);
+  merges.push(`B${r}:K${r}`);
+  const widths = [3, 14, 11, 36, 9, 11, 10, 30, 17, 12, 12];
+  const cols = widths.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" style="1" customWidth="1"/>`).join("") + `<col min="12" max="60" width="9" style="1"/>`;
+  const sh = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetPr><tabColor rgb="FFF5B301"/><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews><sheetView workbookViewId="0" showGridLines="0"><pane ySplit="6" topLeftCell="A7" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="18"/><cols>${cols}</cols><sheetData>${sheet2.join("")}</sheetData><mergeCells count="${merges.length}">${merges.map((m) => `<mergeCell ref="${m}"/>`).join("")}</mergeCells><pageMargins left="0.4" right="0.4" top="0.5" bottom="0.5" header="0.3" footer="0.3"/><pageSetup paperSize="9" orientation="landscape" fitToWidth="1" fitToHeight="0"/><headerFooter><oddFooter>&amp;LRoadGuard GH trip report&amp;RPage &amp;P of &amp;N</oddFooter></headerFooter></worksheet>`;
+  const font = (c, sz, b) => `<font>${b ? "<b/>" : ""}<sz val="${sz}"/><color rgb="FF${c}"/><name val="Calibri"/></font>`, solid = (c) => `<fill><patternFill patternType="solid"><fgColor rgb="FF${c}"/><bgColor indexed="64"/></patternFill></fill>`;
+  const bd = `<border><left/><right/><top/><bottom style="thin"><color rgb="FF2A3A70"/></bottom><diagonal/></border>`, bl = `<border><left style="thick"><color rgb="FF22A55E"/></left><right/><top/><bottom/><diagonal/></border>`;
+  const xf = (f, fi, b, h, ex = "") => `<xf numFmtId="0" fontId="${f}" fillId="${fi}" borderId="${b}" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center" horizontal="${h}" indent="${h === "left" ? 1 : 0}"${ex}/></xf>`;
+  const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<fonts count="9">${font("F7F3E9", 11)}${font("F5B301", 11, 1)}${font("F7F3E9", 24, 1)}${font("B9C4E4", 11)}${font("0A1433", 11, 1)}${font("F7F3E9", 11)}${font("E5484D", 11, 1)}${font("F7F3E9", 14, 1)}${font("B9C4E4", 11)}</fonts>
+<fills count="5"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>${solid("0A1433")}${solid("F5B301")}${solid("15255A")}</fills>
+<borders count="3"><border><left/><right/><top/><bottom/><diagonal/></border>${bd}${bl}</borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs count="11">${xf(0, 0, 0, "general")}${xf(0, 2, 0, "general")}${xf(1, 2, 0, "left")}${xf(2, 2, 0, "left")}${xf(3, 2, 0, "left")}${xf(4, 3, 0, "left")}${xf(5, 4, 1, "left", ' wrapText="1"')}${xf(6, 4, 1, "left")}${xf(7, 4, 2, "left")}${xf(8, 4, 2, "left", ' wrapText="1"')}${xf(5, 4, 1, "left")}</cellXfs>
+<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+  return zipStore([
+    ["[Content_Types].xml", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'],
+    ["_rels/.rels", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
+    ["xl/workbook.xml", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Trip report" sheetId="1" r:id="rId1"/></sheets></workbook>'],
+    ["xl/_rels/workbook.xml.rels", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'],
+    ["xl/styles.xml", styles],
+    ["xl/worksheets/sheet1.xml", sh]
+  ]);
 }
 function tripComment(j, S) {
   const out = [], T = tripScore(S), z = (n) => String(n).padStart(2, "0"), hm = (t) => {
@@ -2417,7 +2508,14 @@ function tripComment(j, S) {
 }
 async function nativeShare(name, data) {
   try {
-    const r = await NP.FS.writeFile({ path: name, data, directory: "CACHE", encoding: "utf8" });
+    const bin = data instanceof Uint8Array;
+    let b64 = "";
+    if (bin) {
+      let s = "";
+      for (let i = 0; i < data.length; i += 32768) s += String.fromCharCode.apply(null, data.subarray(i, i + 32768));
+      b64 = btoa(s);
+    }
+    const r = await NP.FS.writeFile(bin ? { path: name, data: b64, directory: "CACHE" } : { path: name, data, directory: "CACHE", encoding: "utf8" });
     await NP.SH.share({ title: name, files: [r.uri], dialogTitle: "Save or send " + name });
   } catch (e) {
     if (!/cancel/i.test(e.message || "")) alert("Could not share the file: " + (e.message || e));
@@ -2771,7 +2869,7 @@ Date: ${fmtD(Date.now())}`;
     <p class="note" style="margin-top:0">Edit the letter if you need to. When you contest on ghana.gov.gh with your ticket number, attach the three files listed. This is a draft to help you, not legal advice.</p>
     <textarea id="letterTxt" rows="18" style="width:100%;padding:13px;border-radius:14px;border:1px solid var(--line);background:rgba(5,14,36,.6);color:var(--text);font:13.5px/1.5 Barlow,system-ui,sans-serif">${esc(L2)}</textarea>
     <div class="row noprint" style="margin-top:10px"><button class="btn btn-ghost" id="lCopy" style="font-size:16px">Copy letter</button><button class="btn btn-ghost" id="lTxt" style="font-size:16px">Download letter</button></div>
-    <div class="row noprint" style="margin-top:10px"><button class="btn btn-ghost" id="lJson" style="font-size:16px">Evidence file (JSON)</button><button class="btn btn-ghost" id="lCsv" style="font-size:16px">Data (CSV)</button></div>
+    <div class="row noprint" style="margin-top:10px"><button class="btn btn-ghost" id="lJson" style="font-size:16px">Evidence file (JSON)</button><button class="btn btn-ghost" id="lCsv" style="font-size:16px">Data (CSV)</button><button class="btn btn-ghost" id="lXlsx" style="font-size:16px">Table (Excel)</button></div>
     <button class="btn btn-go noprint" id="lPdf" style="margin-top:10px">OPEN REPORT TO SAVE AS PDF</button></div>`;
   $("lCopy").onclick = async () => {
     try {
@@ -2786,6 +2884,7 @@ Date: ${fmtD(Date.now())}`;
   $("lTxt").onclick = () => download(`contest_${F.ticket || j.id}.txt`, $("letterTxt").value, "text/plain");
   $("lJson").onclick = () => download(`roadguard_${j.id}.json`, JSON.stringify({ format: "roadguard-evidence-v1", hashAlgorithm: 'SHA-256 chain: h[i]=sha256(h[i-1]+"|"+canon(point)), h[-1]="GENESIS"', ticket: F, journey: j, summary: summarize(j) }, null, 1), "application/json");
   $("lCsv").onclick = () => download(`roadguard_${j.id}.csv`, toCSV(j), "text/csv");
+  if ($("lXlsx")) $("lXlsx").onclick = () => download(`RoadGuard_trip_${j.id}.xlsx`, toXLSX(j), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
   $("lPdf").onclick = () => openReport(j.id);
   setTimeout(() => $("tLetter").scrollIntoView({ behavior: "smooth", block: "start" }), 50);
 }
@@ -5678,7 +5777,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.3.6";
+const APP_VER = "1.3.7";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
