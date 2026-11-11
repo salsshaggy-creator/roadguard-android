@@ -564,7 +564,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.3.7. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.3.8. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -816,6 +816,7 @@ async function tileGet(k) {
   try {
     const d = await db();
     return await new Promise((res) => {
+      setTimeout(() => res(null), 3e3);
       const r = d.transaction("tiles").objectStore("tiles").get(k);
       r.onsuccess = () => res(r.result);
       r.onerror = () => res(null);
@@ -844,10 +845,11 @@ function parseTile(k, els) {
   const places = els.filter((x) => x.type === "node" && x.tags && x.tags.place && x.tags.name).map((x) => ({ n: x.tags.name, lat: x.lat, lon: x.lon }));
   return { k, v: 2, at: Date.now(), ways, buildings: cnt ? +cnt.tags.total || 0 : 0, amen, places };
 }
+const tileBusy = (c) => !!c && (c.ways || c.loading && Date.now() - c.loading < 45e3 || c.fail && Date.now() - c.fail < 15e3);
 async function loadTile(k) {
-  const cur = tiles.get(k);
-  if (cur && (cur.ways || cur.loading || cur.fail && Date.now() - cur.fail < 15e3)) return;
-  tiles.set(k, { loading: true });
+  if (tileBusy(tiles.get(k))) return;
+  const mine = { loading: Date.now() };
+  tiles.set(k, mine);
   const c = await tileGet(k);
   if (c && c.ways && c.v === 2 && Date.now() - c.at < TILE_TTL) {
     tiles.set(k, c);
@@ -859,17 +861,22 @@ async function loadTile(k) {
     try {
       const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 25e3);
       const r = await fetch(MIRRORS[mirrorIx % MIRRORS.length], { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded" }, signal: ctl.signal });
+      if (!r.ok) {
+        clearTimeout(to);
+        throw new Error(r.status);
+      }
+      const js = await r.json();
       clearTimeout(to);
-      if (!r.ok) throw new Error(r.status);
-      const t = parseTile(k, (await r.json()).elements || []);
+      const t = parseTile(k, js.elements || []);
       tiles.set(k, t);
       tilePut(t);
       return;
     } catch (err) {
       mirrorIx++;
+      if (tiles.get(k) !== mine) return;
     }
   }
-  tiles.set(k, { fail: Date.now() });
+  if (tiles.get(k) === mine) tiles.set(k, { fail: Date.now() });
 }
 function ensureTiles(p, hdg) {
   const ks = /* @__PURE__ */ new Set([tkey(p.lat, p.lon)]);
@@ -889,26 +896,30 @@ function ensureTiles(p, hdg) {
 }
 const TQ = { list: [], busy: 0 };
 function tileQueue(k, first) {
-  const c = tiles.get(k);
-  if (c && (c.ways || c.loading || c.fail && Date.now() - c.fail < 15e3)) return;
-  if (TQ.list.includes(k)) {
-    if (first) {
-      TQ.list = TQ.list.filter((x) => x !== k);
-      TQ.list.unshift(k);
-    }
-  } else if (first) TQ.list.unshift(k);
-  else TQ.list.push(k);
-  if (TQ.list.length > 30) TQ.list.length = 30;
+  if (tileBusy(tiles.get(k))) return;
+  if (first) {
+    TQ.list = TQ.list.filter((x) => x !== k);
+    loadTile(k);
+    return;
+  }
+  if (!TQ.list.includes(k)) TQ.list.push(k);
+  if (TQ.list.length > 30) TQ.list.splice(0, TQ.list.length - 30);
   tilePump();
 }
 function tilePump() {
   while (TQ.busy < 2 && TQ.list.length) {
     const k = TQ.list.shift();
+    if (tileBusy(tiles.get(k))) continue;
     TQ.busy++;
-    loadTile(k).finally(() => {
+    let done = false;
+    const free = () => {
+      if (done) return;
+      done = true;
       TQ.busy--;
       tilePump();
-    });
+    };
+    setTimeout(free, 6e4);
+    loadTile(k).then(free, free);
   }
 }
 function tilesNear(p) {
@@ -1653,7 +1664,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.3.7" : "RoadGuard GH web 1.3.7", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.3.8" : "RoadGuard GH web 1.3.8", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -5777,7 +5788,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.3.7";
+const APP_VER = "1.3.8";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
