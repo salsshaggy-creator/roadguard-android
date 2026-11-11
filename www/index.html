@@ -564,7 +564,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.3.4. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.3.5. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -663,9 +663,10 @@ function hav(a, b) {
   const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(x));
 }
+const OVER_TOL = 3;
 function statusOf(p) {
   if (p.sus || p.spd == null || p.acc > ACC_OK || p.lim == null) return "grey";
-  if (p.spd > p.lim) return "red";
+  if (p.spd >= p.lim + OVER_TOL) return "red";
   if (p.spd >= p.lim - AMBER_MARGIN) return "amber";
   return "green";
 }
@@ -876,11 +877,39 @@ function ensureTiles(p, hdg) {
     const q = dest(p, b, 250);
     ks.add(tkey(q.lat, q.lon));
   }
-  if (hdg != null) {
-    const q = dest(p, hdg, 800);
+  if (hdg != null) for (const d of [400, 800, 1300, 2e3]) {
+    const q = dest(p, hdg, d);
     ks.add(tkey(q.lat, q.lon));
   }
-  ks.forEach(loadTile);
+  for (const b of [45, 135, 225, 315]) {
+    const q = dest(p, b, 900);
+    ks.add(tkey(q.lat, q.lon));
+  }
+  [...ks].forEach((k, i) => tileQueue(k, i === 0));
+}
+const TQ = { list: [], busy: 0 };
+function tileQueue(k, first) {
+  const c = tiles.get(k);
+  if (c && (c.ways || c.loading || c.fail && Date.now() - c.fail < 15e3)) return;
+  if (TQ.list.includes(k)) {
+    if (first) {
+      TQ.list = TQ.list.filter((x) => x !== k);
+      TQ.list.unshift(k);
+    }
+  } else if (first) TQ.list.unshift(k);
+  else TQ.list.push(k);
+  if (TQ.list.length > 30) TQ.list.length = 30;
+  tilePump();
+}
+function tilePump() {
+  while (TQ.busy < 2 && TQ.list.length) {
+    const k = TQ.list.shift();
+    TQ.busy++;
+    loadTile(k).finally(() => {
+      TQ.busy--;
+      tilePump();
+    });
+  }
 }
 function tilesNear(p) {
   const out = [], a = Math.floor(p.lat / TILE), o = Math.floor(p.lon / TILE);
@@ -977,7 +1006,7 @@ function parseMax(v) {
 function limitFor(p, w) {
   if (!w) return { lim: null, src: tileReady(p) ? "No mapped road here" : "Loading map data…" };
   const hw = w.t.highway || "", posted = parseMax(w.t.maxspeed);
-  if (posted) return { lim: posted, src: "Posted limit (map data)" };
+  if (posted) return { lim: posted, src: "Mapped speed limit (map data)" };
   if (/^motorway/.test(hw)) return { lim: 100, src: "Motorway (general limit)" };
   if (!/^(motorway|trunk)/.test(hw) && nearAmenity(p, 60)) return { lim: 30, src: "School/market/hospital area (estimated)" };
   if (!/^(trunk|primary|secondary)/.test(hw)) return { lim: 50, src: "Unsigned local road (default 50)" };
@@ -988,12 +1017,12 @@ function limitFor(p, w) {
 }
 const MS = { cur: null, cand: null, n: 0, dist: 0, last: null, nullDist: 0 };
 function needDist(cur, res) {
-  const lower = res.lim < cur.lim, posted = /^Posted/.test(res.src || "");
+  const lower = res.lim < cur.lim, posted = /^(Posted|Mapped)/.test(res.src || "");
   return lower ? posted ? 60 : 150 : 300;
 }
 function matchAt(p, hdg) {
   const w = nearestRoad(p, hdg), L2 = limitFor(p, w), place = nearestPlace(p), rn = w ? w.t.name || w.t.ref || null : null;
-  const res = { lim: L2.lim, src: L2.src, place, rname: rn, road: rn ? place && !rn.includes(place) ? `${rn}, ${place}` : rn : place ? `near ${place}` : null };
+  const res = { lim: L2.lim, src: L2.src, way: w, place, rname: rn, road: rn ? place && !rn.includes(place) ? `${rn}, ${place}` : rn : place ? `near ${place}` : null };
   const step = MS.last && p.lat != null ? Math.min(hav(MS.last, p), 100) : 0;
   if (p.lat != null) MS.last = { lat: p.lat, lon: p.lon };
   if (!MS.cur || MS.cur.lim == null) {
@@ -1015,7 +1044,7 @@ function matchAt(p, hdg) {
   }
   if (res.lim == null) {
     MS.nullDist += step;
-    if (MS.nullDist > 400) {
+    if (MS.nullDist > (/^Loading/.test(res.src || "") ? 2e3 : 400)) {
       MS.cur = res;
       MS.cand = null;
       MS.n = 0;
@@ -1034,7 +1063,8 @@ function matchAt(p, hdg) {
     MS.n = 1;
     MS.dist = 0;
   }
-  if (MS.n >= 3 && MS.dist >= needDist(MS.cur, res)) {
+  const newRoad = MS.cur.way && res.way && res.way !== MS.cur.way && (res.rname || "") !== (MS.cur.rname || "~");
+  if (MS.n >= 3 && MS.dist >= (newRoad ? Math.min(40, needDist(MS.cur, res)) : needDist(MS.cur, res))) {
     MS.cur = res;
     MS.cand = null;
     MS.n = 0;
@@ -1214,7 +1244,7 @@ const dispSpd = (v) => v == null ? null : v * CAL;
 function liveStatus(p) {
   if (p.sus || p.spd == null || p.acc > ACC_OK || p.lim == null) return "grey";
   const v = dispSpd(p.spd);
-  if (v > p.lim) return "red";
+  if (v >= p.lim + OVER_TOL) return "red";
   if (v >= p.lim - AMBER_MARGIN) return "amber";
   return "green";
 }
@@ -1382,7 +1412,17 @@ const ROAD_CLIPS = /* @__PURE__ */ new Set(["14thstreet", "15thstreet", "16thstr
 const placeSlug = (n) => String(n || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 const partKey = (x) => typeof x === "number" ? x >= 1 && x <= 199 ? "n" + Math.round(x) : null : typeof x === "string" ? x : x && x.road ? ROAD_CLIPS.has(placeSlug(x.road)) ? "r_" + placeSlug(x.road) : null : x && x.tts && PLACE_CLIPS.has(placeSlug(x.tts)) ? "p_" + placeSlug(x.tts) : null;
 const hasPlaceClip = (n) => !!n && PLACE_CLIPS.has(placeSlug(n)), hasRoadClip = (n) => !!n && ROAD_CLIPS.has(placeSlug(n));
-const partsToText = (parts) => parts.map((x) => typeof x === "number" ? String(x) : typeof x === "string" ? CLIPTXT[x] || "" : x && x.road ? "on " + x.road + "." : x && x.tts || "").join(" ").replace(/\s+([.,])/g, "$1").trim();
+const partsToText = (parts) => {
+  let out = "";
+  for (const x of parts) {
+    const clip = typeof x === "string", b = (typeof x === "number" ? String(x) : clip ? CLIPTXT[x] || "" : x && x.road ? "on " + x.road + "." : x && x.tts || "").trim();
+    if (!b) continue;
+    if (out && clip && /^[A-Z]/.test(b) && !/[.!?,:]$/.test(out)) out += ".";
+    out += (out ? " " : "") + b;
+  }
+  if (out && !/[.!?]$/.test(out)) out += ".";
+  return out.replace(/\s+([.,])/g, "$1").trim();
+};
 let clipQ = [], clipBusy = false, clipAudio = null, clipGen = 0;
 function playClip(key) {
   return new Promise((res, rej) => {
@@ -1606,7 +1646,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.3.4" : "RoadGuard GH web 1.3.4", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.3.5" : "RoadGuard GH web 1.3.5", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -2117,7 +2157,7 @@ async function openReport(id) {
   <div class="card"><h3>Speed timeline</h3><canvas class="chart" id="chart"></canvas><div class="tip num" id="tip">Touch the chart to read any moment.</div></div>
   <div class="card"><h3>Overspeed events</h3>${S.events.length ? `<div style="overflow-x:auto"><table class="num"><tr><th>Time</th><th>Where</th><th>Limit</th><th>Max</th><th>For</th><th>GPS</th></tr>
     ${S.events.map((e) => `<tr><td>${fmtT(e.start)}</td><td>${esc(e.road || e.lat.toFixed(5) + ", " + e.lon.toFixed(5))}</td><td>${e.lim}</td><td class="red">${Math.round(e.max)}</td><td>${Math.round((e.end - e.start) / 1e3)}s</td><td>±${Math.round(e.avgAcc)}m</td></tr>`).join("")}</table></div>
-    <p class="note">An event is recorded only when the speed stayed above the limit for at least ${MIN_EVENT_MS / 1e3} seconds with GPS accuracy of ±${ACC_OK} m or better. Limits marked “estimated” may differ from posted signs.</p>` : `<p class="ok-t" style="margin:0">✓ No sustained overspeeding recorded on this journey.</p>`}</div>
+    <p class="note">An event is recorded only when the speed stayed ${OVER_TOL} km/h or more above the limit for at least ${MIN_EVENT_MS / 1e3} seconds with GPS accuracy of ±${ACC_OK} m or better. Limits marked “estimated” may differ from posted signs.</p>` : `<p class="ok-t" style="margin:0">✓ No sustained overspeeding recorded on this journey.</p>`}</div>
   ${(j.limitReports || []).length ? `<div class="card"><h3>Signs reported by the driver</h3><table class="num"><tr><th>Time</th><th>Where</th><th>App limit</th><th>Sign said</th></tr>${j.limitReports.map((r) => {
     var _a;
     return `<tr><td>${fmtT(r.t)}</td><td>${esc(r.road || r.lat + ", " + r.lon)}</td><td>${(_a = r.appLimit) != null ? _a : "–"}</td><td>${r.signLimit}</td></tr>`;
@@ -2314,7 +2354,7 @@ function toCSV(j) {
     return `${z(d.getHours())}:${z(d.getMinutes())}:${z(d.getSeconds())}`;
   };
   const WORD = { green: "Within limit", amber: "Close to limit", red: "OVER LIMIT", grey: "No reading" };
-  const src = (x) => String(x || "").replace(/\s*\((simulated|map data)\)/i, "").replace(/^Posted limit$/, "Posted speed sign") || "Unknown";
+  const src = (x) => String(x || "").replace(/\s*\((simulated|map data)\)/i, "").replace(/^(Posted limit|Mapped speed limit)$/, "Mapped speed limit") || "Unknown";
   const S = summarize(j);
   const head = [
     ["RoadGuard GH trip report" + (j.simulated ? " (DEMO, pretend trip, not evidence)" : "")],
@@ -2354,7 +2394,7 @@ function tripComment(j, S) {
   else {
     const w = ev.reduce((a, e) => e.max - e.lim > a.max - a.lim ? e : a), overT = ev.reduce((a, e) => a + (e.end - e.start), 0);
     out.push(`You went over the limit ${ev.length === 1 ? "once" : ev.length + " times"}, for ${mins(overT)} in total.`);
-    out.push(`The biggest was ${Math.round(w.max)} km/h in a ${w.lim} km/h zone${w.road ? " on " + w.road : ""} at ${hm(w.start)}, which is ${Math.round(w.max - w.lim)} km/h over.`);
+    out.push(`The biggest was ${Math.round(w.max)} km/h in a ${w.lim} km/h zone${w.road ? (/^near /.test(w.road) ? " " : " on ") + w.road : ""} at ${hm(w.start)}, which is ${Math.round(w.max - w.lim)} km/h over.`);
     if (T && T.severe) out.push(`${T.severe === 1 ? "Once" : T.severe + " times"} you were more than 20 km/h over the limit. That is dangerous and can bring a heavy fine.`);
   }
   try {
@@ -2683,7 +2723,7 @@ async function checkTicket() {
     <tr><td class="muted">Your location</td><td>${esc(near.road || "")} <span class="muted">(${near.lat}, ${near.lon})</span></td></tr>
     ${locLine}
     <tr><td class="muted">GPS accuracy</td><td>±${Math.round(near.acc)} m</td></tr>
-    <tr><td class="muted">Limit in your record</td><td>${(_b = near.lim) != null ? _b : "unknown"} <span class="muted">(${esc(near.limSrc)})</span></td></tr>
+    <tr><td class="muted">Limit in your record</td><td>${(_b = near.lim) != null ? _b : "unknown"} <span class="muted">(${esc(String(near.limSrc || "").replace(/^Posted limit/, "Mapped speed limit"))})</span></td></tr>
    </table>
    <p class="note">A difference doesn't prove either reading wrong. Review the police photo or video on ghana.gov.gh using your ticket number.</p>
    <div class="row noprint"><button class="btn btn-ghost" id="tOpen" style="font-size:16px">Journey report</button>${r.kind === "lower" || r.locMatch === false && r.kind !== "paused" ? '<button class="btn btn-go" id="tContest" style="font-size:16px">PREPARE MY CONTEST</button>' : ""}</div></div>`;
@@ -5631,7 +5671,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.3.4";
+const APP_VER = "1.3.5";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
