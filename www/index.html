@@ -565,7 +565,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.5.1. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.5.2. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1479,7 +1479,7 @@ function say(text, urgent) {
   } catch (e) {
   }
 }
-const CLIPTXT = { "no_limit": "Speed limit not available here. Please watch the road signs.", "limit_here": "The speed limit here is", "limit_now": "The speed limit is now", "limit_is": "The speed limit is", "kmh": "kilometres per hour.", "slow_down": "Please slow down.", "reached": "You've reached", "drops_to": "Speed limit drops to", "ahead_slow": "ahead. Please slow down.", "slow_zone": "Slow down.", "zone_ahead": "kilometre zone ahead.", "over_slow_to": "You are over the speed limit. Slow down to", "you_doing": "You are doing", "slow_please": "Slow down please. You are doing", "in_a": "in a", "zone": "zone.", "careful_cross": "Be careful, you're about to cross the speed limit of", "careful_close": "Careful. You are close to the", "limit_word": "limit.", "ease_off": "Please ease off. The limit is", "back_within": "Thank you. You're back within the limit.", "on": "RoadGuard is on. Drive safely.", "demo": "Demo drive starting.", "test": "Speed limit fifty. You are doing fifty six. Please slow down.", "youre_in": "You're in", "demo_intro": "This is a demo drive. RoadGuard will pretend to drive from Accra to Tema, so you can hear how it works. Your real location is not used.", "demo_end": "Demo finished. Here is your trip report.", "on_duty": "RoadGuard is now on duty. Your journey is being monitored. Drive safe!", "cam_ahead": "Speed camera ahead.", "police_ahead": "Police barrier ahead. Slow down and have your licence ready.", "pothole_ahead": "Pothole ahead. Slow down.", "bump_ahead": "Speed bump ahead.", "accident_ahead": "Accident ahead. Slow down and drive carefully.", "breakdown_ahead": "Broken-down vehicle ahead.", "flood_ahead": "Flooded road ahead. Drive with care.", "works_ahead": "Road works ahead. Slow down." };
+const CLIPTXT = { "a_need_journey": "I need a journey running to answer that. Start a journey first.", "a_cam_rep": "A speed camera was reported", "a_ahead_conf": "ahead. Last confirmed", "a_no_cam": "No speed cameras have been reported ahead in the next 3 kilometres. Cameras can be moved, so always keep to the limit.", "a_pol_rep": "Drivers reported a police barrier", "a_no_pol": "No police barriers have been reported ahead in the next 3 kilometres.", "a_no_traffic": "I don't have live traffic information yet.", "a_nothing_ahead": "Nothing has been reported on the road ahead in the next 3 kilometres. Drive safely.", "a_hz_camera": "A speed camera was reported", "a_hz_police": "A police barrier was reported", "a_hz_pothole": "A pothole was reported", "a_hz_bump": "A speed bump was reported", "a_hz_accident": "An accident was reported", "a_hz_breakdown": "A broken-down vehicle was reported", "a_hz_flood": "A flooded road was reported", "a_hz_works": "Road works were reported", "a_more_one": "There is one more report further on.", "a_there_are": "There are", "a_more_reports": "more reports further on.", "a_over_n": "You have gone over the limit", "a_times_journey": "times on this journey. Please keep below the limit.", "a_over_once": "You have gone over the limit once on this journey. Please keep below the limit.", "a_no_over": "You have not gone over the limit on this journey. Well done, keep it up.", "a_driven": "We have driven", "a_in": "in", "a_minutes": "minutes.", "a_one_minute": "one minute.", "a_hours": "hours", "a_one_hour": "one hour", "a_and": "and", "a_kilometres": "kilometres", "a_driving_for": "We have been driving for", "a_avg": "Your average moving speed is", "a_changes_to": "The speed limit changes to", "a_kmh_in": "kilometres per hour in", "a_start_slowing": "Start slowing down.", "a_cant_dir": "I can't tell which way we are going yet.", "a_map_loading": "The map ahead is still loading, so I can't see further yet.", "a_stays": "It stays the same for at least the next", "a_next_place": "The next place is", "a_ahead": "ahead.", "a_cant_town": "I can't see the next town yet.", "a_we_in": "We are in", "a_that_over": "That is over the", "a_limit_slow": "limit. Please slow down.", "a_lim_is": "The limit is", "a_so_close": "so you are close to it.", "a_so_within": "so you are within it.", "a_wait_gps": "I am waiting for a GPS reading. Ask me again in a moment.", "a_we_are": "We are", "a_no_place": "I don't have a place name here yet.", "a_help": "Sorry, I can tell you where we are, your speed, the speed limit, the next speed limit, cameras, police, potholes and accidents ahead, and how far we have driven.", "a_nomatch": "Sorry, I didn't catch that. Tap Ask and try again.", "a_network": "I need an internet connection to hear you. Please try again in a moment.", "a_mic": "Please allow RoadGuard to use the microphone, then try again.", "a_cantlisten": "Sorry, I couldn't listen just now.", "a_just_now": "just now.", "a_min_ago": "minutes ago.", "a_one_min_ago": "one minute ago.", "a_hour_ago": "about an hour ago.", "a_hours_ago": "hours ago.", "a_about": "about", "a_m50": "about 50 metres", "a_m100": "about 100 metres", "a_m150": "about 150 metres", "a_m200": "about 200 metres", "a_m250": "about 250 metres", "a_m300": "about 300 metres", "a_m350": "about 350 metres", "a_m400": "about 400 metres", "a_m450": "about 450 metres", "a_m500": "about 500 metres", "a_m550": "about 550 metres", "a_m600": "about 600 metres", "a_m650": "about 650 metres", "a_m700": "about 700 metres", "a_m750": "about 750 metres", "a_m800": "about 800 metres", "a_m850": "about 850 metres", "a_m900": "about 900 metres", "a_m950": "about 950 metres", "a_km10": "about 1 kilometre", "a_km11": "about 1.1 kilometres", "a_km12": "about 1.2 kilometres", "a_km13": "about 1.3 kilometres", "a_km14": "about 1.4 kilometres", "a_km15": "about 1.5 kilometres", "a_km16": "about 1.6 kilometres", "a_km17": "about 1.7 kilometres", "a_km18": "about 1.8 kilometres", "a_km19": "about 1.9 kilometres", "a_km20": "about 2 kilometres", "a_km21": "about 2.1 kilometres", "a_km22": "about 2.2 kilometres", "a_km23": "about 2.3 kilometres", "a_km24": "about 2.4 kilometres", "a_km25": "about 2.5 kilometres", "a_km26": "about 2.6 kilometres", "a_km27": "about 2.7 kilometres", "a_km28": "about 2.8 kilometres", "a_km29": "about 2.9 kilometres", "a_km30": "about 3 kilometres", "a_km31": "about 3.1 kilometres", "a_km32": "about 3.2 kilometres", "a_km33": "about 3.3 kilometres", "a_km34": "about 3.4 kilometres", "a_km35": "about 3.5 kilometres", "a_km36": "about 3.6 kilometres", "a_km37": "about 3.7 kilometres", "a_km38": "about 3.8 kilometres", "a_km39": "about 3.9 kilometres", "a_km40": "about 4 kilometres", "a_km41": "about 4.1 kilometres", "a_km42": "about 4.2 kilometres", "a_km43": "about 4.3 kilometres", "a_km44": "about 4.4 kilometres", "a_km45": "about 4.5 kilometres", "a_km46": "about 4.6 kilometres", "a_km47": "about 4.7 kilometres", "a_km48": "about 4.8 kilometres", "a_km49": "about 4.9 kilometres", "a_km50": "about 5 kilometres", "a_km51": "about 5.1 kilometres", "a_km52": "about 5.2 kilometres", "a_km53": "about 5.3 kilometres", "a_km54": "about 5.4 kilometres", "a_km55": "about 5.5 kilometres", "a_km56": "about 5.6 kilometres", "a_km57": "about 5.7 kilometres", "a_km58": "about 5.8 kilometres", "a_km59": "about 5.9 kilometres", "a_km60": "about 6 kilometres", "a_km61": "about 6.1 kilometres", "a_km62": "about 6.2 kilometres", "a_km63": "about 6.3 kilometres", "a_km64": "about 6.4 kilometres", "a_km65": "about 6.5 kilometres", "a_km66": "about 6.6 kilometres", "a_km67": "about 6.7 kilometres", "a_km68": "about 6.8 kilometres", "a_km69": "about 6.9 kilometres", "a_km70": "about 7 kilometres", "a_km71": "about 7.1 kilometres", "a_km72": "about 7.2 kilometres", "a_km73": "about 7.3 kilometres", "a_km74": "about 7.4 kilometres", "a_km75": "about 7.5 kilometres", "a_km76": "about 7.6 kilometres", "a_km77": "about 7.7 kilometres", "a_km78": "about 7.8 kilometres", "a_km79": "about 7.9 kilometres", "a_km80": "about 8 kilometres", "a_km81": "about 8.1 kilometres", "a_km82": "about 8.2 kilometres", "a_km83": "about 8.3 kilometres", "a_km84": "about 8.4 kilometres", "a_km85": "about 8.5 kilometres", "a_km86": "about 8.6 kilometres", "a_km87": "about 8.7 kilometres", "a_km88": "about 8.8 kilometres", "a_km89": "about 8.9 kilometres", "a_km90": "about 9 kilometres", "a_km91": "about 9.1 kilometres", "a_km92": "about 9.2 kilometres", "a_km93": "about 9.3 kilometres", "a_km94": "about 9.4 kilometres", "a_km95": "about 9.5 kilometres", "a_km96": "about 9.6 kilometres", "a_km97": "about 9.7 kilometres", "a_km98": "about 9.8 kilometres", "a_km99": "about 9.9 kilometres", "no_limit": "Speed limit not available here. Please watch the road signs.", "limit_here": "The speed limit here is", "limit_now": "The speed limit is now", "limit_is": "The speed limit is", "kmh": "kilometres per hour.", "slow_down": "Please slow down.", "reached": "You've reached", "drops_to": "Speed limit drops to", "ahead_slow": "ahead. Please slow down.", "slow_zone": "Slow down.", "zone_ahead": "kilometre zone ahead.", "over_slow_to": "You are over the speed limit. Slow down to", "you_doing": "You are doing", "slow_please": "Slow down please. You are doing", "in_a": "in a", "zone": "zone.", "careful_cross": "Be careful, you're about to cross the speed limit of", "careful_close": "Careful. You are close to the", "limit_word": "limit.", "ease_off": "Please ease off. The limit is", "back_within": "Thank you. You're back within the limit.", "on": "RoadGuard is on. Drive safely.", "demo": "Demo drive starting.", "test": "Speed limit fifty. You are doing fifty six. Please slow down.", "youre_in": "You're in", "demo_intro": "This is a demo drive. RoadGuard will pretend to drive from Accra to Tema, so you can hear how it works. Your real location is not used.", "demo_end": "Demo finished. Here is your trip report.", "on_duty": "RoadGuard is now on duty. Your journey is being monitored. Drive safe!", "cam_ahead": "Speed camera ahead.", "police_ahead": "Police barrier ahead. Slow down and have your licence ready.", "pothole_ahead": "Pothole ahead. Slow down.", "bump_ahead": "Speed bump ahead.", "accident_ahead": "Accident ahead. Slow down and drive carefully.", "breakdown_ahead": "Broken-down vehicle ahead.", "flood_ahead": "Flooded road ahead. Drive with care.", "works_ahead": "Road works ahead. Slow down." };
 try {
   const ov = localStorage.getItem("rg_voice");
   if (ov != null && ov !== "0" && ov !== "1") {
@@ -1807,67 +1807,74 @@ function askTopic(text) {
   if (best === "speed" && sc.limit) best = / (how fast|my speed|am i|i am|going|doing) /.test(q) ? "speed" : "limit";
   return best;
 }
+const distP = (m) => m < 975 ? ["a_m" + Math.min(950, Math.max(50, Math.round(m / 50) * 50))] : m < 9950 ? ["a_km" + Math.round(m / 100)] : ["a_about", Math.min(199, Math.round(m / 1e3)), "a_kilometres"];
+const agoP = (t) => {
+  const m = Math.round((Date.now() - t) / 6e4);
+  return m < 2 ? ["a_just_now"] : m < 60 ? [m, "a_min_ago"] : m < 120 ? ["a_hour_ago"] : [Math.min(199, Math.round(m / 60)), "a_hours_ago"];
+};
+const durP = (min) => min < 1 ? ["a_one_minute"] : min < 60 ? min === 1 ? ["a_one_minute"] : [min, "a_minutes"] : [...min < 120 ? ["a_one_hour"] : [Math.floor(min / 60), "a_hours"], ...min % 60 ? ["a_and", ...min % 60 === 1 ? ["a_one_minute"] : [min % 60, "a_minutes"]] : []];
 function askAnswer(text) {
   const p = askHere();
-  if (!p) return "I need a journey running to answer that. Start a journey first.";
+  if (!p) return ["a_need_journey"];
   const hdg = lastBearing, spd = p.spd == null ? null : Math.round(dispSpd(p.spd)), lim = p.lim, place = placeNow(p), road = roadNow();
-  const limTxt = lim != null ? `The speed limit here is ${lim} kilometres per hour.` : `I don't have a speed limit for this road. Please watch the road signs.`;
-  const hzTxt = (a) => `${HZT[a.h.type].name} reported ${sayKm(a.d)} ahead, last confirmed ${sayAgo(a.h.at)}.`;
+  const limP = lim != null ? ["limit_here", lim, "kmh"] : ["no_limit"];
+  const hzP = (a) => ["a_hz_" + a.h.type, ...distP(a.d), "a_ahead_conf", ...agoP(a.h.at)];
   switch (askTopic(text)) {
     case "camera": {
       const a = hazardsAhead(p, hdg, ["camera"]);
-      return a.length ? `A speed camera was reported ${sayKm(a[0].d)} ahead, last confirmed ${sayAgo(a[0].h.at)}. ${limTxt}` : `No speed cameras have been reported ahead in the next 3 kilometres. Cameras can be moved, so always keep to the limit.`;
+      return a.length ? ["a_cam_rep", ...distP(a[0].d), "a_ahead_conf", ...agoP(a[0].h.at), ...limP] : ["a_no_cam"];
     }
     case "police": {
       const a = hazardsAhead(p, hdg, ["police"]);
-      return a.length ? `Drivers reported a police barrier ${sayKm(a[0].d)} ahead, last confirmed ${sayAgo(a[0].h.at)}.` : `No police barriers have been reported ahead in the next 3 kilometres.`;
+      return a.length ? ["a_pol_rep", ...distP(a[0].d), "a_ahead_conf", ...agoP(a[0].h.at)] : ["a_no_pol"];
     }
     case "traffic": {
       const a = hazardsAhead(p, hdg, ["accident", "breakdown", "works", "flood"]);
-      return `I don't have live traffic information yet.` + (a.length ? ` But ${hzTxt(a[0]).replace(/^./, (c) => c.toLowerCase())}` : ` Nothing has been reported on the road ahead.`);
+      return ["a_no_traffic", ...a.length ? hzP(a[0]) : ["a_nothing_ahead"]];
     }
     case "hazard": {
       const a = hazardsAhead(p, hdg);
-      if (!a.length) return "Nothing has been reported on the road ahead in the next 3 kilometres. Drive safely.";
-      const n = a.length;
-      return hzTxt(a[0]) + (n > 1 ? ` There ${n === 2 ? "is one more report" : "are " + (n - 1) + " more reports"} further on.` : "");
+      if (!a.length) return ["a_nothing_ahead"];
+      return [...hzP(a[0]), ...a.length === 2 ? ["a_more_one"] : a.length > 2 ? ["a_there_are", Math.min(199, a.length - 1), "a_more_reports"] : []];
     }
     case "overspeed": {
       const n = summarize(J).events.length;
-      return n ? `You have gone over the limit ${n} time${n > 1 ? "s" : ""} on this journey. Please keep below the limit.` : `You have not gone over the limit on this journey. Well done, keep it up.`;
+      return n === 0 ? ["a_no_over"] : n === 1 ? ["a_over_once"] : ["a_over_n", Math.min(199, n), "a_times_journey"];
     }
     case "distance": {
-      const km = live.dist / 1e3, min = Math.round((Date.now() - J.startedAt) / 6e4);
-      return `We have driven ${km < 1 ? Math.round(live.dist) + " metres" : km.toFixed(1) + " kilometres"} in ${min < 60 ? min + " minutes" : Math.floor(min / 60) + " hour" + (min >= 120 ? "s" : "") + (min % 60 ? " " + min % 60 + " minutes" : "")}.`;
+      const d = live.dist, min = Math.round((Date.now() - J.startedAt) / 6e4);
+      return ["a_driven", ...d < 975 ? distP(d) : d < 9950 ? distP(d) : [Math.min(199, Math.round(d / 1e3)), "a_kilometres"], "a_in", ...durP(min)];
     }
     case "duration": {
       const S = summarize(J), min = Math.round((Date.now() - J.startedAt) / 6e4);
-      return `We have been driving for ${min} minutes. Your average moving speed is ${Math.round(S.avg || 0)} kilometres per hour.`;
+      return ["a_driving_for", ...durP(min), "a_avg", Math.max(1, Math.round(S.avg || 0)), "kmh"];
     }
     case "nextlimit": {
       const a = nextLimitAhead(p, hdg);
-      if (!a) return `I can't tell which way we are going yet. ${limTxt}`;
-      if (a.lim) return `The speed limit changes to ${a.lim} kilometres per hour in ${sayKm(a.d)}.` + (a.lim < (lim || 999) ? " Start slowing down." : "");
-      if (a.unknown) return `${limTxt} The map ahead is still loading, so I can't see further yet.`;
-      return `${limTxt} It stays the same for at least the next ${sayKm(a.d).replace("about ", "")}${a.end ? " on this road" : ""}.`;
+      if (!a) return ["a_cant_dir", ...limP];
+      if (a.lim) return ["a_changes_to", a.lim, "a_kmh_in", ...distP(a.d), ...a.lim < (lim || 999) ? ["a_start_slowing"] : []];
+      if (a.unknown) return [...limP, "a_map_loading"];
+      return [...limP, "a_stays", ...distP(a.d)];
     }
     case "nexttown": {
       const a = nextPlaceAhead(p, hdg, place);
-      return a ? `The next place is ${a.name}, ${sayKm(a.d)} ahead.` : `I can't see the next town yet.` + (place ? ` We are in ${place}.` : "");
+      return a ? ["a_next_place", { tts: a.name }, ...distP(a.d), "a_ahead"] : ["a_cant_town", ...place ? ["a_we_in", { tts: place }] : []];
     }
     case "speed": {
-      if (spd == null) return "I am waiting for a GPS reading. Ask me again in a moment.";
-      const over = lim != null && spd >= lim + 3;
-      return `You are doing ${spd} kilometres per hour. ` + (lim == null ? "" : over ? `That is over the ${lim} limit. Please slow down.` : spd >= lim - 5 ? `The limit is ${lim}, so you are close to it.` : `The limit is ${lim}, so you are within it.`);
+      if (spd == null) return ["a_wait_gps"];
+      const sp = ["you_doing", spd, "kmh"];
+      if (lim == null) return sp;
+      if (spd >= lim + 3) return [...sp, "a_that_over", lim, "a_limit_slow"];
+      return [...sp, "a_lim_is", lim, spd >= lim - 5 ? "a_so_close" : "a_so_within"];
     }
     case "limit":
-      return limTxt;
+      return limP;
     case "where": {
-      if (!place && !road) return `I don't have a place name here yet. ${limTxt}`;
-      return (road ? `We are on ${road}` : "We are") + (place ? `${road ? ", in" : " in"} ${place}.` : ".") + (spd != null ? ` You are doing ${spd} kilometres per hour.` : "") + (lim != null ? ` The limit is ${lim}.` : "");
+      if (!place && !road) return ["a_no_place", ...limP];
+      return [...place ? ["a_we_in", { tts: place }] : ["a_we_are"], ...road ? [{ road }] : [], ...spd != null ? ["you_doing", spd, "kmh"] : [], ...lim != null ? ["a_lim_is", lim] : []];
     }
   }
-  return "Sorry, I can tell you where we are, your speed, the speed limit, the next speed limit, cameras, police, potholes and accidents ahead, and how far we have driven.";
+  return ["a_help"];
 }
 async function askListen() {
   if (ASK.busy) return;
@@ -1932,10 +1939,9 @@ async function askListen() {
     if (!matches.length) throw new Error("nomatch");
     let heard = matches[0], ans = null;
     for (const m of matches) {
-      const a = askAnswer(m);
-      if (!/^Sorry, I can tell/.test(a)) {
+      if (askTopic(m)) {
         heard = m;
-        ans = a;
+        ans = askAnswer(m);
         break;
       }
     }
@@ -1947,10 +1953,10 @@ async function askListen() {
     } catch (e) {
     }
     toast("🎤 " + heard);
-    sayParts([{ tts: ans }], true);
+    sayParts(ans, true);
   } catch (e) {
     const m = String(e && e.message || e);
-    sayParts([{ tts: m === "nomatch" ? "Sorry, I didn't catch that. Tap Ask and try again." : m === "network" ? "I need an internet connection to hear you. Please try again in a moment." : /permission|microphone/i.test(m) ? "Please allow RoadGuard to use the microphone, then try again." : "Sorry, I couldn't listen just now." }], true);
+    sayParts([m === "nomatch" ? "a_nomatch" : m === "network" ? "a_network" : /permission|microphone/i.test(m) ? "a_mic" : "a_cantlisten"], true);
   } finally {
     ASK.busy = false;
     setB("🎤 Ask RoadGuard");
@@ -1977,7 +1983,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.5.1" : "RoadGuard GH web 1.5.1", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.5.2" : "RoadGuard GH web 1.5.2", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -6158,7 +6164,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.5.1";
+const APP_VER = "1.5.2";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
