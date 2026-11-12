@@ -402,7 +402,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
       </div>
     </div>
     <div class="ctl noprint" id="ctlShare" style="display:none;margin-top:10px;gap:10px"><button class="btn btn-ghost" id="btnShare" style="font-size:17px"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:6px"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>Share my trip live</button><button class="btn btn-ghost" id="btnShareStop" style="display:none;font-size:15px;flex:0 0 auto;width:auto;padding:12px 16px">Stop sharing</button><button class="btn" id="btnSOS" style="flex:0 0 auto;width:auto;padding:12px 18px;font-size:17px;font-weight:800;background:#DC2626;color:#fff;border:0">SOS</button></div>
-    <div class="ctl noprint" id="ctlReport" style="display:none;margin-top:10px"><button class="btn btn-ghost" id="btnReport" style="font-size:16px">⚠️ Report a hazard: camera, police, pothole…</button></div>
+    <div class="ctl noprint" id="ctlReport" style="display:none;margin-top:10px"><button class="btn btn-ghost" id="btnReport" style="font-size:16px">⚠️ Report a hazard: camera, police, pothole…</button><button class="btn btn-ghost" id="btnLimit" style="font-size:16px;margin-top:8px">🚫 Wrong speed limit here?</button></div>
     <div id="hzAsk" class="noprint" style="display:none;position:fixed;left:12px;right:12px;bottom:110px;z-index:29000;background:#0E1F4A;border:2px solid var(--gold);border-radius:18px;padding:14px;gap:10px;align-items:center;box-shadow:0 12px 40px rgba(0,0,0,.5)">
       <b id="hzAskT" style="flex:1;font-size:16px"></b><button class="btn btn-go" id="hzYes" style="width:auto;padding:12px 16px">Yes</button><button class="btn btn-ghost" id="hzNo" style="width:auto;padding:12px 16px">Gone</button></div>
     <div id="rgSheet" class="noprint" style="display:none;position:fixed;inset:0;z-index:30000;background:rgba(2,6,20,.75);align-items:flex-end;justify-content:center">
@@ -564,7 +564,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.3.9. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.4.0. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1052,7 +1052,7 @@ function needDist(cur, res) {
   return lower ? posted ? 60 : 150 : 300;
 }
 function matchAt(p, hdg) {
-  const w = nearestRoad(p, hdg), L2 = limitFor(p, w), place = nearestPlace(p), rn = w ? w.t.name || w.t.ref || null : null;
+  const w = nearestRoad(p, hdg), L2 = fixLimit(p, limitFor(p, w)), place = nearestPlace(p), rn = w ? w.t.name || w.t.ref || null : null;
   const res = { lim: L2.lim, src: L2.src, way: w, place, rname: rn, road: rn ? place && !rn.includes(place) ? `${rn}, ${place}` : rn : place ? `near ${place}` : null };
   const step = MS.last && p.lat != null ? Math.min(hav(MS.last, p), 100) : 0;
   if (p.lat != null) MS.last = { lat: p.lat, lon: p.lon };
@@ -1160,7 +1160,57 @@ async function myHz() {
   return MYHZ;
 }
 const hzLive = (h) => !!(h.v || h.n == null || h.n >= 2);
+const LIMIT_FIX_BUILTIN = [
+  // unnamed road between Sowah Bampoe Street and Anderson Street (Frafraha / Adenta): mapped 30, posted 50. Checked on the road, 12 Nov 2026
+  ...[-0.1573, -0.1561, -0.1549, -0.1537, -0.1525, -0.1513].map((lon) => ({ lat: 5.7112, lon, r: 80, from: 30, to: 50 }))
+];
+let LIMIT_FIX = LIMIT_FIX_BUILTIN.slice(), limFixAt = 0;
+try {
+  const c = JSON.parse(localStorage.getItem("rg_limfix") || "null");
+  if (c && Array.isArray(c.list)) LIMIT_FIX = LIMIT_FIX_BUILTIN.concat(c.list);
+} catch (e) {
+}
+async function loadLimitFixes() {
+  if (Date.now() - limFixAt < 3 * 36e5) return;
+  limFixAt = Date.now();
+  try {
+    await backend();
+    if (B !== FBK || !B.db) return;
+    const list = (await B.db.collection("limitfix").get()).docs.map((d) => d.data()).filter((f) => typeof f.lat === "number" && typeof f.lon === "number" && typeof f.to === "number");
+    LIMIT_FIX = LIMIT_FIX_BUILTIN.concat(list);
+    try {
+      localStorage.setItem("rg_limfix", JSON.stringify({ at: Date.now(), list }));
+    } catch (e) {
+    }
+  } catch (e) {
+  }
+}
+function fixLimit(p, L2) {
+  if (!L2 || L2.lim == null || !/^(Posted|Mapped)/.test(L2.src || "")) return L2;
+  for (const f of LIMIT_FIX) if (L2.lim === f.from && hav(p, f) <= (f.r || 80)) return { ...L2, lim: f.to, src: "Corrected speed limit" };
+  return L2;
+}
+async function reportLimit(sign) {
+  const p = J && J.points.at(-1);
+  if (!p || p.lat == null) {
+    toast("Waiting for GPS. Try again in a moment.");
+    return;
+  }
+  if (!signedIn()) {
+    toast("Sign in to report a wrong speed limit");
+    return;
+  }
+  try {
+    await backend();
+    const me = await myHz();
+    await B.db.collection("limitreports").add({ lat: +p.lat.toFixed(5), lon: +p.lon.toFixed(5), shown: p.lim == null ? 0 : p.lim, sign, road: String(p.road || "").slice(0, 80), at: Date.now(), by: me });
+    toast("Thank you. RoadGuard will check it and correct the limit for everyone.");
+  } catch (e) {
+    toast("Could not send: " + (e.message || e));
+  }
+}
 async function hzRefresh(p, force) {
+  loadLimitFixes();
   const cells = hzCells(p), key = cells.join();
   if (!force && (HZ.loading || key === HZ.key && Date.now() - HZ.at < 5 * 6e4)) return;
   HZ.loading = true;
@@ -1654,7 +1704,7 @@ function voiceFor(p, place, ahead, rname) {
     if (st !== "grey") V.st = st;
     return;
   }
-  if (st === "red" && (V.st !== "red" || t - V.overAt > 15e3)) {
+  if (st === "red" && t - V.overAt > (V.st !== "red" ? 8e3 : 15e3)) {
     beep(2, 988);
     sayParts(pick([["slow_down", "limit_is", p.lim, "you_doing", spd], ["over_slow_to", p.lim], ["slow_please", spd, "in_a", p.lim, "zone"]]), true);
     V.overAt = t;
@@ -1694,7 +1744,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.3.9" : "RoadGuard GH web 1.3.9", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.4.0" : "RoadGuard GH web 1.4.0", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -4522,9 +4572,10 @@ async function renderFamily(box) {
 }
 async function renderAdmin(box) {
   box.innerHTML = '<div class="card"><h3>Admin</h3><p class="note" style="margin:0">Loading…</p></div>';
-  let pend = [], users = [], msgs = [], devs = [];
+  let pend = [], users = [], msgs = [], devs = [], lrep = [], lfix = [];
   try {
-    [pend, users, msgs, devs] = await Promise.all([B.pendingPayments(), B.allUsers(), B.feedbackList ? B.feedbackList().catch(() => []) : [], B.devices ? B.devices().catch(() => []) : []]);
+    const gd = (c) => B.db.collection(c).get().then((q) => q.docs.map((d) => ({ id: d.id, ...d.data() }))).catch(() => []);
+    [pend, users, msgs, devs, lrep, lfix] = await Promise.all([B.pendingPayments(), B.allUsers(), B.feedbackList ? B.feedbackList().catch(() => []) : [], B.devices ? B.devices().catch(() => []) : [], gd("limitreports"), gd("limitfix")]);
   } catch (e) {
     box.innerHTML = `<div class="card"><h3>Admin</h3><p class="note">${esc(e.message)}</p></div>`;
     return;
@@ -4561,6 +4612,12 @@ async function renderAdmin(box) {
     return `<tr><td>${esc(x.name || "")}<div class="small muted">${esc(x.email || "")}</div></td><td class="small">${{ active: (x.tier && x.tier !== "plus" ? TIERS[x.tier].name + (x.tier === "fleet" ? " (" + (x.fleetVehicles || 1) + ")" : "") + " · " : "Plus · ") + "until " + fmtD(st.until), trial: "Trial · " + st.days + " days left", expired: "Trial ended", none: "—" }[st.status]}</td><td class="small">${x.createdAt ? fmtD(x.createdAt) : ""}</td><td class="small">${ago(x.lastSeen)}<div class="muted">${esc(x.device || "")}${x.appVer ? " · " + esc(x.appVer) : ""}</div></td></tr>`;
   }).join("")}</table></div></details>
     <p class="note" style="margin:10px 0 0">Counts people who made an account. Phones without an account are counted below by a random ID only.</p>
+    <details ${lrep.length ? "open" : ""} style="margin-top:14px"><summary style="cursor:pointer;font-weight:700">Wrong speed limit reports (${lrep.length}) · corrections in use (${lfix.length + LIMIT_FIX_BUILTIN.length})</summary>
+      ${lrep.length ? lrep.sort((a, b) => n(b.at) - n(a.at)).map((x) => `<div class="veh" style="margin-top:8px"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>${esc(x.road || "Unnamed road")}</b><span class="small muted">${ago(x.at)}</span></div>
+        <div class="small" style="margin:6px 0">RoadGuard showed <b>${x.shown || "no limit"}</b> · driver says the sign is <b style="color:var(--gold2)">${x.sign ? x.sign + " km/h" : "no sign"}</b> · <a href="https://www.openstreetmap.org/?mlat=${x.lat}&mlon=${x.lon}#map=18/${x.lat}/${x.lon}" target="_blank" rel="noopener" style="color:var(--gold2)">see on map</a></div>
+        <div class="row" style="gap:8px"><input class="lfTo num" data-id="${x.id}" type="number" value="${x.sign || 50}" style="max-width:110px"><button class="btn btn-go lfOk" data-id="${x.id}" style="font-size:15px;padding:10px">✓ Correct to this limit</button><button class="btn btn-ghost lfNo" data-id="${x.id}" style="font-size:15px;padding:10px">✕ Dismiss</button></div></div>`).join("") : '<p class="note">No reports. Drivers report from the Drive screen with “Wrong speed limit here?”.</p>'}
+      ${lfix.length ? `<div class="small muted" style="margin-top:10px">Your corrections:</div>` + lfix.map((f) => `<div class="small" style="margin-top:6px">${esc(f.road || "Unnamed road")}: ${f.from} → <b>${f.to}</b> · <a href="#" class="lfDel" data-id="${f.id}" style="color:#FCA5A5">remove</a></div>`).join("") : ""}
+      <p class="note" style="margin:8px 0 0">A correction covers about 120 m each way around the report and only replaces that exact map limit. For a longer road, approve reports from several points along it.</p></details>
     <details style="margin-top:14px"><summary style="cursor:pointer;font-weight:700">Move purchases to a new phone</summary>
       <p class="note">For someone who lost their recovery code: check their payment reference in Paystack first, then copy everything from the old phone ID to the new one.</p>
       <div class="row" style="gap:8px"><input id="mvOld" placeholder="Old phone ID, e.g. RG-AB12CD34" autocapitalize="characters"><input id="mvNew" placeholder="New phone ID" autocapitalize="characters"></div>
@@ -4572,6 +4629,42 @@ async function renderAdmin(box) {
       ${devs.length > 100 ? '<p class="note">Showing the 100 most recent.</p>' : ""}
       <p class="note" style="margin:8px 0 0">Each phone sends only a random ID, the app version, the phone type, when it was opened and how many drives and demos it has done. No name, number or location.</p></details></div>`;
   $("adRefresh").onclick = () => renderAdmin(box);
+  box.querySelectorAll(".lfOk").forEach((b) => b.onclick = async () => {
+    const x = lrep.find((r) => r.id === b.dataset.id), to = +box.querySelector(`.lfTo[data-id="${b.dataset.id}"]`).value;
+    if (!x || !(to >= 5 && to <= 130)) {
+      alert("Enter a limit between 5 and 130");
+      return;
+    }
+    try {
+      await B.db.collection("limitfix").add({ lat: x.lat, lon: x.lon, r: 120, from: x.shown, to, road: x.road || "", at: Date.now() });
+      await B.db.collection("limitreports").doc(x.id).delete();
+      limFixAt = 0;
+      loadLimitFixes();
+      renderAdmin(box);
+    } catch (e) {
+      alert(e.message);
+    }
+  });
+  box.querySelectorAll(".lfNo").forEach((b) => b.onclick = async () => {
+    try {
+      await B.db.collection("limitreports").doc(b.dataset.id).delete();
+      renderAdmin(box);
+    } catch (e) {
+      alert(e.message);
+    }
+  });
+  box.querySelectorAll(".lfDel").forEach((b) => b.onclick = async (e) => {
+    e.preventDefault();
+    if (!confirm("Remove this correction?")) return;
+    try {
+      await B.db.collection("limitfix").doc(b.dataset.id).delete();
+      limFixAt = 0;
+      loadLimitFixes();
+      renderAdmin(box);
+    } catch (e2) {
+      alert(e2.message);
+    }
+  });
   try {
     if (!NATIVE && window.Notification && Notification.permission === "default") Notification.requestPermission();
   } catch (e) {
@@ -5308,6 +5401,18 @@ $("btnReport").onclick = () => {
   b.style.gridTemplateColumns = "1fr 1fr";
   b.style.gap = "8px";
 };
+$("btnLimit").onclick = () => {
+  const p = J && J.points.at(-1);
+  sheet("What does the sign say?", `RoadGuard shows ${p && p.lim != null ? p.lim + " km/h" : "no speed limit"} here. Tap the limit on the road sign. RoadGuard checks it, then corrects it for every driver.`, [
+    ...[20, 30, 40, 50, 60, 80, 100].map((v) => ({ label: v + " km/h", cls: "btn-go", style: "font-size:15px;padding:12px 6px", onClick: () => reportLimit(v) })),
+    { label: "No sign here", style: "font-size:15px;padding:12px 6px", onClick: () => reportLimit(0) },
+    { label: "Cancel", style: "grid-column:1 / -1" }
+  ]);
+  const b = $("rgSheetB");
+  b.style.display = "grid";
+  b.style.gridTemplateColumns = "1fr 1fr";
+  b.style.gap = "8px";
+};
 document.body.appendChild($("rgSheet"));
 document.body.appendChild($("shareSheet"));
 $("rgSheet").onclick = (e) => {
@@ -5818,7 +5923,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.3.9";
+const APP_VER = "1.4.0";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
