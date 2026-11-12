@@ -117,3 +117,9 @@ if (!m2.includes('ACTIVITY_RECOGNITION')) {
   fs.writeFileSync(manFile, m2);
 }
 console.log('Auto-start parts added');
+// 6. Ask RoadGuard: microphone + speech recognition service visibility
+let m3 = fs.readFileSync(manFile, 'utf8');
+if (!m3.includes('RECORD_AUDIO')) m3 = m3.replace('<uses-permission android:name="android.permission.INTERNET" />', '<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />');
+if (!m3.includes('android.speech.RecognitionService')) m3 = m3.replace('<application', '<queries>\n        <intent><action android:name="android.speech.RecognitionService" /></intent>\n    </queries>\n    <application');
+fs.writeFileSync(manFile, m3);
+console.log('Ask RoadGuard: microphone and speech service added');

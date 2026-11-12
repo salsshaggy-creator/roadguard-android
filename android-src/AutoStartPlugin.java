@@ -29,13 +29,20 @@ import com.google.android.gms.location.ActivityTransition;
 import com.google.android.gms.location.ActivityTransitionRequest;
 import com.google.android.gms.location.DetectedActivity;
 import org.json.JSONObject;
+import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 @CapacitorPlugin(name = "AutoStart", permissions = {
     @Permission(alias = "activity", strings = { "android.permission.ACTIVITY_RECOGNITION" }),
-    @Permission(alias = "bluetooth", strings = { "android.permission.BLUETOOTH_CONNECT" })
+    @Permission(alias = "bluetooth", strings = { "android.permission.BLUETOOTH_CONNECT" }),
+    @Permission(alias = "mic", strings = { "android.permission.RECORD_AUDIO" })
 })
 public class AutoStartPlugin extends Plugin {
     static AutoStartPlugin instance;
@@ -232,5 +239,68 @@ public class AutoStartPlugin extends Plugin {
         SharedPreferences.Editor e = prefs().edit();
         if (addr == null) { e.remove("carAddress"); e.remove("carName"); } else { e.putString("carAddress", addr); e.putString("carName", name); }
         e.apply(); call.resolve();
+    }
+
+    /* ---------- Ask RoadGuard: listen once and return what the driver said ---------- */
+    private SpeechRecognizer sr; private final Handler main = new Handler(Looper.getMainLooper());
+
+    @PluginMethod
+    public void listenAvailable(PluginCall call) {
+        JSObject o = new JSObject(); o.put("available", SpeechRecognizer.isRecognitionAvailable(getContext()));
+        o.put("mic", getPermissionState("mic") == PermissionState.GRANTED); call.resolve(o);
+    }
+
+    @PluginMethod
+    public void listen(PluginCall call) {
+        if (getPermissionState("mic") != PermissionState.GRANTED) { requestPermissionForAlias("mic", call, "micPermsDone"); return; }
+        startListening(call);
+    }
+
+    @PermissionCallback
+    private void micPermsDone(PluginCall call) {
+        if (getPermissionState("mic") != PermissionState.GRANTED) { call.reject("Permission to use the microphone was not given."); return; }
+        startListening(call);
+    }
+
+    @PluginMethod
+    public void stopListening(PluginCall call) { main.post(() -> { if (sr != null) { sr.cancel(); sr.destroy(); sr = null; } }); call.resolve(); }
+
+    private void startListening(PluginCall call) {
+        if (!SpeechRecognizer.isRecognitionAvailable(getContext())) { call.reject("Speech recognition is not available on this phone."); return; }
+        voice.stop();
+        String lang = call.getString("lang", "en-GH");
+        main.post(() -> {
+            if (sr != null) { sr.cancel(); sr.destroy(); }
+            sr = SpeechRecognizer.createSpeechRecognizer(getContext());
+            sr.setRecognitionListener(new RecognitionListener() {
+                boolean done = false;
+                private void finish(JSObject o, String err) { if (done) return; done = true;
+                    main.post(() -> { if (sr != null) { sr.destroy(); sr = null; } });
+                    if (err != null) call.reject(err); else call.resolve(o); }
+                public void onReadyForSpeech(Bundle b) { notifyListeners("listenState", new JSObject().put("state", "ready")); }
+                public void onBeginningOfSpeech() { notifyListeners("listenState", new JSObject().put("state", "speaking")); }
+                public void onRmsChanged(float v) {}
+                public void onBufferReceived(byte[] b) {}
+                public void onEndOfSpeech() { notifyListeners("listenState", new JSObject().put("state", "thinking")); }
+                public void onPartialResults(Bundle b) {}
+                public void onEvent(int t, Bundle b) {}
+                public void onError(int e) {
+                    String m = e == SpeechRecognizer.ERROR_NO_MATCH || e == SpeechRecognizer.ERROR_SPEECH_TIMEOUT ? "nomatch"
+                        : e == SpeechRecognizer.ERROR_NETWORK || e == SpeechRecognizer.ERROR_NETWORK_TIMEOUT ? "network"
+                        : e == SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS ? "permission" : "error" + e;
+                    finish(null, m); }
+                public void onResults(Bundle b) {
+                    ArrayList<String> r = b.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                    JSArray a = new JSArray(); if (r != null) for (String x : r) a.put(x);
+                    JSObject o = new JSObject(); o.put("matches", a); finish(o, null); }
+            });
+            Intent it = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            it.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            it.putExtra(RecognizerIntent.EXTRA_LANGUAGE, lang);
+            it.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5);
+            it.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false);
+            it.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getContext().getPackageName());
+            try { sr.startListening(it); } catch (Exception ex) { call.reject("Could not start listening."); }
+        });
     }
 }

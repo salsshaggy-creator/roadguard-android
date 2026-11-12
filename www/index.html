@@ -385,7 +385,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
       <div><b style="font-family:var(--cond);font-size:20px">Get the free Android app</b>
         <div class="note" style="margin:4px 0 0">On your Android phone, open the <b>Chrome</b> app and go to <b>roadguard-gh.web.app</b>, then tap <b>Get the free Android app</b>.<br>Scanning this code also works, but if the download freezes, use Chrome instead.</div></div></div>
     <div class="ctl noprint" id="ctlIdle"><button class="btn btn-go" id="btnStart">▶ START JOURNEY</button></div>
-    <div class="ctl noprint" id="ctlRec" style="display:none"><button class="btn btn-stop" id="btnStop">■ END JOURNEY</button></div>
+    <div class="ctl noprint" id="ctlRec" style="display:none;flex-direction:column;gap:10px"><button class="btn btn-go" id="btnAsk" style="font-size:20px;padding:16px">🎤 Ask RoadGuard</button><button class="btn btn-stop" id="btnStop">■ END JOURNEY</button></div>
     <div id="shareSheet" class="noprint" style="display:none;position:fixed;inset:0;z-index:30000;background:rgba(2,6,20,.72);align-items:flex-end;justify-content:center">
       <div class="card" style="width:100%;max-width:560px;margin:0;border-radius:22px 22px 0 0;max-height:92vh;overflow:auto">
         <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">Share my trip live</h3><button class="btn btn-ghost" id="shClose" aria-label="Close" style="width:auto;padding:6px 12px;font-size:18px">✕</button></div>
@@ -521,6 +521,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
       <details class="faq"><summary>Does it record with the screen off?</summary><p>In the Android app, yes: start a journey, then you can lock the phone. Allow <b>Location: all the time</b> and <b>Notifications</b> when asked. On the website, keep the screen on, because a web page can't record while the phone is locked.</p></details>
       <details class="faq"><summary>Can RoadGuard start by itself when I drive?</summary><p>Yes. In <b>Settings → Auto-start</b>: <b>Start by itself when I’m moving</b> begins recording when RoadGuard is open and you go faster than 15 km/h. In the Android app, <b>Ask me when I start driving</b> sends a notification even when RoadGuard is closed; tap it to start. You can also choose <b>your car’s Bluetooth</b>, so RoadGuard reacts whenever your phone connects to your car. Android doesn’t let any app start recording your location from fully closed without you knowing, so that last step is one tap. Journeys that start by themselves can also end by themselves after 8 minutes parked. Android doesn’t let any app start recording by itself while it is closed, so in that case you tap the alert once. Under Auto-start, <b>Is everything ready?</b> shows anything that could stop the alert, and <b>Send a test alert</b> lets you check it works. On Tecno, Infinix, itel and Samsung phones, set RoadGuard’s battery to <b>Unrestricted</b>.</p></details>
       <details class="faq"><summary>I’m a passenger. How do I use RoadGuard?</summary><p>Open RoadGuard and tap <b>Start Journey</b> when you get into the trotro, taxi, Bolt or bus. You’ll see how fast the vehicle is going and the speed limit. If the driver goes too fast, you’ll know. Please don’t argue with a driver while the vehicle is moving: stay safe, and report it later if you need to.</p></details>
+      <details class="faq"><summary>Can I ask RoadGuard questions while I drive?</summary><p>Yes. During a journey, tap <b>🎤 Ask RoadGuard</b> and ask out loud, for example: <i>“Where are we?”</i>, <i>“How fast am I going?”</i>, <i>“What’s the speed limit?”</i>, <i>“What’s the next speed limit?”</i>, <i>“Is there a camera ahead?”</i>, <i>“Any police barrier?”</i>, <i>“Anything ahead?”</i>, <i>“How far have we driven?”</i> or <i>“How many times did I overspeed?”</i>. RoadGuard answers by voice from your GPS, the map and drivers’ reports. Cameras and police are always <b>reported by drivers</b>, so RoadGuard tells you how long ago a report was confirmed. Mount your phone and keep your eyes on the road: one tap, then just talk. The first time, allow the microphone.</p></details>
       <details class="faq"><summary>Does RoadGuard warn me about cameras, police and potholes?</summary><p>Yes. RoadGuard warns you by voice before reported <b>speed cameras, police barriers, potholes, speed bumps, accidents, broken-down vehicles, flooded roads and road works</b>, for example “Pothole ahead. Slow down.” Reports come from RoadGuard drivers: while recording, signed-in drivers tap <b>Report a hazard</b>. To keep reports true, a new report is only warned once <b>a second driver confirms it</b>. After you pass a reported spot, RoadGuard may ask “Still there?”: tap Yes or Gone. Reports are shared without your name and clear themselves after a while (a police barrier after 3 hours, an accident after 2 hours, a pothole after 30 days). TraffiTech cameras can also be mobile, so always keep to the limit.</p></details>
       <details class="faq"><summary>What does the voice tell me?</summary><p>Each time you enter a new speed zone, RoadGuard tells you where you are and the new limit, for example: “You’ve reached Madina, on the Legon Road. The speed limit here is 50 kilometres per hour.” It names the town, and the main road when it knows it. It also warns you when a lower limit is coming up, tells you when you go over, and thanks you when you slow back down. You can turn the voice off or pick another voice in Settings.</p></details>
       <details class="faq"><summary>Is the demo drive real?</summary><p>No. The demo is a pretend trip from Accra to Tema so you can see and hear how RoadGuard works. It doesn’t use your location, and a yellow DEMO box on the screen shows what the voice is saying. The trip report at the end is marked as a demo and can’t be used as evidence.</p></details>
@@ -564,7 +565,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.4.0. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.5.0. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1723,6 +1724,200 @@ function voiceFor(p, place, ahead, rname) {
   if (st !== "grey") V.st = st;
   V.atLim = atLim;
 }
+let ASKL = null, ASK = { busy: false };
+const sayKm = (m) => m < 950 ? `about ${Math.max(50, Math.round(m / 50) * 50)} metres` : `about ${(Math.round(m / 100) / 10).toString().replace(/\.0$/, "")} kilometre${m >= 1050 ? "s" : ""}`;
+const sayAgo = (t) => {
+  const m = Math.round((Date.now() - t) / 6e4);
+  return m < 2 ? "just now" : m < 60 ? `${m} minutes ago` : m < 120 ? "about an hour ago" : `about ${Math.round(m / 60)} hours ago`;
+};
+function askHere() {
+  const p = J && J.points.length ? J.points.at(-1) : null;
+  return p && p.lat != null ? p : null;
+}
+function placeNow(p) {
+  try {
+    return ASKL && ASKL.place || nearestPlace(p) || null;
+  } catch (e) {
+    return null;
+  }
+}
+function roadNow() {
+  const r = ASKL && (ASKL.rname || null);
+  return r;
+}
+function nextLimitAhead(p, hdg) {
+  if (hdg == null) return null;
+  const now = p.lim;
+  for (let d = 100; d <= 2500; d += 100) {
+    const q = dest(p, hdg, d);
+    if (!tileReady(q)) return { unknown: true, d };
+    const w = nearestRoad(q, hdg);
+    if (!w) return { end: true, d };
+    const v = fixLimit(q, limitFor(q, w)).lim;
+    if (v != null && v !== now) return { lim: v, d, road: w.t.name || null };
+  }
+  return { same: true, d: 2500 };
+}
+function nextPlaceAhead(p, hdg, cur) {
+  if (hdg == null) return null;
+  for (let d = 300; d <= 8e3; d += 300) {
+    const q = dest(p, hdg, d);
+    if (!tileReady(q)) return null;
+    const pl = nearestPlace(q);
+    if (pl && pl !== cur) return { name: pl, d };
+  }
+  return null;
+}
+function hazardsAhead(p, hdg, types) {
+  return (HZ.list || []).filter((h) => hzLive(h) && (!types || types.includes(h.type))).map((h) => ({ h, d: hav(p, h) })).filter((o) => {
+    if (o.d > 3e3) return false;
+    if (hdg == null) return o.d < 1500;
+    const df = Math.abs((bearing(p, o.h) - hdg + 540) % 360 - 180);
+    return df < 45 || o.d < 80;
+  }).sort((a, b) => a.d - b.d);
+}
+function askAnswer(text) {
+  const q = " " + String(text || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ") + " ", has = (re) => re.test(q);
+  const p = askHere();
+  if (!p) return "I need a journey running to answer that. Start a journey first.";
+  const hdg = lastBearing, spd = p.spd == null ? null : Math.round(dispSpd(p.spd)), lim = p.lim, place = placeNow(p), road = roadNow();
+  const limTxt = lim != null ? `The speed limit here is ${lim} kilometres per hour.` : `I don't have a speed limit for this road. Please watch the road signs.`;
+  if (has(/ (camera|cameras|radar|speed trap)/)) {
+    const a = hazardsAhead(p, hdg, ["camera"]);
+    return a.length ? `A speed camera was reported ${sayKm(a[0].d)} ahead, last confirmed ${sayAgo(a[0].h.at)}. ${limTxt}` : `No speed cameras have been reported ahead in the next 3 kilometres. Cameras can be moved, so always keep to the limit.`;
+  }
+  if (has(/ (police|barrier|barriers|checkpoint|check point|road block|roadblock|mtt|swat)/)) {
+    const a = hazardsAhead(p, hdg, ["police"]);
+    return a.length ? `Drivers reported a police barrier ${sayKm(a[0].d)} ahead, last confirmed ${sayAgo(a[0].h.at)}.` : `No police barriers have been reported ahead in the next 3 kilometres.`;
+  }
+  if (has(/ (pothole|potholes|bump|bumps|accident|crash|flood|flooded|works|hazard|hazards|danger|breakdown|broken down|anything ahead|what s ahead|whats ahead|what is ahead|problem)/)) {
+    const a = hazardsAhead(p, hdg);
+    if (!a.length) return "Nothing has been reported on the road ahead in the next 3 kilometres. Drive safely.";
+    const n = a.length, f = a[0];
+    return `${HZT[f.h.type].name} reported ${sayKm(f.d)} ahead, last confirmed ${sayAgo(f.h.at)}.` + (n > 1 ? ` There ${n === 2 ? "is one more report" : "are " + (n - 1) + " more reports"} further on.` : "");
+  }
+  if (has(/ (overspe|over speed|over the limit|speeding|how many times|offence|offense|fine)/)) {
+    const S = summarize(J), n = S.events.length;
+    return n ? `You have gone over the limit ${n} time${n > 1 ? "s" : ""} on this journey. Please keep below the limit.` : `You have not gone over the limit on this journey. Well done, keep it up.`;
+  }
+  if (has(/ (how far|distance|kilometres have|kilometers have|driven|travelled|traveled|covered)/)) {
+    const km = live.dist / 1e3, min = Math.round((Date.now() - J.startedAt) / 6e4);
+    return `We have driven ${km < 1 ? Math.round(live.dist) + " metres" : km.toFixed(1) + " kilometres"} in ${min < 60 ? min + " minutes" : Math.floor(min / 60) + " hour" + (min >= 120 ? "s" : "") + (min % 60 ? " " + min % 60 + " minutes" : "")}.`;
+  }
+  if (has(/ (how long|time|average)/)) {
+    const S = summarize(J), min = Math.round((Date.now() - J.startedAt) / 6e4);
+    return `We have been driving for ${min} minutes. Your average moving speed is ${Math.round(S.avg || 0)} kilometres per hour.`;
+  }
+  if (has(/ (next|ahead|coming|change|changes|changing)/) && has(/ (limit|speed|zone)/)) {
+    const a = nextLimitAhead(p, hdg);
+    if (!a) return `I can't tell which way we are going yet. ${limTxt}`;
+    if (a.lim) return `The speed limit changes to ${a.lim} kilometres per hour in ${sayKm(a.d)}.` + (a.lim < (lim || 999) ? " Start slowing down." : "");
+    if (a.unknown) return `${limTxt} The map ahead is still loading, so I can't see further yet.`;
+    return `${limTxt} It stays the same for at least the next ${sayKm(a.d).replace("about ", "")}${a.end ? " on this road" : ""}.`;
+  }
+  if (has(/ (next town|next place|next village|next stop|approaching|coming up|where are we going|which town is next)/)) {
+    const a = nextPlaceAhead(p, hdg, place);
+    return a ? `The next place is ${a.name}, ${sayKm(a.d)} ahead.` : `I can't see the next town yet.` + (place ? ` We are in ${place}.` : "");
+  }
+  if (has(/ (how fast|my speed|speed am i|what speed|am i going|am i doing|am i speeding)/)) {
+    if (spd == null) return "I am waiting for a GPS reading. Ask me again in a moment.";
+    const over = lim != null && spd >= lim + 3;
+    return `You are doing ${spd} kilometres per hour. ` + (lim == null ? "" : over ? `That is over the ${lim} limit. Please slow down.` : spd >= lim - 5 ? `The limit is ${lim}, so you are close to it.` : `The limit is ${lim}, so you are within it.`);
+  }
+  if (has(/ (limit|zone)/)) return limTxt;
+  if (has(/ (where|location|which town|what town|what place|which place|what area|which area|this road|which road|what road|what street|which street|landmark)/)) {
+    if (!place && !road) return `I don't have a place name here yet. ${limTxt}`;
+    return (road ? `We are on ${road}` : "We are") + (place ? `${road ? ", in" : " in"} ${place}.` : ".") + (spd != null ? ` You are doing ${spd} kilometres per hour.` : "") + (lim != null ? ` The limit is ${lim}.` : "");
+  }
+  return "Sorry, I can answer: where are we, how fast am I going, what is the speed limit, what is the next speed limit, is there a camera or police ahead, and how far have we driven.";
+}
+async function askListen() {
+  if (ASK.busy) return;
+  if (!J) {
+    toast("Start a journey first, then ask");
+    return;
+  }
+  const btn = $("btnAsk"), setB = (t) => {
+    if (btn) btn.textContent = t;
+  };
+  ASK.busy = true;
+  setB("🎤 Listening… ask now");
+  try {
+    clipGen++;
+    clipQ = [];
+    try {
+      clipAudio && clipAudio.pause();
+    } catch (_) {
+    }
+    try {
+      if (NATIVE_VOICE()) window.__AP.stopSpeech();
+    } catch (_) {
+    }
+    let matches = [];
+    if (AP && AP.listen) {
+      let h = null;
+      try {
+        h = await AP.addListener("listenState", (e) => {
+          if (e.state === "thinking") setB("🎤 Thinking…");
+        });
+      } catch (_) {
+      }
+      try {
+        matches = (await AP.listen({ lang: "en-GH" })).matches || [];
+      } catch (e) {
+        const m = String(e && e.message || e);
+        if (/error1[23]/.test(m)) matches = (await AP.listen({ lang: "en-GB" })).matches || [];
+        else throw e;
+      } finally {
+        try {
+          h && h.remove();
+        } catch (_) {
+        }
+      }
+    } else {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) {
+        toast("Asking by voice works in the Android app or in Chrome");
+        return;
+      }
+      matches = await new Promise((res, rej) => {
+        const r = new SR();
+        r.lang = "en-GB";
+        r.maxAlternatives = 5;
+        r.interimResults = false;
+        r.onresult = (e) => res([...e.results[0]].map((a) => a.transcript));
+        r.onerror = (e) => rej(new Error(e.error === "no-speech" ? "nomatch" : e.error));
+        r.onend = () => res([]);
+        r.start();
+      });
+    }
+    if (!matches.length) throw new Error("nomatch");
+    let heard = matches[0], ans = null;
+    for (const m of matches) {
+      const a = askAnswer(m);
+      if (!/^Sorry, I can answer/.test(a)) {
+        heard = m;
+        ans = a;
+        break;
+      }
+    }
+    if (!ans) ans = askAnswer(heard);
+    try {
+      if (J && !J.simulated) {
+        (J.said = J.said || []).push([Date.now(), "🎤 You asked: " + heard]);
+      }
+    } catch (e) {
+    }
+    toast("🎤 " + heard);
+    sayParts([{ tts: ans }], true);
+  } catch (e) {
+    const m = String(e && e.message || e);
+    sayParts([{ tts: m === "nomatch" ? "Sorry, I didn't catch that. Tap Ask and try again." : m === "network" ? "I need an internet connection to hear you. Please try again in a moment." : /permission|microphone/i.test(m) ? "Please allow RoadGuard to use the microphone, then try again." : "Sorry, I couldn't listen just now." }], true);
+  } finally {
+    ASK.busy = false;
+    setB("🎤 Ask RoadGuard");
+  }
+}
 let nativeWatch = null, J = null, watchId = null, wake = null, prevHash = "GENESIS", hashQ = Promise.resolve(), simTimer = null, lastVoice = 0, voiceOn = true, live = { dist: 0, max: 0 };
 async function keepAwake() {
   try {
@@ -1744,7 +1939,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.4.0" : "RoadGuard GH web 1.4.0", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.5.0" : "RoadGuard GH web 1.5.0", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -1785,6 +1980,7 @@ function addPoint(raw) {
     sus
   };
   pts.push(p);
+  ASKL = { ...L2, hdg };
   hashQ = hashQ.then(async () => {
     p.h = await sha256(prevHash + "|" + canon(p));
     prevHash = p.h;
@@ -5401,6 +5597,7 @@ $("btnReport").onclick = () => {
   b.style.gridTemplateColumns = "1fr 1fr";
   b.style.gap = "8px";
 };
+$("btnAsk").onclick = () => askListen();
 $("btnLimit").onclick = () => {
   const p = J && J.points.at(-1);
   sheet("What does the sign say?", `RoadGuard shows ${p && p.lim != null ? p.lim + " km/h" : "no speed limit"} here. Tap the limit on the road sign. RoadGuard checks it, then corrects it for every driver.`, [
@@ -5923,7 +6120,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.4.0";
+const APP_VER = "1.5.0";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
