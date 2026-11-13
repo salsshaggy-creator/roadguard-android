@@ -29,6 +29,6 @@ public class AskActivity extends Activity {
 
     private void passOn() {
         try { Intent g = new Intent(Intent.ACTION_VOICE_COMMAND); g.setPackage("com.google.android.googlequicksearchbox"); g.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); startActivity(g); return; } catch (Exception e) { }
-        try { Intent a = new Intent(Intent.ACTION_VOICE_ASSIST); a.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); startActivity(a); } catch (Exception e) { }
+        try { Intent a = new Intent("android.intent.action.VOICE_ASSIST"); a.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); startActivity(a); } catch (Exception e) { }
     }
 }
