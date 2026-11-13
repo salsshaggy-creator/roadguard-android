@@ -65,6 +65,7 @@ public class AutoStartPlugin extends Plugin {
         voice = new RgVoice(getContext());
         Intent i = getActivity() != null ? getActivity().getIntent() : null;
         if (i != null && i.hasExtra("rg_autostart")) { pendingReason = i.getStringExtra("rg_autostart"); pendingBg = i.getBooleanExtra("rg_bg", false); i.removeExtra("rg_autostart"); if (pendingBg) showOverLock(true); }
+        askFromIntent(i);
     }
 
     /** While RoadGuard starts itself, show it over the lock screen and wake the screen: Android only gives GPS to an app the person can see. */
@@ -82,10 +83,19 @@ public class AutoStartPlugin extends Plugin {
     protected void handleOnNewIntent(Intent i) {
         super.handleOnNewIntent(i);
         if (i != null && i.hasExtra("rg_autostart")) { String r = i.getStringExtra("rg_autostart"); boolean bg = i.getBooleanExtra("rg_bg", false); i.removeExtra("rg_autostart"); if (bg) showOverLock(true); fire(r, bg); }
+        askFromIntent(i);
     }
 
     @Override protected void handleOnResume() { super.handleOnResume(); visible = true; }
-    @Override protected void handleOnPause() { super.handleOnPause(); visible = false; }
+    static long lastPausedAt = 0;
+    @Override protected void handleOnPause() { super.handleOnPause(); visible = false; lastPausedAt = System.currentTimeMillis(); }
+    private void askFromIntent(Intent i) {
+        if (i == null || !i.getBooleanExtra("rg_ask", false)) return;
+        boolean wasVisible = i.getBooleanExtra("rg_wasvisible", false); i.removeExtra("rg_ask");
+        if (!wasVisible) showOverLock(true);
+        JSObject o = new JSObject(); o.put("action", "ask"); o.put("hidden", !wasVisible); o.put("key", "voice");
+        notifyListeners("carButton", o, true);
+    }
     boolean appVisible() { return visible; }
 
     void fire(String reason) { fire(reason, false); }
@@ -317,7 +327,9 @@ public class AutoStartPlugin extends Plugin {
     private MediaSession ms; private long lastPress = 0; private Runnable single;
 
     @PluginMethod
-    public void carButton(PluginCall call) { boolean on = call.getBoolean("on", false); main.post(() -> { if (on) btnOn(); else btnOff(); }); call.resolve(); }
+    public void carButton(PluginCall call) { boolean on = call.getBoolean("on", false);
+        if (call.hasOption("setting")) prefs().edit().putBoolean("carAsk", call.getBoolean("setting", false)).apply();
+        main.post(() -> { if (on) btnOn(); else btnOff(); }); call.resolve(); }
 
     private void btnOn() {
         if (ms != null) { claim(); return; }
@@ -326,16 +338,19 @@ public class AutoStartPlugin extends Plugin {
             @Override public boolean onMediaButtonEvent(Intent i) {
                 KeyEvent e = i.getParcelableExtra(Intent.EXTRA_KEY_EVENT); if (e == null) return false;
                 int c = e.getKeyCode();
-                if (c != KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE && c != KeyEvent.KEYCODE_HEADSETHOOK && c != KeyEvent.KEYCODE_MEDIA_PLAY && c != KeyEvent.KEYCODE_MEDIA_PAUSE) return false;
-                if (e.getAction() == KeyEvent.ACTION_DOWN && e.getRepeatCount() == 0) press();
+                if (c != KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE && c != KeyEvent.KEYCODE_HEADSETHOOK && c != KeyEvent.KEYCODE_MEDIA_PLAY && c != KeyEvent.KEYCODE_MEDIA_PAUSE
+                    && c != KeyEvent.KEYCODE_MEDIA_NEXT && c != KeyEvent.KEYCODE_MEDIA_PREVIOUS) return false;
+                if (e.getAction() == KeyEvent.ACTION_DOWN && e.getRepeatCount() == 0) press(c);
                 return true;
             }
-            @Override public void onPlay() { press(); }
-            @Override public void onPause() { press(); }
+            @Override public void onPlay() { press(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE); }
+            @Override public void onPause() { press(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE); }
+            @Override public void onSkipToNext() { press(KeyEvent.KEYCODE_MEDIA_NEXT); }
+            @Override public void onSkipToPrevious() { press(KeyEvent.KEYCODE_MEDIA_PREVIOUS); }
         });
         ms.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS | MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
         ms.setMetadata(new MediaMetadata.Builder().putString(MediaMetadata.METADATA_KEY_TITLE, "RoadGuard is on duty")
-            .putString(MediaMetadata.METADATA_KEY_ARTIST, "Press play twice to ask RoadGuard").build());
+            .putString(MediaMetadata.METADATA_KEY_ARTIST, "Press the voice button, or play / next twice, to ask").build());
         claim();
     }
 
@@ -344,7 +359,7 @@ public class AutoStartPlugin extends Plugin {
     /** Make RoadGuard the app that gets the play button: an active session that is "playing", plus half a second of silence. */
     private void claim() {
         if (ms == null) return;
-        ms.setPlaybackState(new PlaybackState.Builder().setActions(PlaybackState.ACTION_PLAY_PAUSE | PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE)
+        ms.setPlaybackState(new PlaybackState.Builder().setActions(PlaybackState.ACTION_PLAY_PAUSE | PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE | PlaybackState.ACTION_SKIP_TO_NEXT | PlaybackState.ACTION_SKIP_TO_PREVIOUS)
             .setState(PlaybackState.STATE_PLAYING, 0, 1f).build());
         ms.setActive(true);
         if (Build.VERSION.SDK_INT >= 23) new Thread(() -> { try {
@@ -357,25 +372,30 @@ public class AutoStartPlugin extends Plugin {
         } catch (Exception e) { } }).start();
     }
 
-    private void press() {
+    private int lastKey = 0;
+    private void press(int code) {
         main.post(() -> {
             long now = SystemClock.uptimeMillis();
-            if (single != null && now - lastPress < 550) { main.removeCallbacks(single); single = null; lastPress = 0; askNow(); return; }
-            lastPress = now;
-            single = () -> { single = null; forward(); };
+            String name = code == KeyEvent.KEYCODE_MEDIA_NEXT ? "next" : code == KeyEvent.KEYCODE_MEDIA_PREVIOUS ? "previous" : "play";
+            notifyListeners("carButton", new JSObject().put("action", "key").put("key", name));
+            if (single != null && now - lastPress < 550 && code == lastKey) { main.removeCallbacks(single); single = null; lastPress = 0; askNow(); return; }
+            if (single != null) { main.removeCallbacks(single); single.run(); }
+            lastPress = now; lastKey = code;
+            single = () -> { single = null; forward(code); };
             main.postDelayed(single, 550);
         });
     }
 
     /** One press: hand it to the music app, then take the button back. */
-    private void forward() {
+    private void forward(int code) {
         if (ms == null) return;
         try {
             ms.setActive(false);
             android.media.AudioManager am = (android.media.AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
             long t = SystemClock.uptimeMillis();
-            am.dispatchMediaKeyEvent(new KeyEvent(t, t, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, 0));
-            am.dispatchMediaKeyEvent(new KeyEvent(t, t, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, 0));
+            int k = code == KeyEvent.KEYCODE_HEADSETHOOK ? KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE : code;
+            am.dispatchMediaKeyEvent(new KeyEvent(t, t, KeyEvent.ACTION_DOWN, k, 0));
+            am.dispatchMediaKeyEvent(new KeyEvent(t, t, KeyEvent.ACTION_UP, k, 0));
         } catch (Exception e) { }
         main.postDelayed(() -> { if (ms != null) claim(); }, 1500);
     }
@@ -388,7 +408,7 @@ public class AutoStartPlugin extends Plugin {
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
             getContext().startActivity(i);
         } catch (Exception e) { } }
-        JSObject o = new JSObject(); o.put("action", "ask"); o.put("hidden", hidden);
+        JSObject o = new JSObject(); o.put("action", "ask"); o.put("hidden", hidden); o.put("key", "media");
         notifyListeners("carButton", o, true);
     }
 }

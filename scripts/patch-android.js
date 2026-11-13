@@ -87,7 +87,7 @@ public class MainActivity extends BridgeActivity {
 console.log('MainActivity: web engine stays awake in the background');
 
 // 5. Auto-start: driving detection, car Bluetooth and the one-tap "Looks like you're driving" notification
-for (const f of ['AutoStartPlugin.java', 'DriveReceiver.java', 'AutoNotify.java', 'RgVoice.java'])
+for (const f of ['AutoStartPlugin.java', 'DriveReceiver.java', 'AutoNotify.java', 'RgVoice.java', 'AskActivity.java'])
   fs.copyFileSync(path.join(__dirname, '..', 'android-src', f), path.join(mainDir, f));
 let g2 = fs.readFileSync(gradleFile, 'utf8');
 if (!g2.includes('play-services-location')) {
@@ -123,3 +123,14 @@ if (!m3.includes('RECORD_AUDIO')) m3 = m3.replace('<uses-permission android:name
 if (!m3.includes('android.speech.RecognitionService')) m3 = m3.replace('<application', '<queries>\n        <intent><action android:name="android.speech.RecognitionService" /></intent>\n    </queries>\n    <application');
 fs.writeFileSync(manFile, m3);
 console.log('Ask RoadGuard: microphone and speech service added');
+// 7. The car's voice button (Bluetooth voice command) can ask RoadGuard during a journey
+let m4 = fs.readFileSync(manFile, 'utf8');
+if (!m4.includes('.AskActivity')) m4 = m4.replace('</application>', `    <activity android:name=".AskActivity" android:exported="true" android:excludeFromRecents="true" android:noHistory="true" android:taskAffinity="" android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="android.intent.action.VOICE_COMMAND" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+    </application>`);
+fs.writeFileSync(manFile, m4);
+console.log('Car voice button added');

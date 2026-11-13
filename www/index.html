@@ -466,7 +466,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     <h2>Settings</h2>
     <div class="card">
       <div class="set"><div class="t"><b>Voice alerts</b><span>Speaks the limit and your speed when you go over it</span></div><button class="tog on" id="togVoice" aria-label="Voice alerts"></button></div>
-      <div class="set autoNative"><div class="t"><b>Ask with the car’s play button</b><span>During a journey, press play/pause on your car stereo or Bluetooth earpiece <b>twice quickly</b> and ask your question. One press still controls your music.</span></div><button class="tog" id="togCarBtn" aria-label="Ask with the car's play button"></button></div>
+      <div class="set autoNative"><div class="t"><b>Ask with the car’s buttons</b><span>During a journey, press the <b>voice button</b> on your steering wheel (the face icon), or press <b>play</b> or <b>next track twice quickly</b>, then ask. The first time, your phone may ask which app to use: choose RoadGuard GH and “Always”. When no journey is running, the voice button opens Google Assistant as usual.</span></div><button class="tog" id="togCarBtn" aria-label="Ask with the car's play button"></button></div>
       <div class="set" style="display:block"><div class="t"><b>Match my car's speedometer</b><span>Car speedometers are made to read a little high. Drive at a steady speed and compare: when your car shows <b>50</b>, what does RoadGuard show? The Drive screen and voice will then show speed like your car. Reports always keep the true GPS speed.</span></div>
         <div class="chips" id="calChips" style="grid-template-columns:repeat(6,1fr);margin-top:10px"><button data-c="50" style="font-size:17px;padding:10px 4px">50</button><button data-c="49" style="font-size:17px;padding:10px 4px">49</button><button data-c="48" style="font-size:17px;padding:10px 4px">48</button><button data-c="47" style="font-size:17px;padding:10px 4px">47</button><button data-c="46" style="font-size:17px;padding:10px 4px">46</button><button data-c="45" style="font-size:17px;padding:10px 4px">45</button></div>
         <div class="note" id="calNote" style="margin-top:6px"></div></div>
@@ -522,7 +522,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
       <details class="faq"><summary>Does it record with the screen off?</summary><p>In the Android app, yes: start a journey, then you can lock the phone. Allow <b>Location: all the time</b> and <b>Notifications</b> when asked. On the website, keep the screen on, because a web page can't record while the phone is locked.</p></details>
       <details class="faq"><summary>Can RoadGuard start by itself when I drive?</summary><p>Yes. In <b>Settings → Auto-start</b>: <b>Start by itself when I’m moving</b> begins recording when RoadGuard is open and you go faster than 15 km/h. In the Android app, <b>Ask me when I start driving</b> sends a notification even when RoadGuard is closed; tap it to start. You can also choose <b>your car’s Bluetooth</b>, so RoadGuard reacts whenever your phone connects to your car. Android doesn’t let any app start recording your location from fully closed without you knowing, so that last step is one tap. Journeys that start by themselves can also end by themselves after 8 minutes parked. Android doesn’t let any app start recording by itself while it is closed, so in that case you tap the alert once. Under Auto-start, <b>Is everything ready?</b> shows anything that could stop the alert, and <b>Send a test alert</b> lets you check it works. On Tecno, Infinix, itel and Samsung phones, set RoadGuard’s battery to <b>Unrestricted</b>.</p></details>
       <details class="faq"><summary>I’m a passenger. How do I use RoadGuard?</summary><p>Open RoadGuard and tap <b>Start Journey</b> when you get into the trotro, taxi, Bolt or bus. You’ll see how fast the vehicle is going and the speed limit. If the driver goes too fast, you’ll know. Please don’t argue with a driver while the vehicle is moving: stay safe, and report it later if you need to.</p></details>
-      <details class="faq"><summary>Can I ask RoadGuard questions while I drive?</summary><p>Yes. During a journey, tap <b>🎤 Ask RoadGuard</b> (or, in the Android app, turn on <b>Ask with the car’s play button</b> in Settings and press play/pause on your car stereo or earpiece <b>twice quickly</b>) and ask out loud, for example: <i>“Where are we?”</i>, <i>“How fast am I going?”</i>, <i>“What’s the speed limit?”</i>, <i>“What’s the next speed limit?”</i>, <i>“Is there a camera ahead?”</i>, <i>“Any police barrier?”</i>, <i>“Anything ahead?”</i>, <i>“How far have we driven?”</i> or <i>“How many times did I overspeed?”</i>. RoadGuard answers by voice from your GPS, the map and drivers’ reports. Cameras and police are always <b>reported by drivers</b>, so RoadGuard tells you how long ago a report was confirmed. Mount your phone and keep your eyes on the road: one tap, then just talk. The first time, allow the microphone.</p></details>
+      <details class="faq"><summary>Can I ask RoadGuard questions while I drive?</summary><p>Yes. During a journey, tap <b>🎤 Ask RoadGuard</b> (or, in the Android app, turn on <b>Ask with the car’s buttons</b> in Settings and press the <b>voice button</b> on your steering wheel) and ask out loud, for example: <i>“Where are we?”</i>, <i>“How fast am I going?”</i>, <i>“What’s the speed limit?”</i>, <i>“What’s the next speed limit?”</i>, <i>“Is there a camera ahead?”</i>, <i>“Any police barrier?”</i>, <i>“Anything ahead?”</i>, <i>“How far have we driven?”</i> or <i>“How many times did I overspeed?”</i>. RoadGuard answers by voice from your GPS, the map and drivers’ reports. Cameras and police are always <b>reported by drivers</b>, so RoadGuard tells you how long ago a report was confirmed. Mount your phone and keep your eyes on the road: one tap, then just talk. The first time, allow the microphone.</p></details>
       <details class="faq"><summary>Does RoadGuard warn me about cameras, police and potholes?</summary><p>Yes. RoadGuard warns you by voice before reported <b>speed cameras, police barriers, potholes, speed bumps, accidents, broken-down vehicles, flooded roads and road works</b>, for example “Pothole ahead. Slow down.” Reports come from RoadGuard drivers: while recording, signed-in drivers tap <b>Report a hazard</b>. To keep reports true, a new report is only warned once <b>a second driver confirms it</b>. After you pass a reported spot, RoadGuard may ask “Still there?”: tap Yes or Gone. Reports are shared without your name and clear themselves after a while (a police barrier after 3 hours, an accident after 2 hours, a pothole after 30 days). TraffiTech cameras can also be mobile, so always keep to the limit.</p></details>
       <details class="faq"><summary>What does the voice tell me?</summary><p>Each time you enter a new speed zone, RoadGuard tells you where you are and the new limit, for example: “You’ve reached Madina, on the Legon Road. The speed limit here is 50 kilometres per hour.” It names the town, and the main road when it knows it. It also warns you when a lower limit is coming up, tells you when you go over, and thanks you when you slow back down. You can turn the voice off or pick another voice in Settings.</p></details>
       <details class="faq"><summary>Is the demo drive real?</summary><p>No. The demo is a pretend trip from Accra to Tema so you can see and hear how RoadGuard works. It doesn’t use your location, and a yellow DEMO box on the screen shows what the voice is saying. The trip report at the end is marked as a demo and can’t be used as evidence.</p></details>
@@ -566,7 +566,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.5.3. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.5.4. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1110,7 +1110,7 @@ function aheadLimit(p, hdg) {
   if (hdg == null || p.spd == null || p.spd < 15) return null;
   const q = dest(p, hdg, Math.max(120, p.spd / 3.6 * 10));
   if (!tileReady(q)) return null;
-  const v = limitFor(q, nearestRoad(q, hdg)).lim;
+  const v = fixLimit(q, limitFor(q, nearestRoad(q, hdg))).lim;
   if (v === AH.v) AH.n++;
   else {
     AH.v = v;
@@ -1786,7 +1786,7 @@ const ASK_TOPICS = [
   ["distance", ["how far", "distance", "covered", "mileage", "travelled", "traveled", "driven", "how much km", "how many km", "how many kilometres", "how many kilometers", "kilometres so far", "km so far"]],
   ["duration", ["how long", "duration", "minutes", "hours", "average", "time"]],
   ["nexttown", ["next town", "next place", "next village", "next community", "next stop", "next junction", "next city", "which town is next", "town ahead", "place ahead", "approaching", "coming up", "after this town", "where are we going", "where are we heading"]],
-  ["speed", ["how fast", "my speed", "speed", "speedometer", "kmh", "km h", "km per hour", "kilometres per hour", "kilometers per hour", "going", "doing", "moving", "fast", "slow"]],
+  ["speed", ["how fast", "my speed", "speed", "speedometer", "kmh", "km h", "km", "kilometer", "kilometre", "kilometers", "kilometres", "km per hour", "kilometres per hour", "kilometers per hour", "going", "doing", "moving", "fast", "slow"]],
   ["limit", ["limit", "limits", "zone", "allowed", "maximum", "max", "supposed", "required", "legal", "sign"]],
   ["where", ["where", "location", "locate", "town", "place", "area", "road", "street", "highway", "junction", "landmark", "city", "village", "community", "suburb", "name of", "which side", "we at", "am i"]]
 ];
@@ -1984,7 +1984,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.5.3" : "RoadGuard GH web 1.5.3", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.5.4" : "RoadGuard GH web 1.5.4", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -2156,14 +2156,17 @@ function setRecordingUI(on) {
     if (typeof AP !== "undefined" && AP) {
       AP.setJourneyActive({ active: !!on }).catch(() => {
       });
-      if (AP.carButton) AP.carButton({ on: !!(on && J && !J.simulated && (() => {
-        try {
-          return localStorage.getItem("rg_carbtn") === "1";
-        } catch (_) {
-          return false;
-        }
-      })()) }).catch(() => {
-      });
+      if (AP.carButton) {
+        const cb = (() => {
+          try {
+            return localStorage.getItem("rg_carbtn") === "1";
+          } catch (_) {
+            return false;
+          }
+        })();
+        AP.carButton({ on: !!(on && J && !J.simulated && cb), setting: cb }).catch(() => {
+        });
+      }
     }
   } catch (e) {
   }
@@ -6069,11 +6072,12 @@ try {
 }
 function carBtnSync() {
   try {
-    if (AP && AP.carButton) AP.carButton({ on: !!(carBtnOn && J && !J.simulated && !J.endedAt) }).catch(() => {
+    if (AP && AP.carButton) AP.carButton({ on: !!(carBtnOn && J && !J.simulated && !J.endedAt), setting: carBtnOn }).catch(() => {
     });
   } catch (e) {
   }
 }
+carBtnSync();
 $("togCarBtn").classList.toggle("on", carBtnOn);
 $("togCarBtn").onclick = () => {
   carBtnOn = !carBtnOn;
@@ -6083,10 +6087,14 @@ $("togCarBtn").onclick = () => {
   } catch (e) {
   }
   carBtnSync();
-  if (carBtnOn) toast("On. During a journey, press play twice quickly, then ask.");
+  if (carBtnOn) toast("On. During a journey, press the voice button on your steering wheel, then ask.");
 };
 try {
   if (AP && AP.addListener) AP.addListener("carButton", (e) => {
+    if (e && e.action === "key") {
+      if (document.visibilityState === "visible") toast("Car button: " + e.key + (e.key === "play" || e.key === "next" || e.key === "previous" ? " (press twice quickly to ask)" : ""));
+      return;
+    }
     if (!e || e.action !== "ask" || !J) return;
     setTimeout(async () => {
       try {
@@ -6217,7 +6225,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.5.3";
+const APP_VER = "1.5.4";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
