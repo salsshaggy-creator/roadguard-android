@@ -19,6 +19,10 @@ import android.media.MediaMetadata;
 import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
 import android.view.KeyEvent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
@@ -401,14 +405,56 @@ public class AutoStartPlugin extends Plugin {
     }
 
     /** Two presses: bring RoadGuard to the front (Android only lets a visible app use the microphone) and ask. */
-    private void askNow() {
+    private void askNow() { askNow("media"); }
+    private void askNow(String key) {
         boolean hidden = !visible;
         if (hidden) { showOverLock(true); try {
             Intent i = new Intent(getContext(), MainActivity.class);
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
             getContext().startActivity(i);
         } catch (Exception e) { } }
-        JSObject o = new JSObject(); o.put("action", "ask"); o.put("hidden", hidden); o.put("key", "media");
+        JSObject o = new JSObject(); o.put("action", "ask"); o.put("hidden", hidden); o.put("key", key);
         notifyListeners("carButton", o, true);
+    }
+
+    /* ---------- Wave to ask: two quick waves over the top of the phone (proximity sensor) ---------- */
+    private SensorManager sm; private SensorEventListener waveL; private boolean near = false;
+    private long nearAt = 0, firstWaveAt = 0, lastAskAt = 0;
+
+    @PluginMethod
+    public void wave(PluginCall call) { boolean on = call.getBoolean("on", false); main.post(() -> { if (on) waveOn(); else waveOff(); }); call.resolve(); }
+
+    private void waveOn() {
+        if (waveL != null) return;
+        sm = (SensorManager) getContext().getSystemService(Context.SENSOR_SERVICE); if (sm == null) return;
+        Sensor ps = sm.getDefaultSensor(Sensor.TYPE_PROXIMITY, true); if (ps == null) ps = sm.getDefaultSensor(Sensor.TYPE_PROXIMITY); if (ps == null) return;
+        final float range = ps.getMaximumRange();
+        waveL = new SensorEventListener() {
+            @Override public void onSensorChanged(SensorEvent e) {
+                long now = SystemClock.uptimeMillis();
+                boolean isNear = e.values[0] < Math.min(range, 5f) - 0.01f;
+                if (isNear && !near) { near = true; nearAt = now; return; }
+                if (!isNear && near) {
+                    near = false;
+                    long held = now - nearAt;
+                    if (held < 80 || held > 900) { firstWaveAt = 0; return; }          // too quick to be a hand, or the phone was covered
+                    if (inCall() || now - lastAskAt < 8000) { firstWaveAt = 0; return; }
+                    if (firstWaveAt > 0 && now - firstWaveAt < 1800) { firstWaveAt = 0; lastAskAt = now;
+                        notifyListeners("carButton", new JSObject().put("action", "key").put("key", "wave"));
+                        askNow("wave"); }
+                    else firstWaveAt = now;
+                }
+            }
+            @Override public void onAccuracyChanged(Sensor s, int a) {}
+        };
+        sm.registerListener(waveL, ps, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    private void waveOff() { if (sm != null && waveL != null) sm.unregisterListener(waveL); waveL = null; near = false; firstWaveAt = 0; }
+
+    private boolean inCall() {
+        try { android.media.AudioManager am = (android.media.AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+            int m = am.getMode(); return m == android.media.AudioManager.MODE_IN_CALL || m == android.media.AudioManager.MODE_IN_COMMUNICATION || m == android.media.AudioManager.MODE_RINGTONE;
+        } catch (Exception e) { return false; }
     }
 }
