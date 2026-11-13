@@ -11,6 +11,14 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
+import android.media.AudioAttributes;
+import android.media.AudioFormat;
+import android.media.AudioTrack;
+import android.media.MediaMetadata;
+import android.media.session.MediaSession;
+import android.media.session.PlaybackState;
+import android.view.KeyEvent;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
@@ -303,5 +311,84 @@ public class AutoStartPlugin extends Plugin {
             it.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getContext().getPackageName());
             try { sr.startListening(it); } catch (Exception ex) { call.reject("Could not start listening."); }
         });
+    }
+
+    /* ---------- Ask with the car's play button: press twice quickly to ask; one press goes to the music as usual ---------- */
+    private MediaSession ms; private long lastPress = 0; private Runnable single;
+
+    @PluginMethod
+    public void carButton(PluginCall call) { boolean on = call.getBoolean("on", false); main.post(() -> { if (on) btnOn(); else btnOff(); }); call.resolve(); }
+
+    private void btnOn() {
+        if (ms != null) { claim(); return; }
+        ms = new MediaSession(getContext(), "RoadGuard");
+        ms.setCallback(new MediaSession.Callback() {
+            @Override public boolean onMediaButtonEvent(Intent i) {
+                KeyEvent e = i.getParcelableExtra(Intent.EXTRA_KEY_EVENT); if (e == null) return false;
+                int c = e.getKeyCode();
+                if (c != KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE && c != KeyEvent.KEYCODE_HEADSETHOOK && c != KeyEvent.KEYCODE_MEDIA_PLAY && c != KeyEvent.KEYCODE_MEDIA_PAUSE) return false;
+                if (e.getAction() == KeyEvent.ACTION_DOWN && e.getRepeatCount() == 0) press();
+                return true;
+            }
+            @Override public void onPlay() { press(); }
+            @Override public void onPause() { press(); }
+        });
+        ms.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS | MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
+        ms.setMetadata(new MediaMetadata.Builder().putString(MediaMetadata.METADATA_KEY_TITLE, "RoadGuard is on duty")
+            .putString(MediaMetadata.METADATA_KEY_ARTIST, "Press play twice to ask RoadGuard").build());
+        claim();
+    }
+
+    private void btnOff() { main.removeCallbacksAndMessages(null); single = null; if (ms != null) { try { ms.setActive(false); ms.release(); } catch (Exception e) { } ms = null; } }
+
+    /** Make RoadGuard the app that gets the play button: an active session that is "playing", plus half a second of silence. */
+    private void claim() {
+        if (ms == null) return;
+        ms.setPlaybackState(new PlaybackState.Builder().setActions(PlaybackState.ACTION_PLAY_PAUSE | PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE)
+            .setState(PlaybackState.STATE_PLAYING, 0, 1f).build());
+        ms.setActive(true);
+        if (Build.VERSION.SDK_INT >= 23) new Thread(() -> { try {
+            int sr = 8000, n = sr / 2;
+            AudioTrack t = new AudioTrack.Builder()
+                .setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build())
+                .setAudioFormat(new AudioFormat.Builder().setEncoding(AudioFormat.ENCODING_PCM_16BIT).setSampleRate(sr).setChannelMask(AudioFormat.CHANNEL_OUT_MONO).build())
+                .setBufferSizeInBytes(n * 2).setTransferMode(AudioTrack.MODE_STATIC).build();
+            t.write(new short[n], 0, n); t.play(); Thread.sleep(700); t.stop(); t.release();
+        } catch (Exception e) { } }).start();
+    }
+
+    private void press() {
+        main.post(() -> {
+            long now = SystemClock.uptimeMillis();
+            if (single != null && now - lastPress < 550) { main.removeCallbacks(single); single = null; lastPress = 0; askNow(); return; }
+            lastPress = now;
+            single = () -> { single = null; forward(); };
+            main.postDelayed(single, 550);
+        });
+    }
+
+    /** One press: hand it to the music app, then take the button back. */
+    private void forward() {
+        if (ms == null) return;
+        try {
+            ms.setActive(false);
+            android.media.AudioManager am = (android.media.AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+            long t = SystemClock.uptimeMillis();
+            am.dispatchMediaKeyEvent(new KeyEvent(t, t, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, 0));
+            am.dispatchMediaKeyEvent(new KeyEvent(t, t, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, 0));
+        } catch (Exception e) { }
+        main.postDelayed(() -> { if (ms != null) claim(); }, 1500);
+    }
+
+    /** Two presses: bring RoadGuard to the front (Android only lets a visible app use the microphone) and ask. */
+    private void askNow() {
+        boolean hidden = !visible;
+        if (hidden) { showOverLock(true); try {
+            Intent i = new Intent(getContext(), MainActivity.class);
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+            getContext().startActivity(i);
+        } catch (Exception e) { } }
+        JSObject o = new JSObject(); o.put("action", "ask"); o.put("hidden", hidden);
+        notifyListeners("carButton", o, true);
     }
 }
