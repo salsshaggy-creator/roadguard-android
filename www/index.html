@@ -569,7 +569,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.5.6. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.5.7. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1057,7 +1057,7 @@ function needDist(cur, res) {
   return lower ? posted ? 60 : 150 : 300;
 }
 function matchAt(p, hdg) {
-  const w = nearestRoad(p, hdg), L2 = fixLimit(p, limitFor(p, w)), place = nearestPlace(p), rn = w ? w.t.name || w.t.ref || null : null;
+  const w = nearestRoad(p, hdg), L2 = fixLimit(p, limitFor(p, w), w), place = nearestPlace(p), rn = w ? w.t.name || w.t.ref || null : null;
   const res = { lim: L2.lim, src: L2.src, way: w, place, rname: rn, road: rn ? place && !rn.includes(place) ? `${rn}, ${place}` : rn : place ? `near ${place}` : null };
   const step = MS.last && p.lat != null ? Math.min(hav(MS.last, p), 100) : 0;
   if (p.lat != null) MS.last = { lat: p.lat, lon: p.lon };
@@ -1113,7 +1113,7 @@ function aheadLimit(p, hdg) {
   if (hdg == null || p.spd == null || p.spd < 15) return null;
   const q = dest(p, hdg, Math.max(120, p.spd / 3.6 * 10));
   if (!tileReady(q)) return null;
-  const v = fixLimit(q, limitFor(q, nearestRoad(q, hdg))).lim;
+  const wq = nearestRoad(q, hdg), v = fixLimit(q, limitFor(q, wq), wq).lim;
   if (v === AH.v) AH.n++;
   else {
     AH.v = v;
@@ -1165,8 +1165,11 @@ async function myHz() {
   return MYHZ;
 }
 const hzLive = (h) => !!(h.v || h.n == null || h.n >= 2);
+const roadKey = (n) => String(n || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 const LIMIT_FIX_BUILTIN = [
-  // unnamed road between Sowah Bampoe Street and Anderson Street (Frafraha / Adenta): mapped 30, posted 50. Checked on the road, 12 Nov 2026
+  // whole roads, by name: used where the map has no limit of its own (RoadGuard would otherwise estimate)
+  ...["george walker bush", "george w bush", "george bush highway"].flatMap((name) => [{ name, to: 80 }, { name, from: 50, to: 80 }]),
+  // N1, Accra (Lapaz, Dzorwulu…): posted 80. Checked on the road, 15 Nov 2026 // unnamed road between Sowah Bampoe Street and Anderson Street (Frafraha / Adenta): mapped 30, posted 50. Checked on the road, 12 Nov 2026
   ...[-0.1573, -0.1561, -0.1549, -0.1537, -0.1525, -0.1513].map((lon) => ({ lat: 5.7112, lon, r: 80, from: 30, to: 50 }))
 ];
 let LIMIT_FIX = LIMIT_FIX_BUILTIN.slice(), limFixAt = 0;
@@ -1181,7 +1184,7 @@ async function loadLimitFixes() {
   try {
     await backend();
     if (B !== FBK || !B.db) return;
-    const list = (await B.db.collection("limitfix").get()).docs.map((d) => d.data()).filter((f) => typeof f.lat === "number" && typeof f.lon === "number" && typeof f.to === "number");
+    const list = (await B.db.collection("limitfix").get()).docs.map((d) => d.data()).filter((f) => typeof f.to === "number" && (typeof f.lat === "number" && typeof f.lon === "number" || typeof f.name === "string" && f.name.length >= 4));
     LIMIT_FIX = LIMIT_FIX_BUILTIN.concat(list);
     try {
       localStorage.setItem("rg_limfix", JSON.stringify({ at: Date.now(), list }));
@@ -1190,9 +1193,16 @@ async function loadLimitFixes() {
   } catch (e) {
   }
 }
-function fixLimit(p, L2) {
-  if (!L2 || L2.lim == null || !/^(Posted|Mapped)/.test(L2.src || "")) return L2;
-  for (const f of LIMIT_FIX) if (L2.lim === f.from && hav(p, f) <= (f.r || 80)) return { ...L2, lim: f.to, src: "Corrected speed limit" };
+function fixLimit(p, L2, w) {
+  if (!L2 || L2.lim == null) return L2;
+  const mapped = /^(Posted|Mapped)/.test(L2.src || "");
+  const nm = w ? roadKey(w.t.name || "") : "";
+  if (nm) {
+    for (const f of LIMIT_FIX) if (f.name && nm.includes(f.name) && (f.from == null ? !mapped : L2.lim === f.from)) return { ...L2, lim: f.to, src: "Corrected speed limit" };
+  }
+  if (mapped) {
+    for (const f of LIMIT_FIX) if (f.lat != null && L2.lim === f.from && hav(p, f) <= (f.r || 80)) return { ...L2, lim: f.to, src: "Corrected speed limit" };
+  }
   return L2;
 }
 async function reportLimit(sign) {
@@ -1757,7 +1767,7 @@ function nextLimitAhead(p, hdg) {
     if (!tileReady(q)) return { unknown: true, d };
     const w = nearestRoad(q, hdg);
     if (!w) return { end: true, d };
-    const v = fixLimit(q, limitFor(q, w)).lim;
+    const v = fixLimit(q, limitFor(q, w), w).lim;
     if (v != null && v !== now) return { lim: v, d, road: w.t.name || null };
   }
   return { same: true, d: 2500 };
@@ -1987,7 +1997,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.5.6" : "RoadGuard GH web 1.5.6", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.5.7" : "RoadGuard GH web 1.5.7", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -4883,9 +4893,12 @@ async function renderAdmin(box) {
     <details ${lrep.length ? "open" : ""} style="margin-top:14px"><summary style="cursor:pointer;font-weight:700">Wrong speed limit reports (${lrep.length}) · corrections in use (${lfix.length + LIMIT_FIX_BUILTIN.length})</summary>
       ${lrep.length ? lrep.sort((a, b) => n(b.at) - n(a.at)).map((x) => `<div class="veh" style="margin-top:8px"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>${esc(x.road || "Unnamed road")}</b><span class="small muted">${ago(x.at)}</span></div>
         <div class="small" style="margin:6px 0">RoadGuard showed <b>${x.shown || "no limit"}</b> · driver says the sign is <b style="color:var(--gold2)">${x.sign ? x.sign + " km/h" : "no sign"}</b> · <a href="https://www.openstreetmap.org/?mlat=${x.lat}&mlon=${x.lon}#map=18/${x.lat}/${x.lon}" target="_blank" rel="noopener" style="color:var(--gold2)">see on map</a></div>
-        <div class="row" style="gap:8px"><input class="lfTo num" data-id="${x.id}" type="number" value="${x.sign || 50}" style="max-width:110px"><button class="btn btn-go lfOk" data-id="${x.id}" style="font-size:15px;padding:10px">✓ Correct to this limit</button><button class="btn btn-ghost lfNo" data-id="${x.id}" style="font-size:15px;padding:10px">✕ Dismiss</button></div></div>`).join("") : '<p class="note">No reports. Drivers report from the Drive screen with “Wrong speed limit here?”.</p>'}
-      ${lfix.length ? `<div class="small muted" style="margin-top:10px">Your corrections:</div>` + lfix.map((f) => `<div class="small" style="margin-top:6px">${esc(f.road || "Unnamed road")}: ${f.from} → <b>${f.to}</b> · <a href="#" class="lfDel" data-id="${f.id}" style="color:#FCA5A5">remove</a></div>`).join("") : ""}
-      <p class="note" style="margin:8px 0 0">A correction covers about 120 m each way around the report and only replaces that exact map limit. For a longer road, approve reports from several points along it.</p></details>
+        <div class="row" style="gap:8px"><input class="lfTo num" data-id="${x.id}" type="number" value="${x.sign || 50}" style="max-width:110px"><button class="btn btn-go lfOk" data-id="${x.id}" style="font-size:15px;padding:10px">✓ Correct here</button>${roadKey(String(x.road || "").split(",")[0]).length >= 4 && !/^near /.test(x.road || "") ? `<button class="btn btn-go lfAll" data-id="${x.id}" style="font-size:15px;padding:10px">✓ Whole ${esc(String(x.road).split(",")[0])}</button>` : ""}<button class="btn btn-ghost lfNo" data-id="${x.id}" style="font-size:15px;padding:10px">✕ Dismiss</button></div></div>`).join("") : '<p class="note">No reports. Drivers report from the Drive screen with “Wrong speed limit here?”.</p>'}
+      ${lfix.length ? `<div class="small muted" style="margin-top:10px">Your corrections:</div>` + lfix.map((f) => {
+    var _a;
+    return `<div class="small" style="margin-top:6px">${esc(f.road || "Unnamed road")}${f.name ? " (whole road)" : ""}: ${(_a = f.from) != null ? _a : "estimate"} → <b>${f.to}</b> · <a href="#" class="lfDel" data-id="${f.id}" style="color:#FCA5A5">remove</a></div>`;
+  }).join("") : ""}
+      <p class="note" style="margin:8px 0 0">“Correct here” covers about 120 m each way around the report. “Whole road” sets the limit on every part of that road wherever the map has no limit of its own.</p></details>
     <details style="margin-top:14px"><summary style="cursor:pointer;font-weight:700">Move purchases to a new phone</summary>
       <p class="note">For someone who lost their recovery code: check their payment reference in Paystack first, then copy everything from the old phone ID to the new one.</p>
       <div class="row" style="gap:8px"><input id="mvOld" placeholder="Old phone ID, e.g. RG-AB12CD34" autocapitalize="characters"><input id="mvNew" placeholder="New phone ID" autocapitalize="characters"></div>
@@ -4905,6 +4918,23 @@ async function renderAdmin(box) {
     }
     try {
       await B.db.collection("limitfix").add({ lat: x.lat, lon: x.lon, r: 120, from: x.shown, to, road: x.road || "", at: Date.now() });
+      await B.db.collection("limitreports").doc(x.id).delete();
+      limFixAt = 0;
+      loadLimitFixes();
+      renderAdmin(box);
+    } catch (e) {
+      alert(e.message);
+    }
+  });
+  box.querySelectorAll(".lfAll").forEach((b) => b.onclick = async () => {
+    const x = lrep.find((r) => r.id === b.dataset.id), to = +box.querySelector(`.lfTo[data-id="${b.dataset.id}"]`).value, road = String(x && x.road || "").split(",")[0].trim();
+    if (!x || !(to >= 5 && to <= 130)) {
+      alert("Enter a limit between 5 and 130");
+      return;
+    }
+    if (!confirm(`Set ${to} km/h on the whole of ${road}, wherever the map has no limit of its own?`)) return;
+    try {
+      await B.db.collection("limitfix").add({ name: roadKey(road), to, road, at: Date.now() });
       await B.db.collection("limitreports").doc(x.id).delete();
       limFixAt = 0;
       loadLimitFixes();
@@ -6263,7 +6293,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.5.6";
+const APP_VER = "1.5.7";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);
