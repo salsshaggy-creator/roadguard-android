@@ -569,7 +569,7 @@ input,select{width:100%;padding:13px;border-radius:14px;border:1px solid var(--l
     </div>
     <div class="card">
       <h3>About this test version</h3>
-      <p class="note" style="margin:0">ROADGUARD GH field test 1.5.7. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
+      <p class="note" style="margin:0">ROADGUARD GH field test 1.5.8. Journeys are stored only on this phone. Speed limits are set automatically from your GPS position using OpenStreetMap: a posted limit where one is mapped, otherwise an estimate from Ghana's general limits (30 near schools, markets and hospitals; 50 on any local or neighbourhood road without a sign, and on main roads in built-up areas; 90 on main roads outside towns; 100 on motorways). Map data for roads you drive is saved on the phone, so repeat routes work even with weak internet. Limits can't be edited by hand.<br><br>RoadGuard records your speed with your phone's GPS. It is not a calibrated police instrument, and its reports support a contest rather than prove one.</p>
     </div>
   </section>
 </main>
@@ -1415,6 +1415,8 @@ const vScore = (v) => {
   if (/natural|neural|premium|enhanced|wavenet/i.test(nm)) s += 8;
   if (/google/i.test(nm)) s += 4;
   if (/local/i.test(nm) || v.localService) s += 2;
+  if (/female|-x-(gba|gbc|gbg|sfg|iob|iog|tpc|tpf)|smtf|samantha|karen|moira|tessa|serena|kate|susan|zira|hazel|libby|sonia|jenny|aria|fiona|victoria|allison|ava/i.test(nm)) s += 40;
+  else if (/\bmale|-x-(gbb|gbd|rjs|iol|iom|tpd)|smtm|daniel|arthur|oliver|george|ryan|guy|david|mark|james|fred|alex\b|aaron|thomas/i.test(nm)) s -= 40;
   return s;
 };
 function englishVoices(list) {
@@ -1433,7 +1435,7 @@ async function loadNativeVoices() {
     const r = await NP.TTS.getSupportedVoices();
     NVOICES = r && r.voices || [];
     const all = englishVoices(NVOICES), want = LS("rg_voice_pick", "rg");
-    NVOICE = want && all.find((v) => (v.voiceURI || v.name) === want) || all.find((v) => /en[-_]GB/i.test(v.lang || "") && !/network/i.test(v.name || "")) || all[0] || null;
+    NVOICE = want && all.find((v) => (v.voiceURI || v.name) === want) || all[0] || null;
     fillVoiceSel(all, (v) => v.voiceURI || v.name);
   } catch (e) {
   }
@@ -1442,7 +1444,7 @@ function fillVoiceSel(all, key) {
   const sel = document.getElementById("voiceSel");
   if (!sel) return;
   const want = LS("rg_voice_pick", "rg");
-  sel.innerHTML = '<option value="rg"' + (want === "rg" ? " selected" : "") + '>RoadGuard voice (recommended)</option><option value=""' + (want === "" ? " selected" : "") + ">Phone voice: best available</option>" + all.slice(0, 40).map((v, i) => `<option value="${esc(key(v))}"${key(v) === want ? " selected" : ""}>${esc(voiceLabel(v, i, all))}</option>`).join("");
+  sel.innerHTML = '<option value="rg"' + (want === "rg" ? " selected" : "") + '>RoadGuard voice (recommended)</option><option value=""' + (want === "" ? " selected" : "") + ">Phone voice: best woman’s voice</option>" + all.slice(0, 40).map((v, i) => `<option value="${esc(key(v))}"${key(v) === want ? " selected" : ""}>${esc(voiceLabel(v, i, all))}</option>`).join("");
 }
 if (!NATIVE && "speechSynthesis" in window) {
   pickVoice();
@@ -1997,7 +1999,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 function newJourney(sim) {
-  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.5.7" : "RoadGuard GH web 1.5.7", points: [], finalHash: null };
+  return { id: "J" + Date.now(), startedAt: Date.now(), endedAt: null, simulated: !!sim, device: navigator.userAgent, app: NATIVE ? "RoadGuard GH Android 1.5.8" : "RoadGuard GH web 1.5.8", points: [], finalHash: null };
 }
 function addPoint(raw) {
   var _a;
@@ -6293,7 +6295,7 @@ window.addEventListener("beforeunload", (e) => {
   } catch (e) {
   }
 })();
-const APP_VER = "1.5.7";
+const APP_VER = "1.5.8";
 const UPD_JSON = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/version.json";
 const UPD_APK = "https://raw.githubusercontent.com/salsshaggy-creator/roadguard-android/apk/RoadGuardGH.apk";
 const verNum = (v) => String(v || "0").split(".").map((n) => parseInt(n, 10) || 0);

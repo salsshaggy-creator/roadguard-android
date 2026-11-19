@@ -34,7 +34,7 @@ public class RgVoice {
 
     RgVoice(Context c) {
         ctx = c.getApplicationContext(); am = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
-        tts = new TextToSpeech(ctx, s -> { if (s == TextToSpeech.SUCCESS) { tts.setLanguage(Locale.UK); tts.setAudioAttributes(ATTR); ttsReady = true; } });
+        tts = new TextToSpeech(ctx, s -> { if (s == TextToSpeech.SUCCESS) { tts.setLanguage(Locale.UK); tts.setAudioAttributes(ATTR); pickFemale(); ttsReady = true; } });
     }
 
     private void focus(boolean on) {
@@ -97,5 +97,25 @@ public class RgVoice {
             @Override public void onError(String u) { if (id.equals(u) && my == gen) done.run(); }
         });
         Bundle b = new Bundle(); tts.speak(text, TextToSpeech.QUEUE_FLUSH, b, id);
+    }
+
+    /** Words that aren't recorded are read by the phone's own voice: pick a woman's voice so it matches RoadGuard's recorded voice. */
+    private void pickFemale() {
+        try {
+            java.util.Set<android.speech.tts.Voice> vs = tts.getVoices(); if (vs == null) return;
+            android.speech.tts.Voice best = null; int bestScore = -1;
+            java.util.regex.Pattern fem = java.util.regex.Pattern.compile("(-x-(gba|gbc|gbg|sfg|iob|iog|tpc|tpf|cxx)|smtf|female|#female)", java.util.regex.Pattern.CASE_INSENSITIVE);
+            java.util.regex.Pattern male = java.util.regex.Pattern.compile("(-x-(gbb|gbd|rjs|iol|iom|tpd)|smtm|#male|\\bmale)", java.util.regex.Pattern.CASE_INSENSITIVE);
+            for (android.speech.tts.Voice v : vs) {
+                Locale l = v.getLocale(); if (l == null || !"en".equals(l.getLanguage())) continue;
+                String n = v.getName(); int sc = 0;
+                if ("GB".equals(l.getCountry())) sc += 30; else if ("US".equals(l.getCountry())) sc += 20; else sc += 10;
+                if (fem.matcher(n).find()) sc += 50; else if (male.matcher(n).find()) sc -= 50;
+                if (!v.isNetworkConnectionRequired()) sc += 5;
+                if (v.getFeatures() != null && v.getFeatures().contains("notInstalled")) sc -= 40;
+                if (sc > bestScore) { bestScore = sc; best = v; }
+            }
+            if (best != null && bestScore >= 40) tts.setVoice(best);
+        } catch (Exception e) { }
     }
 }
